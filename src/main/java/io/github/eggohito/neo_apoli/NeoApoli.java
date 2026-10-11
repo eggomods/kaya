@@ -4,6 +4,7 @@ import io.github.eggohito.neo_apoli.action.manager.ActionManager;
 import io.github.eggohito.neo_apoli.command.ActionCommand;
 import io.github.eggohito.neo_apoli.command.ConditionCommand;
 import io.github.eggohito.neo_apoli.command.PowerCommand;
+import io.github.eggohito.neo_apoli.command.ResourceCommand;
 import io.github.eggohito.neo_apoli.condition.manager.ConditionManager;
 import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
 import io.github.eggohito.neo_apoli.duck.internal.CommandStorageHolder;
@@ -84,6 +85,9 @@ public class NeoApoli implements ModInitializer {
 
 			ConditionCommand.register(buildContext, rootNode);
 			ConditionCommand.register(buildContext, baseNode);
+
+			ResourceCommand.register(rootNode);
+			ResourceCommand.register(baseNode);
 
 			rootNode.addChild(baseNode);
 
