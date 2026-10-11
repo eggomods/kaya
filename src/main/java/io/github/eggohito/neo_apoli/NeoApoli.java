@@ -100,6 +100,7 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliBooleanProviderTypes.registerAll();
 		NeoApoliBoxProviderTypes.registerAll();
 		NeoApoliCommandSourceProviderTypes.registerAll();
+		NeoApoliDamageSourceProviderTypes.registerAll();
 		NeoApoliDirectionProviderTypes.registerAll();
 		NeoApoliEffectProviderTypes.registerAll();
 		NeoApoliEntityProviderTypes.registerAll();
