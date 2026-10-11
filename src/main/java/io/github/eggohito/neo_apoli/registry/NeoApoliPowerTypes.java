@@ -135,10 +135,24 @@ public final class NeoApoliPowerTypes {
 		UnaryOperator.identity()
 	);
 
+	public static final Power.Type<FloatResourcePower> RESOURCE_FLOAT = registerInternal(
+		"resource/float",
+		FloatResourcePower.CODEC,
+		FloatResourcePower.STREAM_CODEC,
+		UnaryOperator.identity()
+	);
+
 	public static final Power.Type<HudRenderPower> HUD_RENDER = registerInternal(
 		"hud_render",
 		HudRenderPower.CODEC,
 		HudRenderPower.STREAM_CODEC,
+		UnaryOperator.identity()
+	);
+
+	public static final Power.Type<IntResourcePower> RESOURCE_INT = registerInternal(
+		"resource/int",
+		IntResourcePower.CODEC,
+		IntResourcePower.STREAM_CODEC,
 		UnaryOperator.identity()
 	);
 
