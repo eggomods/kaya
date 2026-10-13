@@ -11,7 +11,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
-import io.github.eggohito.neo_apoli.duck.internal.RespawningEntity;
+import io.github.eggohito.neo_apoli.mixin.access.EntityAccessor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
@@ -117,6 +117,16 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 
 	}
 
+	private void invokeCallback(PowerIdentifier id, Consumer<Power.Instance<?>> callback) {
+
+		Power.Instance<?> instance = this.instances().get(id);
+
+		if (instance != null) {
+			callback.accept(instance);
+		}
+
+	}
+
 	public static void onChanged(@NotNull Entity holder, @Nullable PowersAttachment oldValue, @Nullable PowersAttachment newValue) {
 
 		//  If there is no new value and an old value, it means the attachment was removed
@@ -132,9 +142,9 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 		//  If there is no old value and a new value, it means the attachment was initialized
 		else if (oldValue == null && newValue != null) {
 
-			//  If the player is in the process of respawning (either from death or teleporting from The End to
-			//  the Overworld), skip invoking the grant/added power callbacks
-			if (((RespawningEntity) holder).neo_apoli$isRespawning()) {
+			//  Skip invoking the granted/added callbacks if it's the entity's first tick
+			//  (which is the case if the entity is newly spawned)
+			if (((EntityAccessor) holder).isFirstTick()) {
 				return;
 			}
 
@@ -149,35 +159,20 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 		else if (oldValue != null) {
 
 			//  Get the difference between the old and new attachments (for initial callbacks)
-			Set<Map.Entry<PowerIdentifier, Power.Instance<?>>> revoked = Sets.difference(oldValue.instances().entrySet(), newValue.instances().entrySet());
-			Set<Map.Entry<PowerIdentifier, Power.Instance<?>>> granted = Sets.difference(newValue.instances().entrySet(), oldValue.instances().entrySet());
+			Set<PowerIdentifier> revoked = Sets.difference(oldValue.instances().keySet(), newValue.instances().keySet());
+			Set<PowerIdentifier> granted = Sets.difference(newValue.instances().keySet(), oldValue.instances().keySet());
 
 			//  Iterate through all the powers that has been revoked/granted
-			revoked.forEach(entry -> entry.getValue().onRevoked(holder));
-			granted.forEach(entry -> entry.getValue().onGranted(holder));
+			revoked.forEach(id -> oldValue.invokeCallback(id, instance -> instance.onRevoked(holder)));
+			granted.forEach(id -> newValue.invokeCallback(id, instance -> instance.onGranted(holder)));
 
 			//  Get the difference between the sources of the old and new attachments (for recurring callbacks)
 			Set<Map.Entry<PowerIdentifier, ResourceLocation>> removed = Sets.difference(oldValue.sources().entries(), newValue.sources().entries());
 			Set<Map.Entry<PowerIdentifier, ResourceLocation>> added = Sets.difference(newValue.sources().entries(), oldValue.sources().entries());
 
 			//  Iterate through all the powers that has been removed/added
-			oldValue.invokeSourceCallback(removed, instance -> instance.onRemoved(holder));
-			newValue.invokeSourceCallback(added, instance -> instance.onAdded(holder));
-
-		}
-
-	}
-
-	private void invokeSourceCallback(Set<Map.Entry<PowerIdentifier, ResourceLocation>> idsAndSources, Consumer<Power.Instance<?>> callback) {
-
-		for (var entry : idsAndSources) {
-
-			var id = entry.getKey();
-			Power.Instance<?> instance = this.instances().get(id);
-
-			if (instance != null) {
-				callback.accept(instance);
-			}
+			removed.forEach(entry -> oldValue.invokeCallback(entry.getKey(), instance -> instance.onRemoved(holder)));
+			added.forEach(entry -> newValue.invokeCallback(entry.getKey(), instance -> instance.onAdded(holder)));
 
 		}
 

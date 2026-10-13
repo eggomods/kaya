@@ -9,7 +9,6 @@ import io.github.eggohito.neo_apoli.condition.manager.ConditionManager;
 import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
 import io.github.eggohito.neo_apoli.duck.internal.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.duck.internal.PowerRecipeDisplayHolder;
-import io.github.eggohito.neo_apoli.duck.internal.RespawningEntity;
 import io.github.eggohito.neo_apoli.integration.CommonConfigIntegrations;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
 import io.github.eggohito.neo_apoli.key.manager.KeyStateManager;
@@ -30,7 +29,6 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -154,9 +152,6 @@ public class NeoApoli implements ModInitializer {
 			CACHED_LOGS.clear();
 			server.getPlayerList().getPlayers().forEach(player -> ServerPlayNetworking.send(player, ClientboundClearCachedLogsPacket.INSTANCE));
 		});
-
-		ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> ((RespawningEntity) newPlayer).neo_apoli$setRespawning(!alive));
-		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> ((RespawningEntity) newPlayer).neo_apoli$setRespawning(false));
 
 	}
 

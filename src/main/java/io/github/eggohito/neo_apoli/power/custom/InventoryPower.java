@@ -105,8 +105,13 @@ public record InventoryPower(Optional<Condition> activeCondition, Component titl
 
 		@Override
 		public void onTick(Entity holder) {
-			this.syncData(holder);
+
+			if (!holder.level().isClientSide()) {
+				this.syncData(holder);
+			}
+
 			changed.setFalse();
+
 		}
 
 		@Override
@@ -125,7 +130,7 @@ public record InventoryPower(Optional<Condition> activeCondition, Component titl
 			}
 
 			DataResult<List<StackInContainer>> itemsResult = StackInContainer.LIST_CODEC.parse(ops, itemsInput);
-			identity = identity.apply2stable((unit, items) -> unit, itemsResult);
+			identity = identity.apply2stable((unit, ignoredItems) -> unit, itemsResult);
 
 			if (!itemsResult.hasResultOrPartial()) {
 				return identity;
