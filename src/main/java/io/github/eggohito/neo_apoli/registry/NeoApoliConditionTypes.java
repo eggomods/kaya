@@ -22,6 +22,7 @@ public final class NeoApoliConditionTypes {
 	public static final Condition.Type<ReferenceCondition> REFERENCE = registerInternal("reference", ReferenceCondition.CODEC, ReferenceCondition.STREAM_CODEC);
 
 	public static final Condition.Type<BlockStatePropertyCondition> BLOCK_STATE_PROPERTY = registerInternal("block_state_property", BlockStatePropertyCondition.CODEC, BlockStatePropertyCondition.STREAM_CODEC);
+	public static final Condition.Type<CheckPrecipitationCondition> CHECK_PRECIPITATION = registerInternal("check_precipitation", CheckPrecipitationCondition.CODEC, CheckPrecipitationCondition.STREAM_CODEC);
 	public static final Condition.Type<EntityHasActivePowerCondition> ENTITY_HAS_ACTIVE_POWER = registerInternal("entity_has_active_power", EntityHasActivePowerCondition.CODEC, EntityHasActivePowerCondition.STREAM_CODEC);
 	public static final Condition.Type<EntityHasCorrectToolForBlockCondition> ENTITY_HAS_CORRECT_TOOL_FOR_BLOCK = registerInternal("entity_has_correct_tool_for_block", EntityHasCorrectToolForBlockCondition.CODEC, EntityHasCorrectToolForBlockCondition.STREAM_CODEC);
 	public static final Condition.Type<EntityHasItemEquippedCondition> ENTITY_HAS_ITEM_EQUIPPED = registerInternal("entity_has_item_equipped", EntityHasItemEquippedCondition.CODEC, EntityHasItemEquippedCondition.STREAM_CODEC);
@@ -46,7 +47,6 @@ public final class NeoApoliConditionTypes {
 	public static final Condition.Type<IsEntitySneakingCondition> IS_ENTITY_SNEAKING = registerInternal("is_entity_sneaking", IsEntitySneakingCondition.CODEC, IsEntitySneakingCondition.STREAM_CODEC);
 	public static final Condition.Type<IsEntitySprintingCondition> IS_ENTITY_SPRINTING = registerInternal("is_entity_sprinting", IsEntitySprintingCondition.CODEC, IsEntitySprintingCondition.STREAM_CODEC);
 	public static final Condition.Type<IsEntitySteppingOnBlockCondition> IS_ENTITY_STEPPING_ON_BLOCK = registerInternal("is_entity_stepping_on_block", IsEntitySteppingOnBlockCondition.CODEC, IsEntitySteppingOnBlockCondition.STREAM_CODEC);
-	public static final Condition.Type<IsExposedToPrecipitationCondition> IS_EXPOSED_TO_PRECIPITATION = registerInternal("is_exposed_to_precipitation", IsExposedToPrecipitationCondition.CODEC, IsExposedToPrecipitationCondition.STREAM_CODEC);
 	public static final Condition.Type<IsExposedToSkyCondition> IS_EXPOSED_TO_SKY = registerInternal("is_exposed_to_sky", IsExposedToSkyCondition.CODEC, IsExposedToSkyCondition.STREAM_CODEC);
 	public static final Condition.Type<ItemMatchesIngredientCondition> ITEM_MATCHES_INGREDIENT = registerInternal("item_matches_ingredient", ItemMatchesIngredientCondition.CODEC, ItemMatchesIngredientCondition.STREAM_CODEC);
 	public static final Condition.Type<ItemMatchesPredicateCondition> ITEM_MATCHES_PREDICATE = registerInternal("item_matches_predicate", ItemMatchesPredicateCondition.CODEC, ItemMatchesPredicateCondition.STREAM_CODEC);

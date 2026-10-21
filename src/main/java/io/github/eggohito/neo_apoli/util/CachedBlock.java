@@ -12,18 +12,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
+@SuppressWarnings("deprecation")
 public record CachedBlock(BlockPos pos, BlockState state, @Nullable BlockEntity entity) {
 
 	public static Optional<CachedBlock> optionallyFromLoadedPos(Level level, BlockPos pos) {
-
-		try {
-			return Optional.of(fromLoadedPos(level, pos));
-		}
-
-		catch (PosUnloadedException | PosOutOfBoundsException ignored) {
-			return Optional.empty();
-		}
-
+		return Optional.of(pos)
+			.filter(_pos -> validate(level, _pos))
+			.map(_pos -> new CachedBlock(level, _pos));
 	}
 
 	@SuppressWarnings("ConstantValue")
@@ -44,13 +39,18 @@ public record CachedBlock(BlockPos pos, BlockState state, @Nullable BlockEntity 
 		}
 
 		else {
-			return fromPos(level, pos);
+			return new CachedBlock(level, pos);
 		}
 
 	}
 
-	public static CachedBlock fromPos(Level level, BlockPos pos) {
-		return new CachedBlock(pos, level.getBlockState(pos), level.getBlockEntity(pos));
+	public static boolean validate(Level level, BlockPos pos) {
+		return level.hasChunkAt(pos)
+			&& level.isInWorldBounds(pos);
+	}
+
+	public CachedBlock(Level level, BlockPos pos) {
+		this(pos, level.getBlockState(pos), level.getBlockEntity(pos));
 	}
 
 }
