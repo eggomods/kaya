@@ -51,6 +51,7 @@ public final class NeoApoliConditionTypes {
 	public static final Condition.Type<ItemMatchesIngredientCondition> ITEM_MATCHES_INGREDIENT = registerInternal("item_matches_ingredient", ItemMatchesIngredientCondition.CODEC, ItemMatchesIngredientCondition.STREAM_CODEC);
 	public static final Condition.Type<ItemMatchesPredicateCondition> ITEM_MATCHES_PREDICATE = registerInternal("item_matches_predicate", ItemMatchesPredicateCondition.CODEC, ItemMatchesPredicateCondition.STREAM_CODEC);
 	public static final Condition.Type<MatchesBlockPatternCondition> MATCHES_BLOCK_PATTERN = registerInternal("matches_block_pattern", MatchesBlockPatternCondition.CODEC, MatchesBlockPatternCondition.STREAM_CODEC);
+	public static final Condition.Type<ProvideContextCondition> PROVIDE_CONTEXT = registerInternal("provide_context", ProvideContextCondition.CODEC, ProvideContextCondition.STREAM_CODEC);
 
 	public static void registerAll() {
 
