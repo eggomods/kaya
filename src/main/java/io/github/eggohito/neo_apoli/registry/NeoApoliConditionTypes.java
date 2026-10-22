@@ -48,6 +48,7 @@ public final class NeoApoliConditionTypes {
 	public static final Condition.Type<IsEntitySprintingCondition> IS_ENTITY_SPRINTING = registerInternal("is_entity_sprinting", IsEntitySprintingCondition.CODEC, IsEntitySprintingCondition.STREAM_CODEC);
 	public static final Condition.Type<IsEntitySteppingOnBlockCondition> IS_ENTITY_STEPPING_ON_BLOCK = registerInternal("is_entity_stepping_on_block", IsEntitySteppingOnBlockCondition.CODEC, IsEntitySteppingOnBlockCondition.STREAM_CODEC);
 	public static final Condition.Type<IsExposedToSkyCondition> IS_EXPOSED_TO_SKY = registerInternal("is_exposed_to_sky", IsExposedToSkyCondition.CODEC, IsExposedToSkyCondition.STREAM_CODEC);
+	public static final Condition.Type<IsSkyVisibleCondition> IS_SKY_VISIBLE = registerInternal("is_sky_visible", IsSkyVisibleCondition.CODEC, IsSkyVisibleCondition.STREAM_CODEC);
 	public static final Condition.Type<ItemMatchesIngredientCondition> ITEM_MATCHES_INGREDIENT = registerInternal("item_matches_ingredient", ItemMatchesIngredientCondition.CODEC, ItemMatchesIngredientCondition.STREAM_CODEC);
 	public static final Condition.Type<ItemMatchesPredicateCondition> ITEM_MATCHES_PREDICATE = registerInternal("item_matches_predicate", ItemMatchesPredicateCondition.CODEC, ItemMatchesPredicateCondition.STREAM_CODEC);
 	public static final Condition.Type<MatchesBlockPatternCondition> MATCHES_BLOCK_PATTERN = registerInternal("matches_block_pattern", MatchesBlockPatternCondition.CODEC, MatchesBlockPatternCondition.STREAM_CODEC);
