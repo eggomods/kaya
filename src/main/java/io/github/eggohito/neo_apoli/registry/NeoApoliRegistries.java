@@ -9,6 +9,7 @@ import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
 import io.github.eggohito.neo_apoli.hud.element.HudElement;
 import io.github.eggohito.neo_apoli.modifier.Modifier;
 import io.github.eggohito.neo_apoli.power.Power;
+import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.provider.custom.block.BlockProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.box.BoxProvider;
@@ -58,6 +59,7 @@ public final class NeoApoliRegistries {
 	public static final Registry<HudElement.Type<?>> HUD_ELEMENT_TYPE = create(NeoApoliRegistryKeys.HUD_ELEMENT_TYPE);
 
 	public static final Registry<ContextParameter.Type<?>> CONTEXT_PARAMETER_TYPE = create(NeoApoliRegistryKeys.CONTEXT_PARAMETER_TYPE);
+	public static final Registry<ValueProvider.Kind<?>> VALUE_PROVIDER_KIND = create(NeoApoliRegistryKeys.VALUE_PROVIDER_KIND);
 
 	private static <T> Registry<T> create(ResourceKey<Registry<T>> key) {
 		return FabricRegistryBuilder.createSimple(key)

@@ -20,7 +20,8 @@ import io.github.eggohito.neo_apoli.registry.*;
 import io.github.eggohito.neo_apoli.registry.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParameterTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParameters;
-import io.github.eggohito.neo_apoli.registry.provider.*;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliValueProviderKinds;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliValueProviderTypes;
 import io.github.eggohito.neo_apoli.registry.recipe.NeoApoliRecipeBookCategories;
 import io.github.eggohito.neo_apoli.registry.recipe.NeoApoliRecipeSerializers;
 import io.github.eggohito.neo_apoli.tag.manager.NestedTagManager;
@@ -90,21 +91,10 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliPackets.registerAll();
 		NeoApoliServerboundPacketListener.init();
 
-		NeoApoliBlockProviderTypes.registerAll();
-		NeoApoliBooleanProviderTypes.registerAll();
-		NeoApoliBoxProviderTypes.registerAll();
-		NeoApoliCommandSourceProviderTypes.registerAll();
-		NeoApoliDamageSourceProviderTypes.registerAll();
-		NeoApoliDirectionProviderTypes.registerAll();
-		NeoApoliEffectProviderTypes.registerAll();
-		NeoApoliEntityProviderTypes.registerAll();
-		NeoApoliFloatProviderTypes.registerAll();
-		NeoApoliIntProviderTypes.registerAll();
-		NeoApoliItemProviderTypes.registerAll();
-		NeoApoliNbtProviderTypes.registerAll();
-		NeoApoliSlotProviderTypes.registerAll();
-		NeoApoliStringProviderTypes.registerAll();
-		NeoApoliVec3ProviderTypes.registerAll();
+		NeoApoliContextParameterTypes.registerAll();
+
+		NeoApoliValueProviderKinds.registerAll();
+		NeoApoliValueProviderTypes.registerAll();
 
 		NeoApoliArguments.registerAll();
 		NeoApoliComponentContents.registerAll();
@@ -134,8 +124,6 @@ public class NeoApoli implements ModInitializer {
 		PowerManager.getInstance().init();
 
 		PowerIntegrations.init();
-
-		NeoApoliContextParameterTypes.registerAll();
 		NeoApoliContextParameters.registerAll();
 
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> NeoApoli.server = server);

@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliValueProviderKinds;
 import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -22,6 +23,11 @@ public interface DirectionProvider extends ValueProvider<Direction> {
 
 	@Override
 	DirectionProvider.@NotNull Type<?> getType();
+
+	@Override
+	default @NotNull Kind<?> getKind() {
+		return NeoApoliValueProviderKinds.DIRECTION;
+	}
 
 	record Type<P extends DirectionProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
 

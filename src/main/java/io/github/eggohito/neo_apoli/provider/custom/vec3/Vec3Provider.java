@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliValueProviderKinds;
 import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -22,6 +23,11 @@ public interface Vec3Provider extends ValueProvider<Vec3> {
 
 	@NotNull
 	Vec3Provider.Type<?> getType();
+
+	@Override
+	default @NotNull Kind<?> getKind() {
+		return NeoApoliValueProviderKinds.VEC3;
+	}
 
 	record Type<P extends Vec3Provider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
 
