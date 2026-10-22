@@ -16,7 +16,7 @@ import java.util.Optional;
 public record ThunderLevelFloatProvider(FloatProvider delta) implements FloatProvider {
 
 	public static final MapCodec<ThunderLevelFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(FloatProvider.clamped(0.0F, 1.0F).fieldOf("delta").forGetter(ThunderLevelFloatProvider::delta))
+		.group(FloatProvider.clamped(0.0F, 1.0F).optionalFieldOf("delta", new ConstantFloatProvider(1.0F)).forGetter(ThunderLevelFloatProvider::delta))
 		.apply(instance, ThunderLevelFloatProvider::new)
 	);
 

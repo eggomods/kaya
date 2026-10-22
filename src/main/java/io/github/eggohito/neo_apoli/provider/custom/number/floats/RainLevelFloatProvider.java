@@ -16,7 +16,7 @@ import java.util.Optional;
 public record RainLevelFloatProvider(FloatProvider delta) implements FloatProvider {
 
 	public static final MapCodec<RainLevelFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(FloatProvider.clamped(0.0F, 1.0F).fieldOf("delta").forGetter(RainLevelFloatProvider::delta))
+		.group(FloatProvider.clamped(0.0F, 1.0F).optionalFieldOf("delta", new ConstantFloatProvider(1.0F)).forGetter(RainLevelFloatProvider::delta))
 		.apply(instance, RainLevelFloatProvider::new)
 	);
 
