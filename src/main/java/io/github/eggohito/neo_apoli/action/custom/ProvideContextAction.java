@@ -7,23 +7,21 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextParameterMap;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
 public record ProvideContextAction(Action action, ContextParameterMap parameters) implements Action {
 
-	public static final MapCodec<ProvideContextAction> CODEC = MapCodecUtil.lazy(ProvideContextAction.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<ProvideContextAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Action.CODEC.fieldOf("action").forGetter(ProvideContextAction::action),
 		ContextParameterMap.CODEC.fieldOf("parameters").forGetter(ProvideContextAction::parameters)
-	).apply(instance, ProvideContextAction::new)));
+	).apply(instance, ProvideContextAction::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ProvideContextAction> STREAM_CODEC = StreamCodecUtil.lazy(ProvideContextAction.class.getSimpleName(), () -> StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, ProvideContextAction> STREAM_CODEC = StreamCodec.composite(
 		Action.STREAM_CODEC, ProvideContextAction::action,
 		ContextParameterMap.STREAM_CODEC, ProvideContextAction::parameters,
 		ProvideContextAction::new
-	));
+	);
 
 	@Override
 	public Type<?> getType() {
@@ -40,13 +38,9 @@ public record ProvideContextAction(Action action, ContextParameterMap parameters
 
 	@Override
 	public void validate(ContextValidator validator) {
-
 		Action.super.validate(validator);
-		ContextValidator.Parameters actionParameters = parameters().forValidation();
-
-		action().validate(validator.withParams(actionParameters).forChild(".action"));
+		action().validate(validator.withParams(parameters().forValidation()).forChild(".action"));
 		parameters().validate(validator.forChild(".parameters"));
-
 	}
 
 }
