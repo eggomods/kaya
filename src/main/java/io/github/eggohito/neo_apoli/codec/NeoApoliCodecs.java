@@ -6,6 +6,7 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.command.argument.PowerArgument;
 import io.github.eggohito.neo_apoli.mixin.access.BlockInputAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.TagParserAccessor;
@@ -56,6 +57,8 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class NeoApoliCodecs {
+
+	public static final Codec<ResourceLocation> MOD_NAMESPACE_IDENTIFIER = ResourceLocationUtil.codecWithDefaultNamespace(NeoApoli.MOD_NAMESPACE);
 
 	public static final Codec<Set<ResourceLocation>> IDENTIFIER_SET = ResourceLocation.CODEC.listOf().xmap(Set::copyOf, List::copyOf);
 

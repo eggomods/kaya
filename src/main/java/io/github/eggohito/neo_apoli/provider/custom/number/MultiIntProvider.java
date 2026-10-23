@@ -39,38 +39,20 @@ public interface MultiIntProvider extends IntProvider {
 			(index, provider) -> {
 
 				Context valueContext = context.forChild(".values[" + index + "]");
-				var visitor = valueContext.visitor();
+				int value = provider.getInt(valueContext);
 
-				try {
+				if (!valueContext.hasProblems()) {
 
-					if (visitor.push(provider)) {
-
-						int value = provider.getInt(valueContext);
-
-						if (!valueContext.hasProblems()) {
-
-							if (init.isTrue()) {
-								result.setValue(processor.apply(result.intValue(), value));
-							}
-
-							else {
-								result.setValue(value);
-							}
-
-							init.setTrue();
-
-						}
-
+					if (init.isTrue()) {
+						result.setValue(processor.apply(result.intValue(), value));
 					}
 
 					else {
-						valueContext.reportProblem("Int provider was invoked recursively!");
+						result.setValue(value);
 					}
 
-				}
+					init.setTrue();
 
-				finally {
-					visitor.pop(provider);
 				}
 
 			}

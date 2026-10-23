@@ -42,16 +42,12 @@ public record EntityAttributeFloatProvider(Holder<Attribute> attribute, EntityPr
 		Entity entity = entity().getValue(entityContext).orElse(null);
 
 		switch (entity) {
-			case LivingEntity livingEntity when context.visitor().push(this) -> {
+			case LivingEntity livingEntity -> {
 
 				if (livingEntity.getAttributes().hasAttribute(attribute())) {
 					return Optional.of((float) livingEntity.getAttributeValue(attribute()));
 				}
 
-			}
-
-			case LivingEntity ignored -> {
-				//  No-op because this provider was recursively invoked
 			}
 			case null ->
 				entityContext.reportProblem("Entity doesn't exist!");

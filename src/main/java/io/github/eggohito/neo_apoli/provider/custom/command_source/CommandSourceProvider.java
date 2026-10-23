@@ -6,6 +6,7 @@ import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliValueProviderKinds;
 import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -21,6 +22,11 @@ public interface CommandSourceProvider extends ValueProvider<CommandSourceStack>
 
 	@Override
 	CommandSourceProvider.@NotNull Type<?> getType();
+
+	@Override
+	default @NotNull Kind<?> getKind() {
+		return NeoApoliValueProviderKinds.COMMAND_SOURCE;
+	}
 
 	interface Type<P extends CommandSourceProvider> extends ValueProvider.Type<P> {
 

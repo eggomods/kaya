@@ -7,7 +7,6 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionHolder;
 import io.github.eggohito.neo_apoli.action.manager.ActionManager;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.ContextParameterMap;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
@@ -16,16 +15,15 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 
-public record ReferenceAction(ResourceLocation value, ContextParameterMap parameters) implements Action {
+public record ReferenceAction(ResourceLocation value) implements Action {
 
-	public static final MapCodec<ReferenceAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		ResourceLocation.CODEC.fieldOf("value").forGetter(ReferenceAction::value),
-		ContextParameterMap.CODEC.optionalFieldOf("parameters", ContextParameterMap.EMPTY).forGetter(ReferenceAction::parameters)
-	).apply(instance, ReferenceAction::new));
+	public static final MapCodec<ReferenceAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(ResourceLocation.CODEC.fieldOf("value").forGetter(ReferenceAction::value))
+		.apply(instance, ReferenceAction::new)
+	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceAction> STREAM_CODEC = StreamCodec.composite(
 		ResourceLocation.STREAM_CODEC, ReferenceAction::value,
-		ContextParameterMap.STREAM_CODEC, ReferenceAction::parameters,
 		ReferenceAction::new
 	);
 
@@ -47,9 +45,7 @@ public record ReferenceAction(ResourceLocation value, ContextParameterMap parame
 		try {
 
 			if (visitor.push(action)) {
-				action.execute(parameters()
-					.forUser(context, ctx -> ctx.forChild(".parameters"))
-					.forChild(".{\"" + this.value() + "\"}"));
+				action.execute(context.forChild(".{\"" + this.value() + "\"}"));
 			}
 
 			else {
@@ -68,7 +64,6 @@ public record ReferenceAction(ResourceLocation value, ContextParameterMap parame
 	public void validate(ContextValidator validator) {
 
 		Action.super.validate(validator);
-		ContextValidator.Parameters actionParameters = parameters().forValidation();
 
 		ResourceKey<Action> actionKey = ResourceKey.create(NeoApoliRegistryKeys.ACTION, this.value());
 		ContextValidator valueValidator = validator.forChild(".value");
@@ -79,13 +74,12 @@ public record ReferenceAction(ResourceLocation value, ContextParameterMap parame
 
 		else {
 
-			parameters().validate(validator.forChild(".parameters"));
 			DataResult<Action> actionResult = ActionManager.getInstance()
 				.getAsResult(this.value())
 				.map(ActionHolder::value);
 
 			actionResult
-				.ifSuccess(action -> action.validate(validator.withParams(actionParameters).visitChild(".{\"" + actionKey.location() + "\"}", actionKey)))
+				.ifSuccess(action -> action.validate(validator.visitChild(".{\"" + actionKey.location() + "\"}", actionKey)))
 				.ifError(error -> valueValidator.reportProblem(error.message()));
 
 		}

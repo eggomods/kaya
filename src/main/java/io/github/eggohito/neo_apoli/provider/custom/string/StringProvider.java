@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliValueProviderKinds;
 import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -21,6 +22,11 @@ public interface StringProvider extends ValueProvider<String> {
 
 	@NotNull
 	StringProvider.Type<?> getType();
+
+	@Override
+	default @NotNull Kind<?> getKind() {
+		return NeoApoliValueProviderKinds.STRING;
+	}
 
 	record Type<P extends StringProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
 

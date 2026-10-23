@@ -5,7 +5,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.condition.manager.ConditionManager;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.ContextParameterMap;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.registry.NeoApoliConditionTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
@@ -14,16 +13,15 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 
-public record ReferenceCondition(ResourceLocation value, ContextParameterMap parameters) implements Condition {
+public record ReferenceCondition(ResourceLocation value) implements Condition {
 
-	public static final MapCodec<ReferenceCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		ResourceLocation.CODEC.fieldOf("value").forGetter(ReferenceCondition::value),
-		ContextParameterMap.CODEC.optionalFieldOf("parameters", ContextParameterMap.EMPTY).forGetter(ReferenceCondition::parameters)
-	).apply(instance, ReferenceCondition::new));
+	public static final MapCodec<ReferenceCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(ResourceLocation.CODEC.fieldOf("value").forGetter(ReferenceCondition::value))
+		.apply(instance, ReferenceCondition::new)
+	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReferenceCondition> STREAM_CODEC = StreamCodec.composite(
 		ResourceLocation.STREAM_CODEC, ReferenceCondition::value,
-		ContextParameterMap.STREAM_CODEC, ReferenceCondition::parameters,
 		ReferenceCondition::new
 	);
 
@@ -40,9 +38,7 @@ public record ReferenceCondition(ResourceLocation value, ContextParameterMap par
 				try {
 
 					if (context.visitor().push(condition)) {
-						return condition.test(parameters()
-							.forUser(context, ctx -> ctx.forChild(".parameters"))
-							.forChild(".{\"" + this.value() + "\"}"));
+						return condition.test(context.forChild(".{\"" + this.value() + "\"}"));
 					}
 
 					else {
@@ -66,7 +62,6 @@ public record ReferenceCondition(ResourceLocation value, ContextParameterMap par
 	public void validate(ContextValidator validator) {
 
 		Condition.super.validate(validator);
-		ContextValidator.Parameters conditionParameters = parameters().forValidation();
 
 		ResourceKey<Condition> valueKey = ResourceKey.create(NeoApoliRegistryKeys.CONDITION, this.value());
 		ContextValidator valueValidator = validator.forChild(".value");
@@ -76,9 +71,8 @@ public record ReferenceCondition(ResourceLocation value, ContextParameterMap par
 		}
 
 		else {
-			parameters().validate(validator.forChild(".parameters"));
 			ConditionManager.getInstance().getAsResult(this.value())
-				.ifSuccess(condition -> condition.validate(validator.withParams(conditionParameters).visitChild(".{\"" + valueKey.location() + "\"}", valueKey)))
+				.ifSuccess(condition -> condition.validate(validator.visitChild(".{\"" + valueKey.location() + "\"}", valueKey)))
 				.ifError(error -> valueValidator.reportProblem(error.message()));
 		}
 
