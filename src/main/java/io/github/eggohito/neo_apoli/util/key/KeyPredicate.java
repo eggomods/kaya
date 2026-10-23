@@ -12,16 +12,27 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record KeyPredicate(StringProvider id, TimingWindow timingWindow) implements ContextValidatable {
 
-	public static final Codec<KeyPredicate> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+	public static final Codec<KeyPredicate> DIRECT_CODEC = RecordCodecBuilder.create(instance -> instance.group(
 		StringProvider.CODEC.fieldOf("id").forGetter(KeyPredicate::id),
-		TimingWindow.CODEC.optionalFieldOf("timing_window", new TimingWindow(3, 3)).forGetter(KeyPredicate::timingWindow)
+		TimingWindow.CODEC.optionalFieldOf("timing_window", TimingWindow.DEFAULT).forGetter(KeyPredicate::timingWindow)
 	).apply(instance, KeyPredicate::new));
+
+	public static final Codec<KeyPredicate> INLINE_CODEC = StringProvider.CODEC.xmap(
+		KeyPredicate::new,
+		KeyPredicate::id
+	);
+
+	public static final Codec<KeyPredicate> CODEC = Codec.withAlternative(DIRECT_CODEC, INLINE_CODEC);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, KeyPredicate> STREAM_CODEC = StreamCodec.composite(
 		StringProvider.STREAM_CODEC, KeyPredicate::id,
 		TimingWindow.STREAM_CODEC, KeyPredicate::timingWindow,
 		KeyPredicate::new
 	);
+
+	public KeyPredicate(StringProvider id) {
+		this(id, TimingWindow.DEFAULT);
+	}
 
 	@Override
 	public void validate(ContextValidator validator) {
@@ -30,6 +41,8 @@ public record KeyPredicate(StringProvider id, TimingWindow timingWindow) impleme
 	}
 
 	public record TimingWindow(IntProvider min, IntProvider max) implements ContextValidatable {
+
+		public static final TimingWindow DEFAULT = new TimingWindow(3, 3);
 
 		public static final Codec<TimingWindow> CODEC = RecordCodecBuilder.create(instance -> instance.group(
 			IntProvider.CODEC.fieldOf("min").forGetter(TimingWindow::min),
