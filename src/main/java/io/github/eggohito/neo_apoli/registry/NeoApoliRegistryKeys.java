@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.hud.element.HudElement;
 import io.github.eggohito.neo_apoli.modifier.Modifier;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.global.GlobalPowerSet;
+import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.provider.custom.block.BlockProvider;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
 import io.github.eggohito.neo_apoli.provider.custom.box.BoxProvider;
@@ -64,6 +65,7 @@ public final class NeoApoliRegistryKeys {
 	public static final ResourceKey<Registry<HudElement.Type<?>>> HUD_ELEMENT_TYPE = create("hud_element_type");
 
 	public static final ResourceKey<Registry<ContextParameter.Type<?>>> CONTEXT_PARAMETER_TYPE = create("context/parameter_type");
+	public static final ResourceKey<Registry<ValueProvider.Kind<?>>> VALUE_PROVIDER_KIND = create("value_provider/kind");
 
 	private static <T> ResourceKey<Registry<T>> create(String path) {
 		return ResourceKey.createRegistryKey(NeoApoli.id(path));

@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.provider.custom.number.floats.ConstantFloatP
 import io.github.eggohito.neo_apoli.provider.custom.number.floats.ContextFloatProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliValueProviderKinds;
 import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -27,6 +28,11 @@ public interface FloatProvider extends ValueProvider<Float> {
 
 	@Override
 	FloatProvider.@NotNull Type<?> getType();
+
+	@Override
+	default @NotNull Kind<?> getKind() {
+		return NeoApoliValueProviderKinds.FLOAT;
+	}
 
 	default float getFloat(Context context) {
 		return this.getValue(context).orElse(0.0F);

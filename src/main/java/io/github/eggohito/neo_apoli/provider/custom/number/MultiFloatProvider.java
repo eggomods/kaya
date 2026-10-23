@@ -39,38 +39,20 @@ public interface MultiFloatProvider extends FloatProvider {
 			(index, provider) -> {
 
 				Context valueContext = context.forChild(".values[" + index + "]");
-				var visitor = valueContext.visitor();
+				float value = provider.getFloat(valueContext);
 
-				try {
+				if (!valueContext.hasProblems()) {
 
-					if (visitor.push(provider)) {
-
-						float value = provider.getFloat(valueContext);
-
-						if (!valueContext.hasProblems()) {
-
-							if (init.isTrue()) {
-								result.setValue(processor.apply(result.floatValue(), value));
-							}
-
-							else {
-								result.setValue(value);
-							}
-
-							init.setTrue();
-
-						}
-
+					if (init.isTrue()) {
+						result.setValue(processor.apply(result.floatValue(), value));
 					}
 
 					else {
-						valueContext.reportProblem("Float provider was invoked recursively!");
+						result.setValue(value);
 					}
 
-				}
+					init.setTrue();
 
-				finally {
-					visitor.pop(provider);
 				}
 
 			}
