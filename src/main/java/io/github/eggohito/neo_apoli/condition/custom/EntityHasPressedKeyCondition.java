@@ -54,6 +54,9 @@ public record EntityHasPressedKeyCondition(List<KeyPredicate> key, EntityProvide
 		ListIterator<KeyPredicate> listIterator = key().listIterator();
 		long previousPressedTime = Long.MIN_VALUE;
 
+		int expected = 0;
+		int matches = 0;
+
 		while (listIterator.hasNext()) {
 
 			Context keyContext = context.forChild(".key[" + listIterator.nextIndex() + "]");
@@ -68,6 +71,7 @@ public record EntityHasPressedKeyCondition(List<KeyPredicate> key, EntityProvide
 			}
 
 			Context timingWindowContext = keyContext.forChild(".timing_window");
+			expected++;
 
 			int min = keyPredicate.timingWindow().min().getInt(timingWindowContext.forChild(".min"));
 			int max = keyPredicate.timingWindow().max().getInt(timingWindowContext.forChild(".max"));
@@ -75,21 +79,23 @@ public record EntityHasPressedKeyCondition(List<KeyPredicate> key, EntityProvide
 			KeyState state = optState.get();
 			long currentPressedTime = state.pressedTime();
 
-			if (state.pressed()) {
+			if (currentPressedTime > 0) {
 
 				if (previousPressedTime == Long.MIN_VALUE) {
 					previousPressedTime = currentPressedTime;
 				}
 
-				else if (currentPressedTime < (previousPressedTime - min) || currentPressedTime > (previousPressedTime + max)) {
+				if (currentPressedTime < (previousPressedTime - min) || currentPressedTime > (previousPressedTime + max)) {
 					return false;
 				}
+
+				matches++;
 
 			}
 
 		}
 
-		return true;
+		return expected == matches;
 
 	}
 
