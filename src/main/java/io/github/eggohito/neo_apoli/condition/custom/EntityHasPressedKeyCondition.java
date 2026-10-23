@@ -6,8 +6,6 @@ import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidatable;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
-import io.github.eggohito.neo_apoli.key.KeyState;
-import io.github.eggohito.neo_apoli.key.manager.KeyStateManager;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliConditionTypes;
 import io.github.eggohito.neo_apoli.util.key.KeyPredicate;
@@ -54,48 +52,39 @@ public record EntityHasPressedKeyCondition(List<KeyPredicate> key, EntityProvide
 		ListIterator<KeyPredicate> listIterator = key().listIterator();
 		long previousPressedTime = Long.MIN_VALUE;
 
-		int expected = 0;
+		boolean init = false;
 		int matches = 0;
 
 		while (listIterator.hasNext()) {
 
 			Context keyContext = context.forChild(".key[" + listIterator.nextIndex() + "]");
-			KeyPredicate keyPredicate = listIterator.next();
-
-			Optional<KeyState> optState = keyPredicate.id()
-				.getValue(keyContext)
-				.flatMap(id -> KeyStateManager.getInstance().getCurrentState(uuid, id));
+			Optional<KeyPredicate.State> optState = listIterator.next().getState(uuid, keyContext);
 
 			if (optState.isEmpty()) {
 				continue;
 			}
 
-			Context timingWindowContext = keyContext.forChild(".timing_window");
-			expected++;
-
-			int min = keyPredicate.timingWindow().min().getInt(timingWindowContext.forChild(".min"));
-			int max = keyPredicate.timingWindow().max().getInt(timingWindowContext.forChild(".max"));
-
-			KeyState state = optState.get();
-			long currentPressedTime = state.pressedTime();
+			KeyPredicate.State state = optState.orElseThrow();
+			long currentPressedTime = state.key().pressedTime();
 
 			if (currentPressedTime > 0) {
 
-				if (previousPressedTime == Long.MIN_VALUE) {
+				if (!init) {
 					previousPressedTime = currentPressedTime;
 				}
 
-				if (currentPressedTime < (previousPressedTime - min) || currentPressedTime > (previousPressedTime + max)) {
+				if (currentPressedTime < (previousPressedTime - state.lowerOffset()) || currentPressedTime > (previousPressedTime + state.upperOffset())) {
 					return false;
 				}
 
+				init = true;
 				matches++;
 
 			}
 
 		}
 
-		return expected == matches;
+		return matches == key.size();
 
 	}
 

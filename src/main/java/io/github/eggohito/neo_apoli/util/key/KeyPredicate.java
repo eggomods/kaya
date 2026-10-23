@@ -2,13 +2,20 @@ package io.github.eggohito.neo_apoli.util.key;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidatable;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
+import io.github.eggohito.neo_apoli.key.KeyState;
+import io.github.eggohito.neo_apoli.key.manager.KeyStateManager;
 import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ints.ConstantIntProvider;
 import io.github.eggohito.neo_apoli.provider.custom.string.StringProvider;
+import it.unimi.dsi.fastutil.ints.IntIntPair;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+
+import java.util.Optional;
+import java.util.UUID;
 
 public record KeyPredicate(StringProvider id, TimingWindow timingWindow) implements ContextValidatable {
 
@@ -40,18 +47,35 @@ public record KeyPredicate(StringProvider id, TimingWindow timingWindow) impleme
 		timingWindow().validate(validator.forChild(".timing_window"));
 	}
 
-	public record TimingWindow(IntProvider min, IntProvider max) implements ContextValidatable {
+	public Optional<State> getState(UUID uuid, Context context) {
+
+		KeyState state = id()
+			.getValue(context.forChild(".id"))
+			.flatMap(id -> KeyStateManager.getInstance().getCurrentState(uuid, id))
+			.orElse(null);
+
+		if (state == null) {
+			return Optional.empty();
+		}
+
+		else {
+			return Optional.of(new State(state, timingWindow().get(context.forChild(".timing_window"))));
+		}
+
+	}
+
+	public record TimingWindow(IntProvider lowerOffset, IntProvider upperOffset) implements ContextValidatable {
 
 		public static final TimingWindow DEFAULT = new TimingWindow(3, 3);
 
 		public static final Codec<TimingWindow> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-			IntProvider.CODEC.fieldOf("min").forGetter(TimingWindow::min),
-			IntProvider.CODEC.fieldOf("max").forGetter(TimingWindow::max)
+			IntProvider.CODEC.fieldOf("lower_offset").forGetter(TimingWindow::lowerOffset),
+			IntProvider.CODEC.fieldOf("upper_offset").forGetter(TimingWindow::upperOffset)
 		).apply(instance, TimingWindow::new));
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, TimingWindow> STREAM_CODEC = StreamCodec.composite(
-			IntProvider.STREAM_CODEC, TimingWindow::min,
-			IntProvider.STREAM_CODEC, TimingWindow::max,
+			IntProvider.STREAM_CODEC, TimingWindow::lowerOffset,
+			IntProvider.STREAM_CODEC, TimingWindow::upperOffset,
 			TimingWindow::new
 		);
 
@@ -61,8 +85,23 @@ public record KeyPredicate(StringProvider id, TimingWindow timingWindow) impleme
 
 		@Override
 		public void validate(ContextValidator validator) {
-			min().validate(validator.forChild(".min"));
-			max().validate(validator.forChild(".max"));
+			lowerOffset().validate(validator.forChild(".lower_offset"));
+			upperOffset().validate(validator.forChild(".upper_offset"));
+		}
+
+		public IntIntPair get(Context context) {
+			return IntIntPair.of(
+				lowerOffset().getInt(context.forChild(".lower_offset")),
+				upperOffset().getInt(context.forChild(".upper_offset"))
+			);
+		}
+
+	}
+
+	public record State(KeyState key, int lowerOffset, int upperOffset) {
+
+		public State(KeyState state, IntIntPair offset) {
+			this(state, offset.leftInt(), offset.rightInt());
 		}
 
 	}
