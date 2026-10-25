@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -105,7 +104,7 @@ public class ContextValidator {
 		Set<ContextParameter<?>> missing = Sets.difference(user.getRequiredParameters(), parameters().allowed());
 
 		if (!missing.isEmpty()) {
-			this.reportProblem("The following parameters are not provided: [" + missing.stream().map(ContextParameter::name).map(ResourceLocation::toString).collect(Collectors.joining(", ")) + "]");
+			this.reportProblem("The following parameters are not provided: [" + missing.stream().map(ContextParameter::asDisplayString).collect(Collectors.joining(", ")) + "]");
 		}
 
 	}

@@ -5,6 +5,7 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.util.StringDisplayable;
 import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import io.github.eggohito.neo_apoli.util.alias.ResourceLocationAlias;
 import io.netty.buffer.ByteBuf;
@@ -12,6 +13,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import net.minecraft.Util;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -20,7 +22,7 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public interface ContextParameter<T> {
+public interface ContextParameter<T> extends StringDisplayable {
 
 	Codec<ContextParameter<?>> CODEC = Type.CODEC.dispatch(ContextParameter::getType, type -> type.codec().fieldOf("name"));
 
@@ -29,6 +31,11 @@ public interface ContextParameter<T> {
 	ResourceLocation name();
 
 	Type<?> getType();
+
+	@Override
+	default String asDisplayString() {
+		return this.name().toString() + "(type: \"" + this.getType() + "\")";
+	}
 
 	@Accessors(fluent = true)
 	@Getter
@@ -47,6 +54,11 @@ public interface ContextParameter<T> {
 
 		public P create(ResourceLocation id) {
 			return constructor().apply(id);
+		}
+
+		@Override
+		public String toString() {
+			return Util.getRegisteredName(NeoApoliRegistries.CONTEXT_PARAMETER_TYPE, this);
 		}
 
 		public static <P extends ContextParameter<?>> Type<P> of(Function<ResourceLocation, P> constructor, ResourceLocationAlias aliases) {

@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.registry;
 
 import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.area.Area;
 import io.github.eggohito.neo_apoli.color.Color;
 import io.github.eggohito.neo_apoli.comparison.Comparison;
 import io.github.eggohito.neo_apoli.condition.Condition;
@@ -52,11 +53,12 @@ public final class NeoApoliRegistries {
 	public static final Registry<StringProvider.Type<?>> STRING_PROVIDER_TYPE = create(NeoApoliRegistryKeys.STRING_PROVIDER_TYPE);
 	public static final Registry<Vec3Provider.Type<?>> VEC3_PROVIDER_TYPE = create(NeoApoliRegistryKeys.VEC3_PROVIDER_TYPE);
 
+	public static final Registry<Area.Type<?>> AREA_TYPE = create(NeoApoliRegistryKeys.AREA_TYPE);
+	public static final Registry<Color.Type<?>> COLOR_TYPE = create(NeoApoliRegistryKeys.COLOR_TYPE);
 	public static final Registry<Comparison.Type<?>> COMPARISON_TYPE = create(NeoApoliRegistryKeys.COMPARISON_TYPE);
 	public static final Registry<ContainerMenu.Type<?>> CONTAINER_MENU_TYPE = create(NeoApoliRegistryKeys.CONTAINER_MENU_TYPE);
-	public static final Registry<Modifier.Type<?>> MODIFIER_TYPE = create(NeoApoliRegistryKeys.MODIFIER_TYPE);
-	public static final Registry<Color.Type<?>> COLOR_TYPE = create(NeoApoliRegistryKeys.COLOR_TYPE);
 	public static final Registry<HudElement.Type<?>> HUD_ELEMENT_TYPE = create(NeoApoliRegistryKeys.HUD_ELEMENT_TYPE);
+	public static final Registry<Modifier.Type<?>> MODIFIER_TYPE = create(NeoApoliRegistryKeys.MODIFIER_TYPE);
 
 	public static final Registry<ContextParameter.Type<?>> CONTEXT_PARAMETER_TYPE = create(NeoApoliRegistryKeys.CONTEXT_PARAMETER_TYPE);
 	public static final Registry<ValueProvider.Kind<?>> VALUE_PROVIDER_KIND = create(NeoApoliRegistryKeys.VALUE_PROVIDER_KIND);

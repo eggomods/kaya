@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.registry;
 
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.Action;
+import io.github.eggohito.neo_apoli.area.Area;
 import io.github.eggohito.neo_apoli.color.Color;
 import io.github.eggohito.neo_apoli.comparison.Comparison;
 import io.github.eggohito.neo_apoli.condition.Condition;
@@ -58,11 +59,12 @@ public final class NeoApoliRegistryKeys {
 	public static final ResourceKey<Registry<StringProvider.Type<?>>> STRING_PROVIDER_TYPE = create("provider_type/string");
 	public static final ResourceKey<Registry<Vec3Provider.Type<?>>> VEC3_PROVIDER_TYPE = create("provider_type/vec3");
 
+	public static final ResourceKey<Registry<Area.Type<?>>> AREA_TYPE = create("area_type");
+	public static final ResourceKey<Registry<Color.Type<?>>> COLOR_TYPE = create("color_type");
 	public static final ResourceKey<Registry<Comparison.Type<?>>> COMPARISON_TYPE = create("comparison_type");
 	public static final ResourceKey<Registry<ContainerMenu.Type<?>>> CONTAINER_MENU_TYPE = create("container_menu_type");
-	public static final ResourceKey<Registry<Modifier.Type<?>>> MODIFIER_TYPE = create("modifier_type");
-	public static final ResourceKey<Registry<Color.Type<?>>> COLOR_TYPE = create("color_type");
 	public static final ResourceKey<Registry<HudElement.Type<?>>> HUD_ELEMENT_TYPE = create("hud_element_type");
+	public static final ResourceKey<Registry<Modifier.Type<?>>> MODIFIER_TYPE = create("modifier_type");
 
 	public static final ResourceKey<Registry<ContextParameter.Type<?>>> CONTEXT_PARAMETER_TYPE = create("context/parameter_type");
 	public static final ResourceKey<Registry<ValueProvider.Kind<?>>> VALUE_PROVIDER_KIND = create("value_provider/kind");

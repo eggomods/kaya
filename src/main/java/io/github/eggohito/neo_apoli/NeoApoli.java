@@ -17,6 +17,7 @@ import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundClearC
 import io.github.eggohito.neo_apoli.power.global.manager.GlobalPowerSetManager;
 import io.github.eggohito.neo_apoli.power.manager.PowerManager;
 import io.github.eggohito.neo_apoli.registry.*;
+import io.github.eggohito.neo_apoli.registry.area.NeoApoliAreaTypes;
 import io.github.eggohito.neo_apoli.registry.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParameterTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParameters;
@@ -107,6 +108,7 @@ public class NeoApoli implements ModInitializer {
 
 		NeoApoliEntityAttachments.registerAll();
 
+		NeoApoliAreaTypes.registerAll();
 		NeoApoliComparisonTypes.registerAll();
 		NeoApoliColorTypes.registerAll();
 		NeoApoliModifierTypes.registerAll();
