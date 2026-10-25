@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.mixin.impl.command.storage_holder;
 
-import io.github.eggohito.neo_apoli.duck.internal.CommandStorageHolder;
+import io.github.eggohito.neo_apoli.duck.internal.ServerCommandStorageHolder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(ServerLevel.class)
-public abstract class ServerLevelMixin implements CommandStorageHolder {
+public abstract class ServerLevelMixin implements ServerCommandStorageHolder {
 
 	@Shadow
 	@NotNull
@@ -24,13 +24,13 @@ public abstract class ServerLevelMixin implements CommandStorageHolder {
 	}
 
 	@Override
-	public void neo_apoli$setStorage(ResourceLocation id, CompoundTag nbt) {
-		this.neo_apoli$getStorageHolder().neo_apoli$setStorage(id, nbt);
+	public boolean neo_apoli$contains(ResourceLocation id) {
+		return this.neo_apoli$getStorageHolder().neo_apoli$contains(id);
 	}
 
 	@Override
-	public void neo_apoli$clear() {
-		this.neo_apoli$getStorageHolder().neo_apoli$clear();
+	public void neo_apoli$setStorage(ResourceLocation id, CompoundTag nbt) {
+		this.neo_apoli$getStorageHolder().neo_apoli$setStorage(id, nbt);
 	}
 
 	@Override
@@ -39,8 +39,8 @@ public abstract class ServerLevelMixin implements CommandStorageHolder {
 	}
 
 	@Unique
-	private CommandStorageHolder neo_apoli$getStorageHolder() {
-		return (CommandStorageHolder) this.getServer();
+	private ServerCommandStorageHolder neo_apoli$getStorageHolder() {
+		return (ServerCommandStorageHolder) this.getServer();
 	}
 
 }

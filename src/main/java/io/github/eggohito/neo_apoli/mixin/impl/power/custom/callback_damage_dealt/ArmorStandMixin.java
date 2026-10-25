@@ -21,7 +21,7 @@ public abstract class ArmorStandMixin extends LivingEntity {
 	}
 
 	@Inject(method = "hurtServer", at = @At("RETURN"), slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/world/damagesource/DamageSource;isCreativePlayer()Z")))
-	void invokeAction(ServerLevel world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+	void invokeDamageDealtActions(ServerLevel world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
 
 		if (cir.getReturnValueZ() && source.getEntity() != null) {
 			CallbackDamageDealtPower.execute(source.getEntity(), this, source, amount);

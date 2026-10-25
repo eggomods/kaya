@@ -68,9 +68,9 @@ public interface CooldownPower extends Power {
 			Context holderContext = this.createHolderContext(holder);
 
 			return new Context.Builder(holderContext)
-				.withRequired(NumberBoundHudElement.CURRENT_VALUE, this.getRemainingTicks(holderContext))
-				.withRequired(NumberBoundHudElement.MIN_VALUE, 0)
-				.withRequired(NumberBoundHudElement.MAX_VALUE, cooldown().getInt(holderContext))
+				.withRequired(NumberBoundHudElement.CURRENT_VALUE, (float) this.getRemainingTicks(holderContext))
+				.withRequired(NumberBoundHudElement.MIN_VALUE, 0.0F)
+				.withRequired(NumberBoundHudElement.MAX_VALUE, (float) cooldown().getInt(holderContext))
 				.build(holderContext.level());
 
 		}
@@ -87,8 +87,8 @@ public interface CooldownPower extends Power {
 
 		public double getProgress(Context context) {
 
-			double diff = context.level().getGameTime() - lastUseTime;
-			double progress = diff / (double) cooldown().getInt(context.forChild(".cooldown"));
+			double timePassed = context.level().getGameTime() - lastUseTime;
+			double progress = timePassed / (double) cooldown().getInt(context.forChild(".cooldown"));
 
 			return Mth.clamp(progress, 0D, 1D);
 
@@ -96,8 +96,8 @@ public interface CooldownPower extends Power {
 
 		public int getRemainingTicks(Context context) {
 
-			long diff = context.level().getGameTime() - lastUseTime;
-			long remainingTicks = cooldown().getInt(context.forChild(".cooldown")) - diff;
+			long timePassed = context.level().getGameTime() - lastUseTime;
+			long remainingTicks = cooldown().getInt(context.forChild(".cooldown")) - timePassed;
 
 			return (int) Math.max(0, remainingTicks);
 

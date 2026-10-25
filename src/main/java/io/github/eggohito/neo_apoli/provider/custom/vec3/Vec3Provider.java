@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliValueProviderKinds;
 import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -16,12 +17,17 @@ import org.jetbrains.annotations.NotNull;
 
 public interface Vec3Provider extends ValueProvider<Vec3> {
 
-	Codec<Vec3Provider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(Type.CODEC.dispatch(Vec3Provider::getType, Type::mapCodec), ConstantVec3Provider.INLINE_CODEC));
+	Codec<Vec3Provider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(Type.CODEC.dispatch(Vec3Provider::getType, Type::mapCodec), ContextVec3Provider.INLINE_CODEC, ConstantVec3Provider.INLINE_CODEC));
 
 	StreamCodec<RegistryFriendlyByteBuf, Vec3Provider> STREAM_CODEC = Type.STREAM_CODEC.dispatch(Vec3Provider::getType, Type::streamCodec);
 
 	@NotNull
 	Vec3Provider.Type<?> getType();
+
+	@Override
+	default @NotNull Kind<?> getKind() {
+		return NeoApoliValueProviderKinds.VEC3;
+	}
 
 	record Type<P extends Vec3Provider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
 

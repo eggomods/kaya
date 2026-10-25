@@ -14,6 +14,7 @@ public final class NeoApoliEntityProviderTypes {
 	public static final EntityProvider.Type<CompositeConditionalEntityProvider> COMPOSITE_CONDITIONAL = registerInternal("conditional/composite", CompositeConditionalEntityProvider.CODEC, CompositeConditionalEntityProvider.STREAM_CODEC);
 	public static final EntityProvider.Type<ConditionalEntityProvider> CONDITIONAL = registerInternal("conditional", ConditionalEntityProvider.CODEC, ConditionalEntityProvider.STREAM_CODEC);
 	public static final EntityProvider.Type<ContextEntityProvider> CONTEXT = registerInternal("context", ContextEntityProvider.CODEC, ContextEntityProvider.STREAM_CODEC);
+	public static final EntityProvider.Type<WeightedEntityProvider> WEIGHTED = registerInternal("weighted", WeightedEntityProvider.CODEC, WeightedEntityProvider.STREAM_CODEC);
 
 	public static final EntityProvider.Type<SelectorEntityProvider> SELECTOR = registerInternal("selector", SelectorEntityProvider.CODEC, SelectorEntityProvider.STREAM_CODEC);
 

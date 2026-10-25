@@ -49,7 +49,7 @@ public record ModifyRecipeCraftingPower(Optional<Condition> activeCondition, Opt
 	public static final MapCodec<ModifyRecipeCraftingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
 		.addActiveConditionField(instance)
 		.and(ResourceKey.codec(Registries.RECIPE).optionalFieldOf("recipe").forGetter(ModifyRecipeCraftingPower::recipe))
-		.and(ItemStack.CODEC.optionalFieldOf("replacement").forGetter(ModifyRecipeCraftingPower::replacement))
+		.and(ItemStack.OPTIONAL_CODEC.optionalFieldOf("replacement").forGetter(ModifyRecipeCraftingPower::replacement))
 		.and(Action.CODEC.optionalFieldOf("on_craft_action", NothingAction.INSTANCE).forGetter(ModifyRecipeCraftingPower::onCraftAction))
 		.and(Action.CODEC.optionalFieldOf("on_take_action", NothingAction.INSTANCE).forGetter(ModifyRecipeCraftingPower::onTakeAction))
 		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyRecipeCraftingPower::priority))
@@ -59,7 +59,7 @@ public record ModifyRecipeCraftingPower(Optional<Condition> activeCondition, Opt
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyRecipeCraftingPower> STREAM_CODEC = StreamCodec.composite(
 		ByteBufCodecs.optional(Condition.STREAM_CODEC), ModifyRecipeCraftingPower::activeCondition,
 		ByteBufCodecs.optional(ResourceKey.streamCodec(Registries.RECIPE)), ModifyRecipeCraftingPower::recipe,
-		ByteBufCodecs.optional(ItemStack.STREAM_CODEC), ModifyRecipeCraftingPower::replacement,
+		ByteBufCodecs.optional(ItemStack.OPTIONAL_STREAM_CODEC), ModifyRecipeCraftingPower::replacement,
 		Action.STREAM_CODEC, ModifyRecipeCraftingPower::onCraftAction,
 		Action.STREAM_CODEC, ModifyRecipeCraftingPower::onTakeAction,
 		ByteBufCodecs.INT, ModifyRecipeCraftingPower::priority,

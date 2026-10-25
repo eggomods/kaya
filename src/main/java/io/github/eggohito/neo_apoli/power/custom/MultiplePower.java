@@ -258,11 +258,8 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 	public static final class Config extends AbstractJsonCodecConfig<Config> {
 
 		public static final Config INSTANCE = new Config();
-		public static final int VERSION = 1;
 
 		public final ConfigEntry<List<Pattern>> ignoredFields = register("ignored_fields", makeDefaultIgnoredFields(), ExtraCodecs.PATTERN.listOf());
-		public final ConfigEntry<Boolean> enabled = register("enabled", true, Codec.BOOL);
-		public final ConfigEntry<Integer> version = register("version", VERSION, Codec.INT);
 
 		Config() {
 			super(FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/type/power/multiple.json5"), JsonFormat.JSON5);

@@ -7,8 +7,8 @@ import io.github.eggohito.neo_apoli.command.PowerCommand;
 import io.github.eggohito.neo_apoli.command.ResourceCommand;
 import io.github.eggohito.neo_apoli.condition.manager.ConditionManager;
 import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
-import io.github.eggohito.neo_apoli.duck.internal.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.duck.internal.PowerRecipeDisplayHolder;
+import io.github.eggohito.neo_apoli.duck.internal.ServerCommandStorageHolder;
 import io.github.eggohito.neo_apoli.integration.CommonConfigIntegrations;
 import io.github.eggohito.neo_apoli.integration.PowerIntegrations;
 import io.github.eggohito.neo_apoli.key.manager.KeyStateManager;
@@ -18,10 +18,12 @@ import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundClearC
 import io.github.eggohito.neo_apoli.power.global.manager.GlobalPowerSetManager;
 import io.github.eggohito.neo_apoli.power.manager.PowerManager;
 import io.github.eggohito.neo_apoli.registry.*;
+import io.github.eggohito.neo_apoli.registry.area.NeoApoliAreaTypes;
 import io.github.eggohito.neo_apoli.registry.attachment.NeoApoliEntityAttachments;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParameterTypes;
 import io.github.eggohito.neo_apoli.registry.context.NeoApoliContextParameters;
-import io.github.eggohito.neo_apoli.registry.provider.*;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliValueProviderKinds;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliValueProviderTypes;
 import io.github.eggohito.neo_apoli.registry.recipe.NeoApoliRecipeBookCategories;
 import io.github.eggohito.neo_apoli.registry.recipe.NeoApoliRecipeSerializers;
 import io.github.eggohito.neo_apoli.tag.manager.NestedTagManager;
@@ -94,21 +96,10 @@ public class NeoApoli implements ModInitializer {
 		NeoApoliPackets.registerAll();
 		NeoApoliServerboundPacketListener.init();
 
-		NeoApoliBlockProviderTypes.registerAll();
-		NeoApoliBooleanProviderTypes.registerAll();
-		NeoApoliBoxProviderTypes.registerAll();
-		NeoApoliCommandSourceProviderTypes.registerAll();
-		NeoApoliDamageSourceProviderTypes.registerAll();
-		NeoApoliDirectionProviderTypes.registerAll();
-		NeoApoliEffectProviderTypes.registerAll();
-		NeoApoliEntityProviderTypes.registerAll();
-		NeoApoliFloatProviderTypes.registerAll();
-		NeoApoliIntProviderTypes.registerAll();
-		NeoApoliItemProviderTypes.registerAll();
-		NeoApoliNbtProviderTypes.registerAll();
-		NeoApoliSlotProviderTypes.registerAll();
-		NeoApoliStringProviderTypes.registerAll();
-		NeoApoliVec3ProviderTypes.registerAll();
+		NeoApoliContextParameterTypes.registerAll();
+
+		NeoApoliValueProviderKinds.registerAll();
+		NeoApoliValueProviderTypes.registerAll();
 
 		NeoApoliArguments.registerAll();
 		NeoApoliComponentContents.registerAll();
@@ -121,6 +112,7 @@ public class NeoApoli implements ModInitializer {
 
 		NeoApoliEntityAttachments.registerAll();
 
+		NeoApoliAreaTypes.registerAll();
 		NeoApoliComparisonTypes.registerAll();
 		NeoApoliColorTypes.registerAll();
 		NeoApoliModifierTypes.registerAll();
@@ -138,14 +130,12 @@ public class NeoApoli implements ModInitializer {
 		PowerManager.getInstance().init();
 
 		PowerIntegrations.init();
-
-		NeoApoliContextParameterTypes.registerAll();
 		NeoApoliContextParameters.registerAll();
 
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> NeoApoli.server = server);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> NeoApoli.server = null);
 
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((CommandStorageHolder) server).neo_apoli$sendAll(handler.getPlayer()));
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((ServerCommandStorageHolder) server).neo_apoli$sendAll(handler.getPlayer()));
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> ((PowerRecipeDisplayHolder) player.server.getRecipeManager()).neo_apoli$sendAll(player));
 
 		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> {

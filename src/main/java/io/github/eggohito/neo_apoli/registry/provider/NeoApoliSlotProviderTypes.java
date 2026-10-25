@@ -14,6 +14,7 @@ public final class NeoApoliSlotProviderTypes {
 	public static final SlotProvider.Type<CompositeConditionalSlotProvider> COMPOSITE_CONDITIONAL = registerInternal("conditional/composite", CompositeConditionalSlotProvider.CODEC, CompositeConditionalSlotProvider.STREAM_CODEC);
 	public static final SlotProvider.Type<ConditionalSlotProvider> CONDITIONAL = registerInternal("conditional", ConditionalSlotProvider.CODEC, ConditionalSlotProvider.STREAM_CODEC);
 	public static final SlotProvider.Type<ContextSlotProvider> CONTEXT = registerInternal("context", ContextSlotProvider.CODEC, ContextSlotProvider.STREAM_CODEC);
+	public static final SlotProvider.Type<WeightedSlotProvider> WEIGHTED = registerInternal("weighted", WeightedSlotProvider.CODEC, WeightedSlotProvider.STREAM_CODEC);
 
 	public static final SlotProvider.Type<BlockSlotProvider> BLOCK = registerInternal("block", BlockSlotProvider.CODEC, BlockSlotProvider.STREAM_CODEC);
 	public static final SlotProvider.Type<EntitySlotProvider> ENTITY = registerInternal("entity", EntitySlotProvider.CODEC, EntitySlotProvider.STREAM_CODEC);

@@ -2,7 +2,6 @@ package io.github.eggohito.neo_apoli.util;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
 import io.github.eggohito.neo_apoli.mixin.access.ResourceKeyAccessor;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -82,15 +81,6 @@ public final class StreamCodecUtil {
 
 	public static <B extends FriendlyByteBuf, E> StreamCodec<B, E> mapped(BiMap<String, E> map) {
 		return mapped(Suppliers.memoize(() -> map));
-	}
-
-	public static <B extends FriendlyByteBuf, E> StreamCodec<B, E> mapped(Consumer<ImmutableBiMap.Builder<String, E>> consumer) {
-
-		ImmutableBiMap.Builder<String, E> builder = ImmutableBiMap.builder();
-		consumer.accept(builder);
-
-		return mapped(builder.build());
-
 	}
 
 	public static <B extends ByteBuf, E extends Enum<E>> StreamCodec<B, E> enumType(Class<E> enumClass) {

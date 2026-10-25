@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.provider.custom.box;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
@@ -20,6 +21,11 @@ public record ContextBoxProvider(BoxContextParameter parameter) implements BoxPr
 	public static final MapCodec<ContextBoxProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(NeoApoliContextParameterTypes.BOX.codec().fieldOf("parameter").forGetter(ContextBoxProvider::parameter))
 		.apply(instance, ContextBoxProvider::new)
+	);
+
+	public static final Codec<ContextBoxProvider> INLINE_CODEC = NeoApoliContextParameterTypes.BOX.codec().xmap(
+		ContextBoxProvider::new,
+		ContextBoxProvider::parameter
 	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ContextBoxProvider> STREAM_CODEC = StreamCodec.composite(

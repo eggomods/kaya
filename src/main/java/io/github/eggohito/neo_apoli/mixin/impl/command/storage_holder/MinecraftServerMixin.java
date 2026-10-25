@@ -1,8 +1,8 @@
 package io.github.eggohito.neo_apoli.mixin.impl.command.storage_holder;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import io.github.eggohito.neo_apoli.duck.internal.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.duck.internal.ServerAccess;
+import io.github.eggohito.neo_apoli.duck.internal.ServerCommandStorageHolder;
 import io.github.eggohito.neo_apoli.mixin.access.CommandStorageAccessor;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundCommandStorageUpdatePacket;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.util.Map;
 
 @Mixin(MinecraftServer.class)
-public abstract class MinecraftServerMixin implements CommandStorageHolder {
+public abstract class MinecraftServerMixin implements ServerCommandStorageHolder {
 
 	@Shadow
 	public abstract CommandStorage getCommandStorage();
@@ -36,9 +36,9 @@ public abstract class MinecraftServerMixin implements CommandStorageHolder {
 
 	@Override
 	public boolean neo_apoli$contains(ResourceLocation id) {
-		return this.getCommandStorage()
-			.keys()
-			.anyMatch(id::equals);
+		CommandStorage.Container container = ((CommandStorageAccessor) this.getCommandStorage()).callGetContainer(id.getNamespace());
+		return container != null
+			&& ((CommandStorageAccessor.ContainerAccessor) container).getData().get(id.getPath()) != null;
 	}
 
 	@Override

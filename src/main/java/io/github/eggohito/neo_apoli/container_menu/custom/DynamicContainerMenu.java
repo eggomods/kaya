@@ -5,13 +5,13 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.container_menu.ContainerMenu;
 import io.github.eggohito.neo_apoli.registry.NeoApoliContainerMenuTypes;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
-import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import io.github.eggohito.neo_apoli.util.TextAlignment;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.MenuConstructor;
 
@@ -21,8 +21,8 @@ public record DynamicContainerMenu(TextAlignment titleAlignment, ResourceLocatio
 	private static final MapCodec<DynamicContainerMenu> UNVALIDATED_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		TextAlignment.CODEC.optionalFieldOf("title_alignment", TextAlignment.CENTER).forGetter(DynamicContainerMenu::titleAlignment),
 		ResourceLocation.CODEC.fieldOf("texture").forGetter(DynamicContainerMenu::texture),
-		CodecUtil.positiveInt().fieldOf("columns").forGetter(DynamicContainerMenu::columns),
-		CodecUtil.positiveInt().fieldOf("rows").forGetter(DynamicContainerMenu::rows)
+		ExtraCodecs.POSITIVE_INT.fieldOf("columns").forGetter(DynamicContainerMenu::columns),
+		ExtraCodecs.POSITIVE_INT.fieldOf("rows").forGetter(DynamicContainerMenu::rows)
 	).apply(instance, DynamicContainerMenu::new));
 
 	public static final MapCodec<DynamicContainerMenu> CODEC = UNVALIDATED_CODEC.mapResult(new MapCodec.ResultFunction<>() {

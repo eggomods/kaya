@@ -11,6 +11,7 @@ import io.github.eggohito.neo_apoli.provider.custom.number.ints.ConstantIntProvi
 import io.github.eggohito.neo_apoli.provider.custom.number.ints.ContextIntProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliValueProviderKinds;
 import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -27,6 +28,11 @@ public interface IntProvider extends ValueProvider<Integer> {
 
 	@Override
 	IntProvider.@NotNull Type<?> getType();
+
+	@Override
+	default @NotNull Kind<?> getKind() {
+		return NeoApoliValueProviderKinds.INT;
+	}
 
 	default int getInt(Context context) {
 		return this.getValue(context).orElse(0);

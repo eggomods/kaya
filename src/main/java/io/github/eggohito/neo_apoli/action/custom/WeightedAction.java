@@ -15,7 +15,7 @@ import net.minecraft.util.random.WeightedList;
 public record WeightedAction(WeightedList<Action> entries) implements Action {
 
 	public static final MapCodec<WeightedAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(WeightedList.codec(Action.CODEC).fieldOf("entries").forGetter(WeightedAction::entries))
+		.group(WeightedList.nonEmptyCodec(Action.CODEC.fieldOf("action")).fieldOf("entries").forGetter(WeightedAction::entries))
 		.apply(instance, WeightedAction::new)
 	);
 

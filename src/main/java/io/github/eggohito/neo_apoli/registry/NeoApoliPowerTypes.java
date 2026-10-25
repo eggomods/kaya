@@ -16,6 +16,10 @@ import java.util.function.UnaryOperator;
 
 public final class NeoApoliPowerTypes {
 
+	public static final ContextValidator.Parameters DEFAULT_PARAMETERS = new ContextValidator.Parameters.Builder()
+		.required(NeoApoliContextParameters.THIS_ENTITY)
+		.build();
+
 	public static final Power.Type<CallbackBlockBreakPower> CALLBACK_BLOCK_BREAK = registerInternal(
 		"callback/block/break",
 		CallbackBlockBreakPower.CODEC,
@@ -44,6 +48,19 @@ public final class NeoApoliPowerTypes {
 			.required(NeoApoliContextParameters.DEALT_DAMAGE_SOURCE)
 			.required(NeoApoliContextParameters.DEALT_DAMAGE_AMOUNT)
 			.required(NeoApoliContextParameters.ACTOR_ENTITY)
+			.required(NeoApoliContextParameters.TARGET_ENTITY)
+			.optional(NeoApoliContextParameters.DAMAGING_ENTITY)
+			.optional(NeoApoliContextParameters.DIRECT_DAMAGING_ENTITY)
+	);
+
+	public static final Power.Type<CallbackDamageTakenPower> CALLBACK_DAMAGE_TAKEN = registerInternal(
+		"callback/damage/taken",
+		CallbackDamageTakenPower.CODEC,
+		CallbackDamageTakenPower.STREAM_CODEC,
+		params -> params
+			.required(NeoApoliContextParameters.TAKEN_DAMAGE_SOURCE)
+			.required(NeoApoliContextParameters.TAKEN_DAMAGE_AMOUNT)
+			.optional(NeoApoliContextParameters.ACTOR_ENTITY)
 			.required(NeoApoliContextParameters.TARGET_ENTITY)
 			.optional(NeoApoliContextParameters.DAMAGING_ENTITY)
 			.optional(NeoApoliContextParameters.DIRECT_DAMAGING_ENTITY)
@@ -436,7 +453,7 @@ public final class NeoApoliPowerTypes {
 		builder -> builder
 			.required(NeoApoliContextParameters.ACTOR_ENTITY)
 			.optional(NeoApoliContextParameters.TARGET_ENTITY)
-			.optional(NeoApoliContextParameters.BROKEN_BLOCK)
+			.optional(ReplaceLootTablePower.BLOCK)
 			.optional(ReplaceLootTablePower.TOOL_ITEM)
 	);
 
@@ -456,13 +473,7 @@ public final class NeoApoliPowerTypes {
 	}
 
 	public static <P extends Power> Power.Type<P> register(ResourceLocation id, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec, UnaryOperator<ContextValidator.Parameters.Builder> parametersBuilder) {
-
-		ContextValidator.Parameters parameters = parametersBuilder.apply(new ContextValidator.Parameters.Builder())
-			.required(NeoApoliContextParameters.THIS_ENTITY)
-			.build();
-
-		return Registry.register(NeoApoliRegistries.POWER_TYPE, id, new Power.Type<>(parameters, mapCodec, streamCodec));
-
+		return Registry.register(NeoApoliRegistries.POWER_TYPE, id, new Power.Type<>(DEFAULT_PARAMETERS.merge(parametersBuilder.apply(new ContextValidator.Parameters.Builder()).build()), mapCodec, streamCodec));
 	}
 
 }

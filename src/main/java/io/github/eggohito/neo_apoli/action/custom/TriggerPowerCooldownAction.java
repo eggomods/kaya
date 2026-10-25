@@ -7,7 +7,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
-import io.github.eggohito.neo_apoli.power.custom.CooldownStandalonePower;
 import io.github.eggohito.neo_apoli.power.custom.misc.CooldownPower;
 import io.github.eggohito.neo_apoli.power.entity.Powers;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
@@ -51,7 +50,7 @@ public record TriggerPowerCooldownAction(PowerIdentifier power, EntityProvider e
 	@Override
 	public void validate(ContextValidator validator) {
 		Action.super.validate(validator);
-		power().validate(validator.forChild(".power"), CooldownStandalonePower.class, () -> power().asDisplayString() + " doesn't have a cooldown!");
+		power().validate(validator.forChild(".power"), CooldownPower.class, () -> power().asDisplayString() + " doesn't have a cooldown!");
 		entity().validate(validator.forChild(".entity"));
 	}
 

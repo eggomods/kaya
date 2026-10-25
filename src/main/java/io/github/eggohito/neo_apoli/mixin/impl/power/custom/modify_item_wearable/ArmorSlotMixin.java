@@ -13,12 +13,8 @@ import org.spongepowered.asm.mixin.injection.At;
 public abstract class ArmorSlotMixin {
 
 	@WrapOperation(method = "mayPlace", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isEquippableInSlot(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/EquipmentSlot;)Z"))
-	boolean onInsert(LivingEntity owner, ItemStack stack, EquipmentSlot slot, Operation<Boolean> original) {
-
-		try (ModifyItemWearablePower.VISITOR) {
-			return ModifyItemWearablePower.modify(owner, stack, slot, () -> original.call(owner, stack, slot));
-		}
-
+	boolean modifyItemWearableOnInsertOnArmorSlots(LivingEntity owner, ItemStack stack, EquipmentSlot slot, Operation<Boolean> original) {
+		return ModifyItemWearablePower.modify(owner, stack, slot, () -> original.call(owner, stack, slot));
 	}
 
 }

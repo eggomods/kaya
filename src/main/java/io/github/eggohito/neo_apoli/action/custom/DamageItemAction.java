@@ -12,12 +12,16 @@ import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.ints.ConstantIntProvider;
 import io.github.eggohito.neo_apoli.provider.custom.slot.SlotProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
+import io.github.eggohito.neo_apoli.util.InventoryUtil;
+import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.SlotAccess;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.function.Consumers;
 
@@ -63,28 +67,44 @@ public record DamageItemAction(IntProvider amount, SlotProvider slot, BooleanPro
 		boolean ignoreEnchantments = ignoreEnchantments().getBoolean(context.forChild(".ignore_enchantments"));
 		int amount = Math.abs(amount().getInt(context.forChild(".amount")));
 
+		ServerPlayer itemHolder = itemHolder()
+			.flatMap(self -> self.getValue(context.forChild(".entity")))
+			.filter(ServerPlayer.class::isInstance)
+			.map(ServerPlayer.class::cast)
+			.orElse(null);
+
 		if (ignoreEnchantments) {
 
-			if (amount >= stack.getMaxDamage()) {
-				stack.shrink(1);
+			EquipmentSlot slot = InventoryUtil.getEquipmentSlotFromStack(itemHolder, stack);
+			int appliedDamage = stack.getDamageValue() + amount;
+
+			if (itemHolder != null) {
+
+				if (itemHolder.hasInfiniteMaterials()) {
+					return;
+				}
+
+				CriteriaTriggers.ITEM_DURABILITY_CHANGED.trigger(itemHolder, stack, appliedDamage);
+
 			}
 
-			else {
-				stack.setDamageValue(stack.getDamageValue() + amount);
+			stack.setDamageValue(appliedDamage);
+
+			if (stack.isBroken()) {
+
+				Item item = stack.getItem();
+				stack.shrink(1);
+
+				if (itemHolder != null && slot != null) {
+					itemHolder.onEquippedItemBroken(item, slot);
+				}
+
 			}
 
 		}
 
 		else {
-
-			ServerPlayer itemHolder = itemHolder()
-				.flatMap(self -> self.getValue(context.forChild(".entity")))
-				.filter(ServerPlayer.class::isInstance)
-				.map(ServerPlayer.class::cast)
-				.orElse(null);
-
 			stack.hurtAndBreak(amount, serverLevel, itemHolder, Consumers.nop());
-
 		}
 
 	}

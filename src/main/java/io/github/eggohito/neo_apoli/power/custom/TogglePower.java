@@ -22,12 +22,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record TogglePower(Optional<Condition> activeCondition, Action action, KeyReference key, BooleanProvider retainState, BooleanProvider activeByDefault) implements Power {
+public record TogglePower(Optional<Condition> activeCondition, Action action, Optional<KeyReference> key, BooleanProvider retainState, BooleanProvider activeByDefault) implements Power {
 
 	public static final MapCodec<TogglePower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
 		.addActiveConditionField(instance)
 		.and(Action.CODEC.optionalFieldOf("action", NothingAction.INSTANCE).forGetter(TogglePower::action))
-		.and(KeyReference.CODEC.fieldOf("key").forGetter(TogglePower::key))
+		.and(KeyReference.CODEC.optionalFieldOf("key").forGetter(TogglePower::key))
 		.and(BooleanProvider.CODEC.optionalFieldOf("retain_state", new ConstantBooleanProvider(true)).forGetter(TogglePower::retainState))
 		.and(BooleanProvider.CODEC.optionalFieldOf("active_by_default", new ConstantBooleanProvider(true)).forGetter(TogglePower::activeByDefault))
 		.apply(instance, TogglePower::new)
@@ -36,7 +36,7 @@ public record TogglePower(Optional<Condition> activeCondition, Action action, Ke
 	public static final StreamCodec<RegistryFriendlyByteBuf, TogglePower> STREAM_CODEC = StreamCodec.composite(
 		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		Action.STREAM_CODEC, TogglePower::action,
-		KeyReference.STREAM_CODEC, TogglePower::key,
+		ByteBufCodecs.optional(KeyReference.STREAM_CODEC), TogglePower::key,
 		BooleanProvider.STREAM_CODEC, TogglePower::retainState,
 		BooleanProvider.STREAM_CODEC, TogglePower::activeByDefault,
 		TogglePower::new
@@ -58,7 +58,7 @@ public record TogglePower(Optional<Condition> activeCondition, Action action, Ke
 		Power.super.validate(validator);
 
 		action().validate(validator.forChild(".action"));
-		key().validate(validator.forChild(".key"));
+		key().ifPresent(key -> key.validate(validator.forChild(".key")));
 		retainState().validate(validator.forChild(".retain_state"));
 		activeByDefault().validate(validator.forChild(".active_by_default"));
 
@@ -113,15 +113,16 @@ public record TogglePower(Optional<Condition> activeCondition, Action action, Ke
 			return toggled;
 		}
 
-		public KeyReference key() {
+		public Optional<KeyReference> key() {
 			return power.key();
 		}
 
 		public boolean shouldToggle(Context context, KeyState previous, KeyState current) {
-			return previous.equals(current)
+			return key().isPresent()
+				&& previous.equals(current)
 				&& current.pressed()
 				&& super.isActive(context)
-				&& power.key().continuouslyPressed(context, previous, current);
+				&& key().get().continuouslyPressed(context, previous, current);
 		}
 
 		public void toggle(Entity holder, Context context) {

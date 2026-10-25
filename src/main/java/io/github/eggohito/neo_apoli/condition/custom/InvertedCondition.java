@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.condition.custom;
 
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
@@ -10,9 +11,9 @@ import net.minecraft.network.codec.StreamCodec;
 
 public record InvertedCondition(Condition condition) implements Condition {
 
-	public static final MapCodec<InvertedCondition> CODEC = Condition.CODEC.fieldOf("condition").xmap(
-		InvertedCondition::new,
-		InvertedCondition::condition
+	public static final MapCodec<InvertedCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(Condition.CODEC.fieldOf("condition").forGetter(InvertedCondition::condition))
+		.apply(instance, InvertedCondition::new)
 	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, InvertedCondition> STREAM_CODEC = Condition.STREAM_CODEC.map(

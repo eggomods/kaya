@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.action.custom;
 
+import com.google.common.collect.ImmutableBiMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -11,12 +12,9 @@ import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliActionTypes;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.Space;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.experimental.Accessors;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
@@ -56,14 +54,14 @@ public record AddVelocityAction(Method method, Vec3Provider velocity) implements
 		velocity().validate(validator.forChild(".velocity"));
 	}
 
-	//  TODO: Expose this interface for addon developers
+	//  TODO: Maybe expose this interface?
 	public sealed interface Method extends ContextUser {
 
 		MapCodec<Method> CODEC = Type.CODEC.dispatchMap("method", Method::getType, Type::mapCodec);
 
 		StreamCodec<RegistryFriendlyByteBuf, Method> STREAM_CODEC = Type.STREAM_CODEC.dispatch(Method::getType, Type::streamCodec);
 
-		Type getType();
+		Type<?> getType();
 
 		void apply(Context context, Vector3f velocity);
 
@@ -80,9 +78,11 @@ public record AddVelocityAction(Method method, Vec3Provider velocity) implements
 				SingleBased::new
 			);
 
+			public static final Type<SingleBased> TYPE = new Type<>(CODEC, STREAM_CODEC);
+
 			@Override
-			public Type getType() {
-				return Type.SINGLE;
+			public Type<?> getType() {
+				return TYPE;
 			}
 
 			@Override
@@ -109,9 +109,24 @@ public record AddVelocityAction(Method method, Vec3Provider velocity) implements
 
 		record PairBased(Reference reference, EntityProvider first, EntityProvider second) implements Method {
 
+			public static final MapCodec<PairBased> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+				Reference.CODEC.optionalFieldOf("reference", Reference.ROTATION).forGetter(PairBased::reference),
+				EntityProvider.CODEC.fieldOf("first").forGetter(PairBased::first),
+				EntityProvider.CODEC.fieldOf("second").forGetter(PairBased::second)
+			).apply(instance, PairBased::new));
+
+			public static final StreamCodec<RegistryFriendlyByteBuf, PairBased> STREAM_CODEC = StreamCodec.composite(
+				Reference.STREAM_CODEC, PairBased::reference,
+				EntityProvider.STREAM_CODEC, PairBased::first,
+				EntityProvider.STREAM_CODEC, PairBased::second,
+				PairBased::new
+			);
+
+			public static final Type<PairBased> TYPE = new Type<>(CODEC, STREAM_CODEC);
+
 			@Override
-			public Type getType() {
-				return Type.PAIR;
+			public Type<?> getType() {
+				return TYPE;
 			}
 
 			@Override
@@ -141,19 +156,16 @@ public record AddVelocityAction(Method method, Vec3Provider velocity) implements
 
 		}
 
-		@Accessors(fluent = true)
-		@AllArgsConstructor
-		@Getter
-		enum Type {
+		record Type<M extends Method>(MapCodec<M> mapCodec, StreamCodec<RegistryFriendlyByteBuf, M> streamCodec) {
 
-			SINGLE(MapCodecUtil.lazy(() -> SingleBased.CODEC), StreamCodecUtil.lazy(() -> SingleBased.STREAM_CODEC)),
-			PAIR(MapCodecUtil.lazy(() -> PairBased.CODEC), StreamCodecUtil.lazy(() -> PairBased.STREAM_CODEC));
+			private static final ImmutableBiMap<String, Type<?>> VALUES = ImmutableBiMap.of(
+				"single", SingleBased.TYPE,
+				"pair", PairBased.TYPE
+			);
 
-			public static final Codec<Type> CODEC = CodecUtil.enumType(Type.class);
-			public static final StreamCodec<RegistryFriendlyByteBuf, Type> STREAM_CODEC = StreamCodecUtil.enumType(Type.class);
+			public static final Codec<Type<?>> CODEC = CodecUtil.mapped(VALUES);
 
-			final MapCodec<? extends Method> mapCodec;
-			final StreamCodec<RegistryFriendlyByteBuf, ? extends Method> streamCodec;
+			public static final StreamCodec<RegistryFriendlyByteBuf, Type<?>> STREAM_CODEC = StreamCodecUtil.mapped(VALUES);
 
 		}
 
@@ -178,6 +190,9 @@ public record AddVelocityAction(Method method, Vec3Provider velocity) implements
 			}
 
 		};
+
+		public static final Codec<Reference> CODEC = CodecUtil.enumType(Reference.class);
+		public static final StreamCodec<ByteBuf, Reference> STREAM_CODEC = StreamCodecUtil.enumType(Reference.class);
 
 		public abstract Vec3 apply(Entity first, Entity second);
 

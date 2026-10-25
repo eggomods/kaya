@@ -21,6 +21,8 @@ import java.util.UUID;
 @ApiStatus.Internal
 public final class ClientKeyStateManager extends ServerKeyStateManager {
 
+	private final Object2BooleanMap<UUID> init = new Object2BooleanOpenHashMap<>();
+
 	@Override
 	public void init() {
 
@@ -32,8 +34,12 @@ public final class ClientKeyStateManager extends ServerKeyStateManager {
 	}
 
 	private void disconnect() {
+
 		this.previousStates.remove();
 		this.currentStates.remove();
+
+		this.init.clear();
+
 	}
 
 	private void tick(Minecraft client) {
@@ -62,12 +68,11 @@ public final class ClientKeyStateManager extends ServerKeyStateManager {
 			boolean changed = previousState.pressed() != pressed;
 
 			if (changed) {
+				currentState = new KeyState(id, pressed ? level.getGameTime() : 0);
+			}
 
-				long pressedTime = pressed ? level.getGameTime() : 0;
-				currentState = new KeyState(id, pressedTime);
-
+			if (!init.containsKey(uuid) || changed) {
 				updates.put(id, pressed);
-
 			}
 
 			current.put(id, currentState);
@@ -92,6 +97,8 @@ public final class ClientKeyStateManager extends ServerKeyStateManager {
 
 		previous.putAll(current);
 		send(updates);
+
+		init.putIfAbsent(uuid, true);
 
 	}
 

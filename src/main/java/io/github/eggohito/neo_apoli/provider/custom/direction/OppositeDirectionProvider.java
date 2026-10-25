@@ -1,11 +1,10 @@
 package io.github.eggohito.neo_apoli.provider.custom.direction;
 
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliDirectionProviderTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -15,8 +14,15 @@ import java.util.Optional;
 
 public record OppositeDirectionProvider(DirectionProvider direction) implements DirectionProvider {
 
-	public static final MapCodec<OppositeDirectionProvider> CODEC = MapCodecUtil.lazy(OppositeDirectionProvider.class.getSimpleName(), () -> DirectionProvider.CODEC.fieldOf("direction").xmap(OppositeDirectionProvider::new, OppositeDirectionProvider::direction));
-	public static final StreamCodec<RegistryFriendlyByteBuf, OppositeDirectionProvider> STREAM_CODEC = StreamCodecUtil.lazy(OppositeDirectionProvider.class.getSimpleName(), () -> DirectionProvider.STREAM_CODEC.map(OppositeDirectionProvider::new,  OppositeDirectionProvider::direction));
+	public static final MapCodec<OppositeDirectionProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(DirectionProvider.CODEC.fieldOf("direction").forGetter(OppositeDirectionProvider::direction))
+		.apply(instance, OppositeDirectionProvider::new)
+	);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, OppositeDirectionProvider> STREAM_CODEC = StreamCodec.composite(
+		DirectionProvider.STREAM_CODEC, OppositeDirectionProvider::direction,
+		OppositeDirectionProvider::new
+	);
 
 	@Override
 	public @NotNull Type<?> getType() {

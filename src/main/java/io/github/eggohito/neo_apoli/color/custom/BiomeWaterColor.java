@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.color.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.color.Color;
-import io.github.eggohito.neo_apoli.color.DynamicColor;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
@@ -44,7 +43,7 @@ public record BiomeWaterColor(Vec3Provider position, FloatProvider alpha) implem
 			return 0;
 		}
 
-		float alphaFloat = DynamicColor.getValue(context.forChild(".alpha"), alpha()::getFloat, () -> 1.0F);
+		float alphaFloat = alpha().getValue(context.forChild(".alpha")).orElse(1.0F);
 		int blockTint = context.level().getBlockTint(position, NeoApoliColorResolvers.BIOME_WATER_COLOR);
 
 		return ARGB.color(ARGB.as8BitChannel(alphaFloat), blockTint);

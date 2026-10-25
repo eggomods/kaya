@@ -35,7 +35,7 @@ public record GainAirAction(IntProvider value, EntityProvider entity) implements
 		entity().getValue(context.forChild(".entity"))
 			.filter(Player.class::isInstance)
 			.map(Player.class::cast)
-			.ifPresent(player -> player.setAirSupply(Math.min(value().getInt(context.forChild(".value")), player.getMaxAirSupply())));
+			.ifPresent(player -> player.setAirSupply(Math.min(player.getAirSupply() + value().getInt(context.forChild(".value")), player.getMaxAirSupply())));
 	}
 
 	@Override

@@ -6,8 +6,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliFloatProviderTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.Mth;
@@ -17,18 +15,18 @@ import java.util.Optional;
 
 public record LinearInterpolatedFloatProvider(FloatProvider delta, FloatProvider start, FloatProvider end) implements FloatProvider {
 
-	public static final MapCodec<LinearInterpolatedFloatProvider> CODEC = MapCodecUtil.lazy(LinearInterpolatedFloatProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<LinearInterpolatedFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		FloatProvider.CODEC.fieldOf("delta").forGetter(LinearInterpolatedFloatProvider::delta),
 		FloatProvider.CODEC.fieldOf("start").forGetter(LinearInterpolatedFloatProvider::start),
 		FloatProvider.CODEC.fieldOf("end").forGetter(LinearInterpolatedFloatProvider::end)
-	).apply(instance, LinearInterpolatedFloatProvider::new)));
+	).apply(instance, LinearInterpolatedFloatProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, LinearInterpolatedFloatProvider> STREAM_CODEC = StreamCodecUtil.lazy(LinearInterpolatedFloatProvider.class.getSimpleName(), () -> StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, LinearInterpolatedFloatProvider> STREAM_CODEC = StreamCodec.composite(
 		FloatProvider.STREAM_CODEC, LinearInterpolatedFloatProvider::delta,
 		FloatProvider.STREAM_CODEC, LinearInterpolatedFloatProvider::start,
 		FloatProvider.STREAM_CODEC, LinearInterpolatedFloatProvider::end,
 		LinearInterpolatedFloatProvider::new
-	));
+	);
 
 	@Override
 	public @NotNull FloatProvider.Type<?> getType() {

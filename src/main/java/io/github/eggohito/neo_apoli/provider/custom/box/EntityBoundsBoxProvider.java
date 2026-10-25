@@ -6,8 +6,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliBoxProviderTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
@@ -19,14 +17,14 @@ import java.util.Optional;
 
 public record EntityBoundsBoxProvider(EntityProvider entity) implements BoxProvider {
 
-	public static final MapCodec<EntityBoundsBoxProvider> CODEC = MapCodecUtil.lazy(EntityBoundsBoxProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<EntityBoundsBoxProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		EntityProvider.CODEC.fieldOf("entity").forGetter(EntityBoundsBoxProvider::entity)
-	).apply(instance, EntityBoundsBoxProvider::new)));
+	).apply(instance, EntityBoundsBoxProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, EntityBoundsBoxProvider> STREAM_CODEC = StreamCodecUtil.lazy(EntityBoundsBoxProvider.class.getSimpleName(), () -> StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, EntityBoundsBoxProvider> STREAM_CODEC = StreamCodec.composite(
 		EntityProvider.STREAM_CODEC, EntityBoundsBoxProvider::entity,
 		EntityBoundsBoxProvider::new
-	));
+	);
 
 	@Override
 	public @NotNull BoxProvider.Type<?> getType() {

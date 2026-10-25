@@ -4,10 +4,13 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class InventoryUtil {
 
@@ -80,6 +83,25 @@ public final class InventoryUtil {
 		}
 
 		serverWorld.tryAddFreshEntityWithPassengers(itemEntity);
+
+	}
+
+	@Nullable
+	public static EquipmentSlot getEquipmentSlotFromStack(@Nullable LivingEntity entity, @NotNull ItemStack stack) {
+
+		if (entity == null) {
+			return null;
+		}
+
+		for (var slot : EquipmentSlot.values()) {
+
+			if (ItemStack.matches(entity.getItemBySlot(slot), stack)) {
+				return slot;
+			}
+
+		}
+
+		return null;
 
 	}
 

@@ -6,8 +6,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliFloatProviderTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.Mth;
@@ -17,18 +15,18 @@ import java.util.Optional;
 
 public record ClampedFloatProvider(FloatProvider value, FloatProvider min, FloatProvider max) implements FloatProvider {
 
-	public static final MapCodec<ClampedFloatProvider> CODEC = MapCodecUtil.lazy(ClampedFloatProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<ClampedFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		FloatProvider.CODEC.fieldOf("value").forGetter(ClampedFloatProvider::value),
 		FloatProvider.CODEC.fieldOf("min").forGetter(ClampedFloatProvider::min),
 		FloatProvider.CODEC.fieldOf("max").forGetter(ClampedFloatProvider::max)
-	).apply(instance, ClampedFloatProvider::new)));
+	).apply(instance, ClampedFloatProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ClampedFloatProvider> STREAM_CODEC = StreamCodecUtil.lazy(ClampedFloatProvider.class.getSimpleName(), () -> StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, ClampedFloatProvider> STREAM_CODEC = StreamCodec.composite(
 		FloatProvider.STREAM_CODEC, ClampedFloatProvider::value,
 		FloatProvider.STREAM_CODEC, ClampedFloatProvider::min,
 		FloatProvider.STREAM_CODEC, ClampedFloatProvider::max,
 		ClampedFloatProvider::new
-	));
+	);
 
 	@Override
 	public @NotNull FloatProvider.Type<?> getType() {

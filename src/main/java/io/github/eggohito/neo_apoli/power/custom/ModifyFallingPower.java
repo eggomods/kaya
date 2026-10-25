@@ -77,7 +77,7 @@ public record ModifyFallingPower(Optional<Condition> activeCondition, List<Modif
 		public List<Modifier.Operation> operations(Context context) {
 
 			List<Modifier.Operation> result = new ObjectArrayList<>();
-			MiscUtil.iterateList(power.modifiers(), (index, modifier) -> Modifier.operation(modifier, context.forChild(".modifiers[" + index + "]")));
+			MiscUtil.iterateList(power.modifiers(), (index, modifier) -> result.add(Modifier.operation(modifier, context.forChild(".modifiers[" + index + "]"))));
 
 			return result;
 

@@ -6,8 +6,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliIntProviderTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.Mth;
@@ -17,16 +15,16 @@ import java.util.Optional;
 
 public record RandomUniformIntProvider(IntProvider min, IntProvider max) implements IntProvider {
 
-	public static final MapCodec<RandomUniformIntProvider> CODEC = MapCodecUtil.lazy(RandomUniformIntProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<RandomUniformIntProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		IntProvider.CODEC.fieldOf("min").forGetter(RandomUniformIntProvider::min),
 		IntProvider.CODEC.fieldOf("max").forGetter(RandomUniformIntProvider::max)
-	).apply(instance, RandomUniformIntProvider::new)));
+	).apply(instance, RandomUniformIntProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, RandomUniformIntProvider> STREAM_CODEC = StreamCodecUtil.lazy(RandomUniformIntProvider.class.getSimpleName(), () -> StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, RandomUniformIntProvider> STREAM_CODEC = StreamCodec.composite(
 		IntProvider.STREAM_CODEC, RandomUniformIntProvider::min,
 		IntProvider.STREAM_CODEC, RandomUniformIntProvider::max,
 		RandomUniformIntProvider::new
-	));
+	);
 
 	@Override
 	public @NotNull IntProvider.Type<?> getType() {

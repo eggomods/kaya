@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.condition.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.eggohito.neo_apoli.comparison.Comparator;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
@@ -76,15 +77,10 @@ public record BlockStatePropertyCondition(StringProvider property, BlockProvider
 	}
 
 	private <T extends Comparable<T>> boolean testProperty(Context context, BlockState state, Property<T> property) {
-
-		T currentValue = state.getValue(property);
-		T queryValue = value().getValue(context.forChild(".value"))
+		return value().getValue(context.forChild(".value"))
 			.flatMap(property::getValue)
-			.orElse(null);
-
-		return queryValue != null
-			&& currentValue.compareTo(queryValue) == 0;
-
+			.filter(value -> Comparator.EQUALS.compare(state.getValue(property), value))
+			.isPresent();
 	}
 
 }

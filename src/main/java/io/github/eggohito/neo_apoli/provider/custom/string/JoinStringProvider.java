@@ -6,7 +6,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidatable;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliStringProviderTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -21,10 +20,10 @@ import java.util.Optional;
 
 public record JoinStringProvider(List<StringProvider> strings, StringProvider separator) implements StringProvider {
 
-	public static final MapCodec<JoinStringProvider> CODEC = MapCodecUtil.lazy(JoinStringProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<JoinStringProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		ExtraCodecs.nonEmptyList(StringProvider.CODEC.listOf()).fieldOf("strings").forGetter(JoinStringProvider::strings),
 		StringProvider.CODEC.fieldOf("separator").forGetter(JoinStringProvider::separator)
-	).apply(instance, JoinStringProvider::new)));
+	).apply(instance, JoinStringProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, JoinStringProvider> STREAM_CODEC = StreamCodec.composite(
 		ByteBufCodecs.collection(ObjectArrayList::new, StringProvider.STREAM_CODEC), JoinStringProvider::strings,
@@ -80,6 +79,7 @@ public record JoinStringProvider(List<StringProvider> strings, StringProvider se
 	public void validate(ContextValidator validator) {
 		StringProvider.super.validate(validator);
 		ContextValidatable.validate(strings(), validator, index -> ".strings[" + index + "]");
+		separator().validate(validator.forChild(".separator"));
 	}
 
 }

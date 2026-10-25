@@ -2,10 +2,7 @@ package io.github.eggohito.neo_apoli.registry.provider;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.provider.custom.item.CompositeConditionalItemProvider;
-import io.github.eggohito.neo_apoli.provider.custom.item.ConditionalItemProvider;
-import io.github.eggohito.neo_apoli.provider.custom.item.ContextItemProvider;
-import io.github.eggohito.neo_apoli.provider.custom.item.ItemProvider;
+import io.github.eggohito.neo_apoli.provider.custom.item.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -17,6 +14,7 @@ public final class NeoApoliItemProviderTypes {
 	public static final ItemProvider.Type<CompositeConditionalItemProvider> COMPOSITE_CONDITIONAL = registerInternal("conditional/composite", CompositeConditionalItemProvider.CODEC, CompositeConditionalItemProvider.STREAM_CODEC);
 	public static final ItemProvider.Type<ConditionalItemProvider> CONDITIONAL = registerInternal("conditional", ConditionalItemProvider.CODEC, ConditionalItemProvider.STREAM_CODEC);
 	public static final ItemProvider.Type<ContextItemProvider> CONTEXT = registerInternal("context", ContextItemProvider.CODEC, ContextItemProvider.STREAM_CODEC);
+	public static final ItemProvider.Type<WeightedItemProvider> WEIGHTED = registerInternal("weighted", WeightedItemProvider.CODEC, WeightedItemProvider.STREAM_CODEC);
 
 	public static void registerAll() {
 

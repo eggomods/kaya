@@ -1,6 +1,7 @@
 package io.github.eggohito.neo_apoli.condition.custom;
 
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidatable;
@@ -15,14 +16,14 @@ import java.util.ListIterator;
 
 public record AnyOfCondition(List<Condition> conditions) implements Condition {
 
-	public static final MapCodec<AnyOfCondition> CODEC = Condition.CODEC.listOf().fieldOf("conditions").xmap(
-		AnyOfCondition::new,
-		AnyOfCondition::conditions
+	public static final MapCodec<AnyOfCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(Condition.CODEC.listOf().fieldOf("conditions").forGetter(AnyOfCondition::conditions))
+		.apply(instance, AnyOfCondition::new)
 	);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfCondition> STREAM_CODEC = Condition.STREAM_CODEC.apply(ByteBufCodecs.list()).map(
-		AnyOfCondition::new,
-		AnyOfCondition::conditions
+	public static final StreamCodec<RegistryFriendlyByteBuf, AnyOfCondition> STREAM_CODEC = StreamCodec.composite(
+		Condition.STREAM_CODEC.apply(ByteBufCodecs.list()), AnyOfCondition::conditions,
+		AnyOfCondition::new
 	);
 
 	@Override

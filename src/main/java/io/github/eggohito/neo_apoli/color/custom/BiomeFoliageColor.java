@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.color.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.color.Color;
-import io.github.eggohito.neo_apoli.color.DynamicColor;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.provider.custom.bool.BooleanProvider;
@@ -48,7 +47,7 @@ public record BiomeFoliageColor(Vec3Provider position, FloatProvider alpha, Bool
 			return 0;
 		}
 
-		float alphaFloat = DynamicColor.getValue(context.forChild(".alpha"), alpha()::getFloat, () -> 1.0F);
+		float alphaFloat = alpha().getValue(context.forChild(".alpha")).orElse(1.0F);
 		boolean dry = dry().getBoolean(context.forChild(".dry"));
 
 		ColorResolver colorResolver = dry

@@ -6,8 +6,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliFloatProviderTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
@@ -16,16 +14,16 @@ import java.util.Optional;
 
 public record QuotientFloatProvider(FloatProvider dividend, FloatProvider divisor) implements FloatProvider {
 
-	public static final MapCodec<QuotientFloatProvider> CODEC = MapCodecUtil.lazy(QuotientFloatProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<QuotientFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		FloatProvider.CODEC.fieldOf("dividend").forGetter(QuotientFloatProvider::dividend),
 		FloatProvider.CODEC.fieldOf("divisor").forGetter(QuotientFloatProvider::divisor)
-	).apply(instance, QuotientFloatProvider::new)));
+	).apply(instance, QuotientFloatProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, QuotientFloatProvider> STREAM_CODEC = StreamCodecUtil.lazy(QuotientFloatProvider.class.getSimpleName(), () -> StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, QuotientFloatProvider> STREAM_CODEC = StreamCodec.composite(
 		FloatProvider.STREAM_CODEC, QuotientFloatProvider::dividend,
 		FloatProvider.STREAM_CODEC, QuotientFloatProvider::divisor,
 		QuotientFloatProvider::new
-	));
+	);
 
 	@Override
 	public @NotNull FloatProvider.Type<?> getType() {

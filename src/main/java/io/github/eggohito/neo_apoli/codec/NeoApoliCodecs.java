@@ -6,6 +6,7 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
+import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.command.argument.PowerArgument;
 import io.github.eggohito.neo_apoli.mixin.access.BlockInputAccessor;
 import io.github.eggohito.neo_apoli.mixin.access.TagParserAccessor;
@@ -13,7 +14,7 @@ import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.manager.PowerManager;
 import io.github.eggohito.neo_apoli.registry.NeoApoliParticleTypes;
 import io.github.eggohito.neo_apoli.util.*;
-import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
+import io.github.eggohito.neo_apoli.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -33,6 +34,7 @@ import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.TagEntry;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.TriState;
@@ -56,6 +58,8 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class NeoApoliCodecs {
+
+	public static final Codec<ResourceLocation> MOD_NAMESPACE_IDENTIFIER = ResourceLocationUtil.codecWithDefaultNamespace(NeoApoli.MOD_NAMESPACE);
 
 	public static final Codec<Set<ResourceLocation>> IDENTIFIER_SET = ResourceLocation.CODEC.listOf().xmap(Set::copyOf, List::copyOf);
 
@@ -170,9 +174,11 @@ public class NeoApoliCodecs {
 
 	public static final Codec<Difficulty> DIFFICULTY = CodecUtil.enumType(Difficulty.class);
 
-	public static final Codec<LazyTagLike<EntityType<?>>> LAZY_ENTITY_TYPE_TAG_LIKE = LazyTagLike.createLazyCodec(BuiltInRegistries.ENTITY_TYPE);
+	public static final Codec<List<TagEntry>> TAG_ENTRIES = TagEntry.CODEC.listOf();
 
-	public static final Codec<LazyTagLike<PowerHolder<?>>> LAZY_POWER_TAG_LIKE = LazyTagLike.createLazyCodec(PowerManager.TAG_LOOKUP);
+	public static final Codec<TagLike<EntityType<?>>> ENTITY_TYPE_TAG_LIKE = TagLike.registryCodec(Registries.ENTITY_TYPE);
+
+	public static final Codec<TagLike<PowerHolder<?>>> POWER_TAG_LIKE = TagLike.codec(PowerManager.TAG_LOOKUP);
 
 	public static final Codec<SimpleParticleType> SIMPLE_PARTICLE = NeoApoliParticleTypes.CODEC.comapFlatMap(
 		particleType -> particleType instanceof SimpleParticleType simpleParticleType
@@ -189,13 +195,7 @@ public class NeoApoliCodecs {
 
 	public static final Codec<ParsedArgument<EntitySelector>> ENTITY_SELECTOR = ParsedArgument.codec(EntityArgument.entity());
 
-	private static final Codec<Biome.Precipitation> UNVALIDATED_PRECIPITATION = CodecUtil.enumType(Biome.Precipitation.class);
-
-	public static final Codec<Biome.Precipitation> PRECIPITATION = UNVALIDATED_PRECIPITATION.validate(
-		precipitation -> precipitation == Biome.Precipitation.NONE
-			? DataResult.error(() -> "Precipitation \"" + precipitation.getSerializedName() + "\" is not allowed!")
-			: DataResult.success(precipitation)
-	);
+	public static final Codec<Biome.Precipitation> PRECIPITATION = CodecUtil.enumType(Biome.Precipitation.class);
 
 	public static final Codec<ParsedArgument<ItemPredicateArgument.Result>> ITEM_PREDICATE = ParsedArgument.codecWithSimpleContext(ItemPredicateArgument::itemPredicate);
 

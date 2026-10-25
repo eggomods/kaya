@@ -6,8 +6,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliFloatProviderTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
@@ -16,16 +14,16 @@ import java.util.Optional;
 
 public record PowerFloatProvider(FloatProvider base, FloatProvider exponent) implements FloatProvider {
 
-	public static final MapCodec<PowerFloatProvider> CODEC = MapCodecUtil.lazy(PowerFloatProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<PowerFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		FloatProvider.CODEC.fieldOf("base").forGetter(PowerFloatProvider::base),
 		FloatProvider.CODEC.fieldOf("exponent").forGetter(PowerFloatProvider::exponent)
-	).apply(instance, PowerFloatProvider::new)));
+	).apply(instance, PowerFloatProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, PowerFloatProvider> STREAM_CODEC = StreamCodecUtil.lazy(PowerFloatProvider.class.getSimpleName(), () -> StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, PowerFloatProvider> STREAM_CODEC = StreamCodec.composite(
 		FloatProvider.STREAM_CODEC, PowerFloatProvider::base,
 		FloatProvider.STREAM_CODEC, PowerFloatProvider::exponent,
 		PowerFloatProvider::new
-	));
+	);
 
 	@Override
 	public @NotNull FloatProvider.Type<?> getType() {

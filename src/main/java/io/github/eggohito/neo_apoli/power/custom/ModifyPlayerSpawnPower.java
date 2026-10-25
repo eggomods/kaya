@@ -14,7 +14,6 @@ import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
-import io.github.eggohito.neo_apoli.util.CodecUtil;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.RegistryUtil;
 import net.fabricmc.loader.api.FabricLoader;
@@ -220,14 +219,10 @@ public record ModifyPlayerSpawnPower(Optional<Condition> activeCondition, Resour
 	public static final class Config extends AbstractJsonCodecConfig<Config> {
 
 		public static final Config INSTANCE = new Config();
-		public static final int VERSION = 1;
 
-		public final ConfigEntry<Integer> horizontalStep = register("horizontal_step", 64, CodecUtil.nonNegativeInt());
-		public final ConfigEntry<Integer> verticalStep = register("vertical_step", 64, CodecUtil.nonNegativeInt());
-		public final ConfigEntry<Integer> radius = register("radius", 6400, CodecUtil.nonNegativeInt());
-
-		public final ConfigEntry<Boolean> enabled = register("enabled", true, Codec.BOOL);
-		public final ConfigEntry<Integer> version = register("version", VERSION, Codec.INT);
+		public final ConfigEntry<Integer> horizontalStep = register("horizontal_step", 64, ExtraCodecs.NON_NEGATIVE_INT);
+		public final ConfigEntry<Integer> verticalStep = register("vertical_step", 64, ExtraCodecs.NON_NEGATIVE_INT);
+		public final ConfigEntry<Integer> radius = register("radius", 6400, ExtraCodecs.NON_NEGATIVE_INT);
 
 		Config() {
 			super(FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/type/power/modify_player_spawn.json5"), JsonFormat.JSON5);

@@ -2,13 +2,15 @@ package io.github.eggohito.neo_apoli.util;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JavaOps;
+import io.github.eggohito.neo_apoli.mixin.access.RegistryOpsAccessor;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -18,8 +20,12 @@ import net.minecraft.util.StringRepresentable;
 
 import java.util.Collection;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
-import java.util.function.*;
+import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.function.Supplier;
+import java.util.function.ToIntFunction;
 
 public class CodecUtil {
 
@@ -58,15 +64,6 @@ public class CodecUtil {
 
 	public static <E> Codec<E> mapped(BiMap<String, E> map) {
 		return mapped(Suppliers.memoize(() -> map));
-	}
-
-	public static <E> Codec<E> mapped(Consumer<ImmutableBiMap.Builder<String, E>> consumer) {
-
-		ImmutableBiMap.Builder<String, E> builder = ImmutableBiMap.builder();
-		consumer.accept(builder);
-
-		return mapped(builder.build());
-
 	}
 
 	public static <E extends Enum<E>> Codec<E> enumType(Class<E> enumClass) {
@@ -162,12 +159,22 @@ public class CodecUtil {
 		return nonEmptyCollection(codec, () -> "Set must have contents");
 	}
 
-	public static Codec<Integer> nonNegativeInt() {
-		return Codec.intRange(0, Integer.MAX_VALUE);
+	public static <T, O> Optional<HolderLookup.RegistryLookup<T>> getRegistry(RegistryOps<O> ops, ResourceKey<? extends Registry<T>> registryKey) {
+		return ops.owner(registryKey)
+			.filter(owner -> owner instanceof HolderLookup.RegistryLookup<T>)
+			.map(owner -> (HolderLookup.RegistryLookup<T>) owner);
 	}
 
-	public static Codec<Integer> positiveInt() {
-		return Codec.intRange(1, Integer.MAX_VALUE);
+	public static <A> Optional<HolderLookup.Provider> getRegistries(RegistryOps<A> ops) {
+
+		if (((RegistryOpsAccessor) ops).getLookupProvider() instanceof RegistryOps.HolderLookupAdapter adapter) {
+			return Optional.of(((RegistryOpsAccessor.HolderLookupAdapterAccessor) (Object) adapter).getLookupProvider());
+		}
+
+		else {
+			return Optional.empty();
+		}
+
 	}
 
 }

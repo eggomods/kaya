@@ -15,6 +15,7 @@ public final class NeoApoliNbtProviderTypes {
 	public static final NbtProvider.Type<ConditionalNbtProvider> CONDITIONAL = registerInternal("conditional", ConditionalNbtProvider.CODEC, ConditionalNbtProvider.STREAM_CODEC);
 	public static final NbtProvider.Type<ConstantNbtProvider> CONSTANT = registerInternal("constant", ConstantNbtProvider.CODEC, ConstantNbtProvider.STREAM_CODEC);
 	public static final NbtProvider.Type<ContextNbtProvider> CONTEXT = registerInternal("context", ContextNbtProvider.CODEC, ContextNbtProvider.STREAM_CODEC);
+	public static final NbtProvider.Type<WeightedNbtProvider> WEIGHTED = registerInternal("weighted", WeightedNbtProvider.CODEC, WeightedNbtProvider.STREAM_CODEC);
 
 	public static final NbtProvider.Type<BlockNbtProvider> BLOCK = registerInternal("block", BlockNbtProvider.CODEC, BlockNbtProvider.STREAM_CODEC);
 	public static final NbtProvider.Type<EntityNbtProvider> ENTITY = registerInternal("entity", EntityNbtProvider.CODEC, EntityNbtProvider.STREAM_CODEC);

@@ -17,6 +17,7 @@ import io.github.eggohito.neo_apoli.resource.json.JsonWithSource;
 import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import io.github.eggohito.neo_apoli.util.manager.AbstractContentManager;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
@@ -67,8 +68,18 @@ public class ServerConditionManager extends AbstractContentManager<ResourceLocat
 
 	@Override
 	public void init() {
+
 		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, this::withOps);
 		ServerPlayConnectionEvents.INIT.register(ID, (handler, server) -> this.send(handler.player));
+
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> {
+
+			if (!joined) {
+				this.send(player);
+			}
+
+		});
+
 	}
 
 	private ServerConditionManager withOps(@NotNull HolderLookup.Provider provider) {

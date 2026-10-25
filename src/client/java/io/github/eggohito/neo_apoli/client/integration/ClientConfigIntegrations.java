@@ -3,7 +3,6 @@ package io.github.eggohito.neo_apoli.client.integration;
 import dev.isxander.yacl3.api.Option;
 import dev.isxander.yacl3.api.OptionDescription;
 import dev.isxander.yacl3.api.OptionGroup;
-import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
 import io.github.eggohito.neo_apoli.client.event.ConfigCategoryRegistrant;
 import io.github.eggohito.neo_apoli.hud.element.custom.ResourceBarHudElement;
@@ -84,13 +83,6 @@ public final class ClientConfigIntegrations {
 					.binding(ModifyPlayerSpawnPower.Config.INSTANCE.radius.asBinding())
 					.controller(option -> IntegerFieldControllerBuilder.create(option)
 						.min(0));
-				var enabled = Option.<Boolean>createBuilder()
-					.name(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.enabled.name"))
-					.description(OptionDescription.of(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.option.enabled.description")))
-					.binding(ModifyPlayerSpawnPower.Config.INSTANCE.enabled.asBinding())
-					.controller(option -> BooleanControllerBuilder.create(option)
-						.onOffFormatter()
-						.coloured(true));
 
 				adder.accept(OptionGroup.createBuilder()
 					.name(Component.translatable("config.neo-apoli.type.power.modify_player_spawn.name"))
@@ -98,7 +90,6 @@ public final class ClientConfigIntegrations {
 					.option(horizontalStep.build())
 					.option(verticalStep.build())
 					.option(radius.build())
-					.option(enabled.build())
 					.build());
 
 			}

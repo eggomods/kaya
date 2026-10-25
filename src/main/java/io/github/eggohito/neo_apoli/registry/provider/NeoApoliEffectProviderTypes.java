@@ -2,10 +2,7 @@ package io.github.eggohito.neo_apoli.registry.provider;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.provider.custom.effect.CompositeConditionalEffectProvider;
-import io.github.eggohito.neo_apoli.provider.custom.effect.ConditionalEffectProvider;
-import io.github.eggohito.neo_apoli.provider.custom.effect.ContextEffectProvider;
-import io.github.eggohito.neo_apoli.provider.custom.effect.EffectProvider;
+import io.github.eggohito.neo_apoli.provider.custom.effect.*;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -16,7 +13,9 @@ public final class NeoApoliEffectProviderTypes {
 
 	public static final EffectProvider.Type<CompositeConditionalEffectProvider> COMPOSITE_CONDITIONAL = registerInternal("conditional/composite", CompositeConditionalEffectProvider.CODEC, CompositeConditionalEffectProvider.STREAM_CODEC);
 	public static final EffectProvider.Type<ConditionalEffectProvider> CONDITIONAL = registerInternal("conditional", ConditionalEffectProvider.CODEC, ConditionalEffectProvider.STREAM_CODEC);
+	public static final EffectProvider.Type<ConstantEffectProvider> CONSTANT = registerInternal("constant", ConstantEffectProvider.CODEC, ConstantEffectProvider.STREAM_CODEC);
 	public static final EffectProvider.Type<ContextEffectProvider> CONTEXT = registerInternal("context", ContextEffectProvider.CODEC, ContextEffectProvider.STREAM_CODEC);
+	public static final EffectProvider.Type<WeightedEffectProvider> WEIGHTED = registerInternal("weighted", WeightedEffectProvider.CODEC, WeightedEffectProvider.STREAM_CODEC);
 
 	public static void registerAll() {
 

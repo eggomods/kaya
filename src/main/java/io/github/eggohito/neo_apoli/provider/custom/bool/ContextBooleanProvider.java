@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.provider.custom.bool;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
@@ -19,6 +20,11 @@ public record ContextBooleanProvider(BooleanContextParameter parameter) implemen
 	public static final MapCodec<ContextBooleanProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(NeoApoliContextParameterTypes.BOOLEAN.codec().fieldOf("parameter").forGetter(ContextBooleanProvider::parameter))
 		.apply(instance, ContextBooleanProvider::new)
+	);
+
+	public static final Codec<ContextBooleanProvider> INLINE_CODEC = NeoApoliContextParameterTypes.BOOLEAN.codec().xmap(
+		ContextBooleanProvider::new,
+		ContextBooleanProvider::parameter
 	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ContextBooleanProvider> STREAM_CODEC = StreamCodec.composite(

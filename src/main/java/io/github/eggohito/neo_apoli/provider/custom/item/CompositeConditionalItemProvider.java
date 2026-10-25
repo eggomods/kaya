@@ -3,8 +3,6 @@ package io.github.eggohito.neo_apoli.provider.custom.item;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.neo_apoli.provider.CompositeConditionalValueProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliItemProviderTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.github.eggohito.neo_apoli.util.conditional.CompositeConditional;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -15,8 +13,8 @@ import java.util.List;
 
 public record CompositeConditionalItemProvider(List<CompositeConditional.Entry<ItemProvider>> entries, ItemProvider defaultValue) implements ItemProvider, CompositeConditionalValueProvider<ItemStack, ItemProvider> {
 
-	public static final MapCodec<CompositeConditionalItemProvider> CODEC = MapCodecUtil.lazy(CompositeConditionalItemProvider.class.getSimpleName(), () -> CompositeConditionalValueProvider.mapCodec(ItemProvider.CODEC, CompositeConditionalItemProvider::new));
-	public static final StreamCodec<RegistryFriendlyByteBuf, CompositeConditionalItemProvider> STREAM_CODEC = StreamCodecUtil.lazy(CompositeConditionalItemProvider.class.getSimpleName(), () -> CompositeConditionalValueProvider.streamCodec(ItemProvider.STREAM_CODEC, CompositeConditionalItemProvider::new));
+	public static final MapCodec<CompositeConditionalItemProvider> CODEC = CompositeConditionalValueProvider.mapCodec(ItemProvider.CODEC, CompositeConditionalItemProvider::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CompositeConditionalItemProvider> STREAM_CODEC = CompositeConditionalValueProvider.streamCodec(ItemProvider.STREAM_CODEC, CompositeConditionalItemProvider::new);
 
 	@Override
 	public ItemProvider.@NotNull Type<?> getType() {

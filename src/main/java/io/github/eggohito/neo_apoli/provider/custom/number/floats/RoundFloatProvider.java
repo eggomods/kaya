@@ -9,8 +9,6 @@ import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliFloatProviderTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
@@ -24,18 +22,18 @@ import java.util.Optional;
 
 public record RoundFloatProvider(FloatProvider value, IntProvider places, RoundingMode mode) implements FloatProvider {
 
-	public static final MapCodec<RoundFloatProvider> CODEC = MapCodecUtil.lazy(RoundFloatProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<RoundFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		FloatProvider.CODEC.fieldOf("value").forGetter(RoundFloatProvider::value),
 		IntProvider.CODEC.fieldOf("places").forGetter(RoundFloatProvider::places),
 		NeoApoliCodecs.ROUNDING_MODE.optionalFieldOf("mode", RoundingMode.HALF_UP).forGetter(RoundFloatProvider::mode)
-	).apply(instance, RoundFloatProvider::new)));
+	).apply(instance, RoundFloatProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, RoundFloatProvider> STREAM_CODEC = StreamCodecUtil.lazy(RoundFloatProvider.class.getSimpleName(), () -> StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, RoundFloatProvider> STREAM_CODEC = StreamCodec.composite(
 		FloatProvider.STREAM_CODEC, RoundFloatProvider::value,
 		IntProvider.STREAM_CODEC, RoundFloatProvider::places,
 		NeoApoliStreamCodecs.ROUNDING_MODE, RoundFloatProvider::mode,
 		RoundFloatProvider::new
-	));
+	);
 
 	@Override
 	public @NotNull FloatProvider.Type<?> getType() {

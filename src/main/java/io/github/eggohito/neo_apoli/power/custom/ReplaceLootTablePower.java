@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.codec.NeoApoliStreamCodecs;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
+import io.github.eggohito.neo_apoli.context.parameter.BlockContextParameter;
 import io.github.eggohito.neo_apoli.context.parameter.ItemContextParameter;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
@@ -41,6 +42,8 @@ import java.util.regex.Pattern;
 public record ReplaceLootTablePower(Optional<Condition> activeCondition, Map<Pattern, String> replacements, int priority) implements PrioritizedPower<ReplaceLootTablePower> {
 
 	public static final ResourceKey<LootTable> REPLACED_TABLE_KEY = ResourceKey.create(Registries.LOOT_TABLE, NeoApoli.id("replaced_loot_table"));
+
+	public static final BlockContextParameter BLOCK = new BlockContextParameter(NeoApoli.id("block"));
 	public static final ItemContextParameter TOOL_ITEM = new ItemContextParameter(NeoApoli.id("tool_item"));
 
 	public static final MapCodec<ReplaceLootTablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
@@ -89,7 +92,7 @@ public record ReplaceLootTablePower(Optional<Condition> activeCondition, Map<Pat
 			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParameters.ACTOR_ENTITY, holder)
 				.withNullable(NeoApoliContextParameters.TARGET_ENTITY, lootContext.getOptionalParameter(LootContextParams.THIS_ENTITY))
-				.withOptional(NeoApoliContextParameters.BROKEN_BLOCK, blockPos.flatMap(pos -> blockState.map(state -> new CachedBlock(pos, state, blockEntity.orElse(null)))))
+				.withOptional(BLOCK, blockPos.flatMap(pos -> blockState.map(state -> new CachedBlock(pos, state, blockEntity.orElse(null)))))
 				.withNullable(TOOL_ITEM, lootContext.getOptionalParameter(LootContextParams.TOOL))
 				.build(lootContext.getLevel());
 

@@ -4,16 +4,13 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
-import io.github.eggohito.neo_apoli.context.ContextUser;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
-import io.github.eggohito.neo_apoli.context.visitor.Visitor;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.entity.Powers;
 import io.github.eggohito.neo_apoli.provider.custom.entity.EntityProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliConditionTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.entity.Entity;
 
 public record EntityHasActivePowerCondition(PowerIdentifier power, EntityProvider entity) implements Condition {
 
@@ -36,26 +33,16 @@ public record EntityHasActivePowerCondition(PowerIdentifier power, EntityProvide
 	@Override
 	public boolean test(Context context) {
 
-		Visitor<ContextUser> visitor = context.visitor();
-		Entity entity = entity().getValue(context.forChild(".entity")).orElse(null);
-
 		try {
-
-			if (visitor.push(this)) {
-				Powers powers = Powers.getNullable(entity);
-				return powers != null
-					&& powers.hasInstance(this.power())
-					&& powers.getInstance(this.power()).isActive(context.forChild(".power"));
-			}
-
-			else {
-				return false;
-			}
-
+			return context.visitor().push(this) && entity().getValue(context.forChild(".entity"))
+				.flatMap(Powers::getOptional)
+				.flatMap(powers -> powers.getOptionalInstance(power()))
+				.filter(instance -> instance.isActive(context.forChild(".power")))
+				.isPresent();
 		}
 
 		finally {
-			visitor.pop(this);
+			context.visitor().pop(this);
 		}
 
 	}

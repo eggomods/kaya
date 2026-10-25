@@ -91,11 +91,11 @@ public final class MutablePowersImpl extends AbstractPowers implements MutablePo
 
 	private boolean revokeInternal(PowerIdentifier id, ResourceLocation source) {
 
-		if (!sources.remove(id, source) || !instances.containsKey(id)) {
+		if (!sources.remove(id, source) || instances.get(id) == null) {
 			return false;
 		}
 
-		if (instances.get(id).power() instanceof MultiplePower(ImmutableSet<PowerHolder<?>> subPowers)) {
+		if (Objects.requireNonNull(instances.remove(id)).power() instanceof MultiplePower(ImmutableSet<PowerHolder<?>> subPowers)) {
 
 			for (var subPower : subPowers) {
 				this.revokeInternal(subPower.id(), source);

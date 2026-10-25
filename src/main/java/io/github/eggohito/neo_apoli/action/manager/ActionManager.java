@@ -5,7 +5,7 @@ import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.action.ActionHolder;
 import io.github.eggohito.neo_apoli.util.manager.ContentAndTagManager;
-import io.github.eggohito.neo_apoli.util.services.NeoApoliServices;
+import io.github.eggohito.neo_apoli.util.manager.NeoApoliManagers;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagEntry;
 import org.jetbrains.annotations.ApiStatus;
@@ -20,7 +20,7 @@ public interface ActionManager extends ContentAndTagManager<ResourceLocation, Ac
 
 	ResourceLocation ID = NeoApoli.id("manager/action");
 
-	Supplier<ActionManager> DEFERRED_INSTANCE = NeoApoliServices.deferredLoadPhysicalSideSpecific(ActionManager.class, ServerActionManager::new);
+	Supplier<ActionManager> DEFERRED_INSTANCE = NeoApoliManagers.deferredPhysicalSideSpecific(ActionManager.class, ServerActionManager::new);
 
 	TagEntry.Lookup<ActionHolder<?>> TAG_LOOKUP = new TagEntry.Lookup<>() {
 

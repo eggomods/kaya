@@ -8,11 +8,9 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.NbtProvider;
-import io.github.eggohito.neo_apoli.util.MiscUtil;
 import net.minecraft.commands.arguments.NbtPathArgument;
 import net.minecraft.nbt.*;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
@@ -60,14 +58,14 @@ public interface NbtNumberProvider<N extends Number> extends ValueProvider<N> {
 					case StringTag(String value) ->
 						other.apply(value.length());
 					default ->
-						throw MiscUtil.createCommandException(Component.translatableEscape("commands.data.get.unknown", this.path()));
+						null;
 				};
 
-				return Optional.of(converted);
+				return Optional.ofNullable(converted);
 
 			}
 
-			else if (size > 1) {
+			else {
 				return Optional.of(other.apply(path().countMatching(source)));
 			}
 

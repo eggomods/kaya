@@ -16,7 +16,6 @@ import io.github.eggohito.neo_apoli.event.PowerPreparation;
 import io.github.eggohito.neo_apoli.event.PowerReloadEvents;
 import io.github.eggohito.neo_apoli.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundUpdatePowersPacket;
-import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
@@ -176,17 +175,14 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 
 		LOGGER.info("Validating {} power(s)...", prevSize);
 
-		try (Reporter.Scoped reporter = new Reporter.Scoped(errors -> LOGGER.error("Found errors while validating the following powers:\n{}", errors))) {
+		for (var holder : contents.values()) {
 
-			for (var holder : contents.values()) {
+			try (Reporter.Scoped reporter = new Reporter.Scoped("{\"" + holder.id() + "\"}", problems -> LOGGER.error("Found problems while validating {}:\n{}", holder.id().asDisplayString(false), problems))) {
 
-				Power power = holder.value();
-				Reporter powerReporter = reporter.forChild("{\"" + holder.id() + "\"}");
+				ContextValidator validator = new ContextValidator(ContextValidator.Parameters.EMPTY, reporter, MiscUtil.getRegistries(resources));
+				holder.validate(validator);
 
-				ContextValidator validator = new ContextValidator(power.getType().parameters(), powerReporter).withResolver(MiscUtil.getLookupProvider(resources));
-				power.validate(validator);
-
-				if (!powerReporter.hasProblems()) {
+				if (!reporter.hasProblems()) {
 					validatedContents.put(holder.id(), holder);
 				}
 

@@ -67,10 +67,7 @@ public record Rgba(float red, float green, float blue, float alpha) implements C
 	}
 
 	private int internalGet() {
-		return ARGB.as8BitChannel(red()) << 24
-			| ARGB.as8BitChannel(green()) << 16
-			| ARGB.as8BitChannel(blue()) << 8
-			| ARGB.as8BitChannel(alpha());
+		return ARGB.colorFromFloat(alpha(), red(), green(), blue());
 	}
 
 	public static int getRed(int rgba) {
@@ -78,7 +75,7 @@ public record Rgba(float red, float green, float blue, float alpha) implements C
 	}
 
 	public static float getRedFloat(int rgba) {
-		return ARGB.as8BitChannel(getRed(rgba));
+		return ARGB.from8BitChannel(getRed(rgba));
 	}
 
 	public static int getGreen(int rgba) {
@@ -86,7 +83,7 @@ public record Rgba(float red, float green, float blue, float alpha) implements C
 	}
 
 	public static float getGreenFloat(int rgba) {
-		return ARGB.as8BitChannel(getGreen(rgba));
+		return ARGB.from8BitChannel(getGreen(rgba));
 	}
 
 	public static int getBlue(int rgba) {
@@ -94,7 +91,7 @@ public record Rgba(float red, float green, float blue, float alpha) implements C
 	}
 
 	public static float getBlueFloat(int rgba) {
-		return ARGB.as8BitChannel(getBlue(rgba));
+		return ARGB.from8BitChannel(getBlue(rgba));
 	}
 
 	public static int getAlpha(int rgba) {
@@ -102,7 +99,7 @@ public record Rgba(float red, float green, float blue, float alpha) implements C
 	}
 
 	public static float getAlphaFloat(int rgba) {
-		return ARGB.as8BitChannel(getAlpha(rgba));
+		return ARGB.from8BitChannel(getAlpha(rgba));
 	}
 
 }

@@ -2,16 +2,18 @@ package io.github.eggohito.neo_apoli.color.custom.dynamic;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.neo_apoli.color.DynamicColor;
-import io.github.eggohito.neo_apoli.color.custom.Argb;
+import io.github.eggohito.neo_apoli.color.Color;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.floats.ClampedFloatProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.floats.ConstantFloatProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliColorTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ARGB;
 
-public record DynamicRgba(FloatProvider red, FloatProvider green, FloatProvider blue, FloatProvider alpha) implements DynamicColor {
+public record DynamicRgba(FloatProvider red, FloatProvider green, FloatProvider blue, FloatProvider alpha) implements Color {
 
 	public static final MapCodec<DynamicRgba> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		FloatProvider.clamped(0.0F, 1.0F).fieldOf("red").forGetter(DynamicRgba::red),
@@ -28,6 +30,26 @@ public record DynamicRgba(FloatProvider red, FloatProvider green, FloatProvider 
 		DynamicRgba::new
 	);
 
+	public DynamicRgba {
+
+		if (!(red instanceof ClampedFloatProvider)) {
+			red = new ClampedFloatProvider(red, new ConstantFloatProvider(0.0F), new ConstantFloatProvider(1.0F));
+		}
+
+		if (!(green instanceof ClampedFloatProvider)) {
+			green = new ClampedFloatProvider(green, new ConstantFloatProvider(0.0F), new ConstantFloatProvider(1.0F));
+		}
+
+		if (!(blue instanceof ClampedFloatProvider)) {
+			blue = new ClampedFloatProvider(blue, new ConstantFloatProvider(0.0F), new ConstantFloatProvider(1.0F));
+		}
+
+		if (!(alpha instanceof ClampedFloatProvider)) {
+			alpha = new ClampedFloatProvider(alpha, new ConstantFloatProvider(0.0F), new ConstantFloatProvider(1.0F));
+		}
+
+	}
+
 	@Override
 	public Type<?> getType() {
 		return NeoApoliColorTypes.DYNAMIC_RGBA;
@@ -35,7 +57,7 @@ public record DynamicRgba(FloatProvider red, FloatProvider green, FloatProvider 
 
 	@Override
 	public void validate(ContextValidator validator) {
-		DynamicColor.super.validate(validator);
+		Color.super.validate(validator);
 		red().validate(validator.forChild(".red"));
 		green().validate(validator.forChild(".green"));
 		blue().validate(validator.forChild(".blue"));
@@ -44,23 +66,23 @@ public record DynamicRgba(FloatProvider red, FloatProvider green, FloatProvider 
 
 	@Override
 	public int intValue(Context context) {
-		return new Argb(alpha(context), red(context), green(context), blue(context)).intValue(context);
+		return ARGB.colorFromFloat(alpha(context), red(context), green(context), blue(context));
 	}
 
 	public float red(Context context) {
-		return DynamicColor.getValue(context.forChild(".red"), red()::getFloat, () -> 1.0F);
+		return red().getValue(context.forChild(".red")).orElse(1.0F);
 	}
 
 	public float green(Context context) {
-		return DynamicColor.getValue(context.forChild(".green"), green()::getFloat, () -> 1.0F);
+		return green().getValue(context.forChild(".green")).orElse(1.0F);
 	}
 
 	public float blue(Context context) {
-		return DynamicColor.getValue(context.forChild(".blue"), blue()::getFloat, () -> 1.0F);
+		return blue().getValue(context.forChild(".blue")).orElse(1.0F);
 	}
 
 	public float alpha(Context context) {
-		return DynamicColor.getValue(context.forChild(".alpha"), alpha()::getFloat, () -> 1.0F);
+		return alpha().getValue(context.forChild(".alpha")).orElse(1.0F);
 	}
 
 }

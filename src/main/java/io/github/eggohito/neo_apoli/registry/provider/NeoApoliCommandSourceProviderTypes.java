@@ -14,6 +14,7 @@ public final class NeoApoliCommandSourceProviderTypes {
 	public static final CommandSourceProvider.Type<CompositeConditionalCommandSourceProvider> COMPOSITE_CONDITIONAL = registerInternal("conditional/composite", CompositeConditionalCommandSourceProvider.CODEC, CompositeConditionalCommandSourceProvider.STREAM_CODEC);
 	public static final CommandSourceProvider.Type<ConditionalCommandSourceProvider> CONDITIONAL = registerInternal("conditional", ConditionalCommandSourceProvider.CODEC, ConditionalCommandSourceProvider.STREAM_CODEC);
 	public static final CommandSourceProvider.Type<ContextCommandSourceProvider> CONTEXT = registerInternal("context", ContextCommandSourceProvider.CODEC, ContextCommandSourceProvider.STREAM_CODEC);
+	public static final CommandSourceProvider.Type<WeightedCommandSourceProvider> WEIGHTED = registerInternal("weighted", WeightedCommandSourceProvider.CODEC, WeightedCommandSourceProvider.STREAM_CODEC);
 
 	public static final CommandSourceProvider.Type<BlockCommandSourceProvider> BLOCK = registerInternal("block", BlockCommandSourceProvider.CODEC, BlockCommandSourceProvider.STREAM_CODEC);
 	public static final CommandSourceProvider.Type<EntityCommandSourceProvider> ENTITY = registerInternal("entity", EntityCommandSourceProvider.CODEC, EntityCommandSourceProvider.STREAM_CODEC);

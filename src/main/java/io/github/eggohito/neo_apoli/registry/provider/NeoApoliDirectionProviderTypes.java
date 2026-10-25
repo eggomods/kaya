@@ -17,6 +17,7 @@ public final class NeoApoliDirectionProviderTypes {
 	public static final DirectionProvider.Type<ContextDirectionProvider> CONTEXT = registerInternal("context", ContextDirectionProvider.CODEC, ContextDirectionProvider.STREAM_CODEC);
 	public static final DirectionProvider.Type<OppositeDirectionProvider> OPPOSITE = registerInternal("opposite", OppositeDirectionProvider.CODEC, OppositeDirectionProvider.STREAM_CODEC);
 	public static final DirectionProvider.Type<RotateDirectionProvider> ROTATE = registerInternal("rotate", RotateDirectionProvider.CODEC, RotateDirectionProvider.STREAM_CODEC);
+	public static final DirectionProvider.Type<WeightedDirectionProvider> WEIGHTED = registerInternal("weighted", WeightedDirectionProvider.CODEC, WeightedDirectionProvider.STREAM_CODEC);
 
 	public static void registerAll() {
 

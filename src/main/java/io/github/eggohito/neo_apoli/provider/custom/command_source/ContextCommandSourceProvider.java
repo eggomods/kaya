@@ -28,7 +28,7 @@ public record ContextCommandSourceProvider(CommandSourceContextParameter paramet
 	);
 
 	@Override
-	public @NotNull Type<?> getType() {
+	public CommandSourceProvider.@NotNull Type<?> getType() {
 		return NeoApoliCommandSourceProviderTypes.CONTEXT;
 	}
 

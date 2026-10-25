@@ -3,24 +3,25 @@ package io.github.eggohito.neo_apoli.hud.element;
 import io.github.eggohito.neo_apoli.NeoApoli;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.context.parameter.ContextParameter;
-import io.github.eggohito.neo_apoli.context.parameter.IntContextParameter;
-import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
+import io.github.eggohito.neo_apoli.context.parameter.FloatContextParameter;
+import io.github.eggohito.neo_apoli.provider.ValueProvider;
+import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
 
 import java.util.Optional;
 
 public interface NumberBoundHudElement extends HudElement {
 
-	IntContextParameter CURRENT_VALUE = new IntContextParameter(NeoApoli.id("hud/value"));
+	FloatContextParameter CURRENT_VALUE = new FloatContextParameter(NeoApoli.id("hud/value"));
 
-	IntContextParameter MAX_VALUE = new IntContextParameter(NeoApoli.id("hud/max_value"));
+	FloatContextParameter MAX_VALUE = new FloatContextParameter(NeoApoli.id("hud/max_value"));
 
-	IntContextParameter MIN_VALUE = new IntContextParameter(NeoApoli.id("hud/min_value"));
+	FloatContextParameter MIN_VALUE = new FloatContextParameter(NeoApoli.id("hud/min_value"));
 
-	Optional<IntProvider> value();
+	Optional<FloatProvider> value();
 
-	Optional<IntProvider> min();
+	Optional<FloatProvider> min();
 
-	Optional<IntProvider> max();
+	Optional<FloatProvider> max();
 
 	@Override
 	default void validate(ContextValidator validator) {
@@ -33,7 +34,7 @@ public interface NumberBoundHudElement extends HudElement {
 
 	}
 
-	static void validateKeyAndField(ContextValidator validator, ContextParameter<?> key, Optional<IntProvider> fieldMethod, String fieldName) {
+	static <P extends ValueProvider<?>> void validateKeyAndField(ContextValidator validator, ContextParameter<?> key, Optional<P> fieldMethod, String fieldName) {
 
 		boolean keyIsAllowed = validator.parameters().allowed().contains(key);
 		boolean fieldIsPresent = fieldMethod.isPresent();

@@ -109,7 +109,7 @@ public record ShootEntityAction(EntityType<?> entityType, NbtProvider tag, Vec3P
 			switch (EntityType.loadEntityRecursive(entityDefinitionTag, serverLevel, EntitySpawnReason.COMMAND, snapTo(position))) {
 				case Projectile projectile -> {
 
-					projectile.shoot(direction.x(), direction.y(), direction.z(), inaccuracy, velocity);
+					projectile.shoot(direction.x(), direction.y(), direction.z(), velocity, inaccuracy);
 					shooter().flatMap(p -> p.getValue(context.forChild(".entity"))).ifPresent(projectile::setOwner);
 
 					this.postShoot(serverLevel, projectile, entityTag);

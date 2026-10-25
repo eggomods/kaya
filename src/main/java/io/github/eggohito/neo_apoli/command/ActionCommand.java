@@ -31,6 +31,11 @@ import static net.minecraft.commands.Commands.literal;
 
 public class ActionCommand {
 
+	public static final ContextValidator.Parameters COMMAND_PARAMETERS = new ContextValidator.Parameters.Builder()
+		.optional(NeoApoliContextParameters.COMMAND_ENTITY)
+		.required(NeoApoliContextParameters.COMMAND_POSITION)
+		.build();
+
 	public static void register(CommandBuildContext buildContext, CommandNode<CommandSourceStack> rootNode) {
 
 		var baseNode = literal("action")
@@ -115,7 +120,7 @@ public class ActionCommand {
 				String path = ActionManager.getInstance().getKeyAsResult(action).mapOrElse(id -> "{\"" + id + "\"}", ignored -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.ACTION_TYPE, action.getType()) + "\"}");
 				Reporter reporter = new Reporter(path);
 
-				ContextValidator validator = new ContextValidator(parameters.forValidation(), reporter).withResolver(source.registryAccess());
+				ContextValidator validator = new ContextValidator(COMMAND_PARAMETERS.merge(parameters.forValidation()), reporter).withResolver(source.registryAccess());
 				action.validate(validator);
 
 				if (reporter.hasProblems()) {

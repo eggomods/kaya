@@ -7,12 +7,14 @@ import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.provider.custom.block.BlockProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliNbtProviderTypes;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,13 +53,18 @@ public record BlockNbtProvider(BlockProvider block) implements NbtProvider {
 	private CompoundTag serialize(Context context, CachedBlock block) {
 
 		RegistryAccess registryAccess = context.level().registryAccess();
+		RegistryOps<Tag> ops = registryAccess.createSerializationContext(NbtOps.INSTANCE);
+
 		CompoundTag compoundTag = new CompoundTag();
 
-		BlockState.CODEC.encodeStart(registryAccess.createSerializationContext(NbtOps.INSTANCE), block.state())
+		BlockPos.CODEC.encodeStart(ops, block.pos())
+			.result()
+			.ifPresent(posTag -> compoundTag.put("pos", posTag));
+		BlockState.CODEC.encodeStart(ops, block.state())
 			.result()
 			.ifPresent(stateTag -> compoundTag.put("state", stateTag));
 		Optional.ofNullable(block.entity())
-			.map(entity -> entity.saveWithFullMetadata(registryAccess))
+			.map(entity -> entity.saveWithId(registryAccess))
 			.ifPresent(entityTag -> compoundTag.put("entity", entityTag));
 
 		return compoundTag;

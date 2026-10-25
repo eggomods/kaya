@@ -130,7 +130,7 @@ public final class ContextBlockPattern implements ContextValidatable {
 	public void validate(ContextValidator validator) {
 
 		ContextValidator keysValidator = validator
-			.forChild(".keys")
+			.forChild(".where")
 			.withParams(MATCHING_PARAMETER_SET);
 
 		this.where.forEach((symbol, condition) -> keysValidator.forChild("." + symbol).validate(condition));

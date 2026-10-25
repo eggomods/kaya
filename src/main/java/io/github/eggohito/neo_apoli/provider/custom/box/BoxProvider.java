@@ -8,6 +8,7 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliValueProviderKinds;
 import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -18,12 +19,17 @@ import org.jetbrains.annotations.NotNull;
 
 public interface BoxProvider extends ValueProvider<AABB> {
 
-	Codec<BoxProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(Type.CODEC.dispatch(BoxProvider::getType, Type::mapCodec), ConstantBoxProvider.INLINE_CODEC));
+	Codec<BoxProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(Type.CODEC.dispatch(BoxProvider::getType, Type::mapCodec), ContextBoxProvider.INLINE_CODEC, ConstantBoxProvider.INLINE_CODEC));
 
 	StreamCodec<RegistryFriendlyByteBuf, BoxProvider> STREAM_CODEC = Type.STREAM_CODEC.dispatch(BoxProvider::getType, Type::streamCodec);
 
 	@NotNull
 	BoxProvider.Type<?> getType();
+
+	@Override
+	default @NotNull Kind<?> getKind() {
+		return NeoApoliValueProviderKinds.BOX;
+	}
 
 	default CollisionContext getCollisionContext(Context context) {
 		return CollisionContext.empty();

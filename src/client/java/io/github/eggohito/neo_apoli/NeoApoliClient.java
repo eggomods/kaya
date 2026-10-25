@@ -1,10 +1,10 @@
 package io.github.eggohito.neo_apoli;
 
+import io.github.eggohito.neo_apoli.client.duck.internal.ClientCommandStorageHolder;
 import io.github.eggohito.neo_apoli.client.integration.ClientConfigIntegrations;
 import io.github.eggohito.neo_apoli.client.integration.PowerClientIntegrations;
 import io.github.eggohito.neo_apoli.client.util.registry.NeoApoliAtlases;
 import io.github.eggohito.neo_apoli.client.util.registry.NeoApoliHudElementRenderers;
-import io.github.eggohito.neo_apoli.duck.internal.CommandStorageHolder;
 import io.github.eggohito.neo_apoli.duck.internal.PowerRecipeDisplayHolder;
 import io.github.eggohito.neo_apoli.network.NeoApoliClientboundPacketListener;
 import io.github.eggohito.neo_apoli.network.packet.clientbound.ClientboundClearCachedLogsPacket;
@@ -31,7 +31,7 @@ public class NeoApoliClient implements ClientModInitializer {
 		NeoApoliHudElementRenderers.registerAll();
 
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-			((CommandStorageHolder) client).neo_apoli$clear();
+			((ClientCommandStorageHolder) client).neo_apoli$clear();
 			((PowerRecipeDisplayHolder) client).neo_apoli$setPowerIdsByIndex(new Int2ObjectOpenHashMap<>());
 		});
 

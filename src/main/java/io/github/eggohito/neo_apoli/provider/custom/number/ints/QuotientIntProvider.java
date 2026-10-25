@@ -6,8 +6,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliIntProviderTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
@@ -16,16 +14,16 @@ import java.util.Optional;
 
 public record QuotientIntProvider(IntProvider dividend, IntProvider divisor) implements IntProvider {
 
-	public static final MapCodec<QuotientIntProvider> CODEC = MapCodecUtil.lazy(QuotientIntProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<QuotientIntProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		IntProvider.CODEC.fieldOf("dividend").forGetter(QuotientIntProvider::dividend),
 		IntProvider.CODEC.fieldOf("divisor").forGetter(QuotientIntProvider::divisor)
-	).apply(instance, QuotientIntProvider::new)));
+	).apply(instance, QuotientIntProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, QuotientIntProvider> STREAM_CODEC = StreamCodecUtil.lazy(QuotientIntProvider.class.getSimpleName(), () -> StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, QuotientIntProvider> STREAM_CODEC = StreamCodec.composite(
 		IntProvider.STREAM_CODEC, QuotientIntProvider::dividend,
 		IntProvider.STREAM_CODEC, QuotientIntProvider::divisor,
 		QuotientIntProvider::new
-	));
+	);
 
 	@Override
 	public @NotNull IntProvider.Type<?> getType() {

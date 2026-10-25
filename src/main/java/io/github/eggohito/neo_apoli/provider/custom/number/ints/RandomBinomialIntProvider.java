@@ -7,8 +7,6 @@ import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.provider.custom.number.FloatProvider;
 import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliIntProviderTypes;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.RandomSource;
@@ -18,16 +16,16 @@ import java.util.Optional;
 
 public record RandomBinomialIntProvider(IntProvider attempts, FloatProvider probability) implements IntProvider {
 
-	public static final MapCodec<RandomBinomialIntProvider> CODEC = MapCodecUtil.lazy(RandomBinomialIntProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<RandomBinomialIntProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		IntProvider.CODEC.fieldOf("attempts").forGetter(RandomBinomialIntProvider::attempts),
 		FloatProvider.CODEC.fieldOf("probability").forGetter(RandomBinomialIntProvider::probability)
-	).apply(instance, RandomBinomialIntProvider::new)));
+	).apply(instance, RandomBinomialIntProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, RandomBinomialIntProvider> STREAM_CODEC = StreamCodecUtil.lazy(RandomBinomialIntProvider.class.getSimpleName(), () -> StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, RandomBinomialIntProvider> STREAM_CODEC = StreamCodec.composite(
 		IntProvider.STREAM_CODEC, RandomBinomialIntProvider::attempts,
 		FloatProvider.STREAM_CODEC, RandomBinomialIntProvider::probability,
 		RandomBinomialIntProvider::new
-	));
+	);
 
 	@Override
 	public @NotNull IntProvider.Type<?> getType() {

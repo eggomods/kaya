@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.provider.custom.vec3;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
@@ -20,6 +21,11 @@ public record ContextVec3Provider(Vec3ContextParameter parameter) implements Vec
 	public static final MapCodec<ContextVec3Provider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(NeoApoliContextParameterTypes.VEC3.codec().fieldOf("parameter").forGetter(ContextVec3Provider::parameter))
 		.apply(instance, ContextVec3Provider::new)
+	);
+
+	public static final Codec<ContextVec3Provider> INLINE_CODEC = NeoApoliContextParameterTypes.VEC3.codec().xmap(
+		ContextVec3Provider::new,
+		ContextVec3Provider::parameter
 	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ContextVec3Provider> STREAM_CODEC = StreamCodec.composite(

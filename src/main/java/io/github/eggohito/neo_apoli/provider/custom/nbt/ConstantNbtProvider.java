@@ -17,10 +17,10 @@ import java.util.Optional;
 public record ConstantNbtProvider(Tag value) implements NbtProvider {
 
 	public static final MapCodec<ConstantNbtProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		NeoApoliCodecs.REGULAR_OR_STRINGIFIED_TAG.fieldOf("value").forGetter(ConstantNbtProvider::value)
+		NeoApoliCodecs.TAG.fieldOf("value").forGetter(ConstantNbtProvider::value)
 	).apply(instance, ConstantNbtProvider::new));
 
-	public static final Codec<ConstantNbtProvider> INLINE_CODEC = NeoApoliCodecs.REGULAR_OR_STRINGIFIED_TAG.xmap(
+	public static final Codec<ConstantNbtProvider> INLINE_CODEC = NeoApoliCodecs.TAG.xmap(
 		ConstantNbtProvider::new,
 		ConstantNbtProvider::value
 	);

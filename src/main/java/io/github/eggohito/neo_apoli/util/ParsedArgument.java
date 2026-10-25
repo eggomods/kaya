@@ -32,16 +32,16 @@ public record ParsedArgument<A>(String input, A argument) {
 					return DataResult.error(() -> "The passed dynamic ops is not a registry ops!");
 				}
 
-				HolderLookup.Provider lookupProvider = MiscUtil
-					.getLookupProvider(registryOps)
+				HolderLookup.Provider registry = CodecUtil
+					.getRegistries(registryOps)
 					.orElse(null);
 
-				if (lookupProvider == null) {
+				if (registry == null) {
 					return DataResult.error(() -> "The passed registry ops doesn't have a lookup provider!");
 				}
 
 				return Codec.STRING.parse(registryOps, input)
-					.flatMap(string -> ParsedArgument.parse(getter.apply(lookupProvider), string)
+					.flatMap(string -> ParsedArgument.parse(getter.apply(registry), string)
 						.map(parsed -> Pair.of(parsed, input)));
 
 			}

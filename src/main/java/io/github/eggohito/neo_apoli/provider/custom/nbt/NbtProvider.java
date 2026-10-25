@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.codec.MultiAlternativeCodec;
 import io.github.eggohito.neo_apoli.provider.ValueProvider;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
+import io.github.eggohito.neo_apoli.registry.provider.NeoApoliValueProviderKinds;
 import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -16,12 +17,17 @@ import org.jetbrains.annotations.NotNull;
 
 public interface NbtProvider extends ValueProvider<Tag> {
 
-	Codec<NbtProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(Type.CODEC.dispatch(NbtProvider::getType, Type::mapCodec), ConstantNbtProvider.INLINE_CODEC));
+	Codec<NbtProvider> CODEC = Codec.lazyInitialized(() -> new MultiAlternativeCodec<>(Type.CODEC.dispatch(NbtProvider::getType, Type::mapCodec), ContextNbtProvider.INLINE_CODEC, ConstantNbtProvider.INLINE_CODEC));
 
 	StreamCodec<RegistryFriendlyByteBuf, NbtProvider> STREAM_CODEC = Type.STREAM_CODEC.dispatch(NbtProvider::getType, Type::streamCodec);
 
 	@NotNull
 	NbtProvider.Type<?> getType();
+
+	@Override
+	default @NotNull Kind<?> getKind() {
+		return NeoApoliValueProviderKinds.NBT;
+	}
 
 	record Type<P extends NbtProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
 

@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.util;
 
 import com.google.common.base.Predicates;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -70,6 +71,15 @@ import java.util.*;
 import java.util.function.*;
 
 public class MiscUtil {
+
+	private static final Iterable<?> EMPTY_ITERABLE = () -> new AbstractIterator<>() {
+
+		@Override
+		protected Object computeNext() {
+			return endOfData();
+		}
+
+	};
 
 	public static final ImmutableBiMap<String, InteractionResult> INTERACTION_RESULTS = ImmutableBiMap.<String, InteractionResult>builder()
 		.put("success", InteractionResult.SUCCESS)
@@ -194,7 +204,7 @@ public class MiscUtil {
 		return getEntityFromCollision(collisionContext) != null;
 	}
 
-	public static HolderLookup.Provider getLookupProvider(ReloadableServerResources resources) {
+	public static HolderLookup.Provider getRegistries(ReloadableServerResources resources) {
 		return ((ReloadableServerRegistriesAccessor.HolderAccessor) resources.fullRegistries()).getRegistries();
 	}
 
@@ -279,31 +289,51 @@ public class MiscUtil {
 
 	public static <E> void iterateList(List<E> list, BiIntegerConsumer<E> consumer, BooleanSupplier continueCondition) {
 
-		ListIterator<E> listIterator = list.listIterator();
+		if (list instanceof RandomAccess) {
 
-		while (listIterator.hasNext() && continueCondition.getAsBoolean()) {
-			consumer.accept(listIterator.nextIndex(), listIterator.next());
+			for (int i = 0; i < list.size() && continueCondition.getAsBoolean(); i++) {
+				consumer.accept(i, list.get(i));
+			}
+
+		}
+
+		else {
+
+			ListIterator<E> listIterator = list.listIterator();
+
+			while (listIterator.hasNext() && continueCondition.getAsBoolean()) {
+				consumer.accept(listIterator.nextIndex(), listIterator.next());
+			}
+
 		}
 
 	}
 
 	public static <E> void iterateList(List<E> list, BiIntegerConsumer<E> consumer) {
-		iterateList(list, consumer, () -> true);
+		iterateList(list, consumer, BooleanSuppliers.ALWAYS_TRUE);
 	}
 
 	public static <E> void iterate(Iterable<E> iterable, BiIntegerConsumer<E> consumer, BooleanSupplier continueCondition) {
 
-		Iterator<E> iterator = iterable.iterator();
-		int index = 0;
+		if (iterable instanceof List<E> list) {
+			iterateList(list, consumer, continueCondition);
+		}
 
-		while (iterator.hasNext() && continueCondition.getAsBoolean()) {
-			consumer.accept(index++, iterator.next());
+		else {
+
+			Iterator<E> iterator = iterable.iterator();
+			int index = 0;
+
+			while (iterator.hasNext() && continueCondition.getAsBoolean()) {
+				consumer.accept(index++, iterator.next());
+			}
+
 		}
 
 	}
 
 	public static <E> void iterate(Iterable<E> iterable, BiIntegerConsumer<E> consumer) {
-		iterate(iterable, consumer, () -> true);
+		iterate(iterable, consumer, BooleanSuppliers.ALWAYS_TRUE);
 	}
 
 	public static <T, U extends T> Function<T, DataResult<U>> validateType(Class<U> typeClass, Supplier<String> errorSupplier) {
@@ -505,18 +535,6 @@ public class MiscUtil {
 
 	}
 
-	public static <A> Optional<HolderLookup.Provider> getLookupProvider(RegistryOps<A> ops) {
-
-		if (((RegistryOpsAccessor) ops).getLookupProvider() instanceof RegistryOps.HolderLookupAdapter adapter) {
-			return Optional.of(((RegistryOpsAccessor.HolderLookupAdapterAccessor) (Object) adapter).getLookupProvider());
-		}
-
-		else {
-			return Optional.empty();
-		}
-
-	}
-
 	public static DataResult<Character> validateStringAsCharacter(String string) {
 		return string.length() == 1
 			? DataResult.success(string.charAt(0))
@@ -525,6 +543,11 @@ public class MiscUtil {
 
 	public static char unsafelyAssumeStringAsCharacter(String string) {
 		return validateStringAsCharacter(string).getOrThrow();
+	}
+
+	public static <T> Iterable<T> emptyIterable() {
+		//noinspection unchecked
+		return (Iterable<T>) EMPTY_ITERABLE;
 	}
 
 }

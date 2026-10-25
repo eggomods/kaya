@@ -9,7 +9,7 @@ import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.provider.custom.nbt.NbtProvider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliBooleanProviderTypes;
 import net.minecraft.commands.arguments.NbtPathArgument;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.*;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
@@ -49,9 +49,38 @@ public record NbtBooleanProvider(NbtProvider source, NbtPathArgument.NbtPath pat
 		try {
 
 			List<Tag> tags = path().get(source);
+			int size = tags.size();
 
-			if (tags.size() == 1) {
-				return tags.getFirst().asBoolean();
+			if (size == 1) {
+
+				Tag tag = tags.getFirst();
+				Optional<Boolean> asBoolean = tag.asBoolean();
+
+				if (asBoolean.isPresent()) {
+					return asBoolean;
+				}
+
+				int count = switch (tag) {
+					case NumericTag numericTag ->
+						numericTag.intValue();
+					case CollectionTag collectionTag ->
+						collectionTag.size();
+					case CompoundTag compoundTag ->
+						compoundTag.size();
+					case StringTag(String value) ->
+						value.length();
+					default ->
+						Integer.MIN_VALUE;
+				};
+
+				if (count != Integer.MIN_VALUE) {
+					return Optional.of(count > 1);
+				}
+
+			}
+
+			else {
+				return Optional.of(path().countMatching(source) > 1);
 			}
 
 		}

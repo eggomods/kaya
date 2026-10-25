@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -51,7 +50,7 @@ public class ContextValidator {
 	}
 
 	public ContextValidator forChild(String path) {
-		return new ContextValidator(this.parameters(), this.reporter().forChild(path), this.resolver, this.visited);
+		return new ContextValidator(this.parameters(), this.reporter().forChild(path), this.resolver, new ObjectOpenHashSet<>());
 	}
 
 	public ContextValidator visitChild(String path, ResourceKey<?> key) {
@@ -98,14 +97,14 @@ public class ContextValidator {
 
 	public void validate(ContextUser user) {
 
-		if (parameters() == Parameters.INTENTIONALLY_EMPTY) {
+		if (parameters().isEmpty()) {
 			return;
 		}
 
 		Set<ContextParameter<?>> missing = Sets.difference(user.getRequiredParameters(), parameters().allowed());
 
 		if (!missing.isEmpty()) {
-			this.reportProblem("The following parameters are not provided: [" + missing.stream().map(ContextParameter::name).map(ResourceLocation::toString).collect(Collectors.joining(", ")) + "]");
+			this.reportProblem("The following parameters are not provided: [" + missing.stream().map(ContextParameter::asDisplayString).collect(Collectors.joining(", ")) + "]");
 		}
 
 	}
@@ -114,7 +113,7 @@ public class ContextValidator {
 	@Getter
 	public static final class Parameters {
 
-		public static final Parameters INTENTIONALLY_EMPTY = new Parameters.Builder().build();
+		public static final Parameters EMPTY = new Parameters(Set.of(), Set.of());
 
 		private final Set<ContextParameter<?>> required;
 		private final Set<ContextParameter<?>> allowed;
@@ -142,6 +141,10 @@ public class ContextValidator {
 			return Arrays.stream(others).reduce(this, Parameters::merge);
 		}
 
+		public boolean isEmpty() {
+			return this == EMPTY;
+		}
+
 		public static final class Builder {
 
 			private final Set<ContextParameter<?>> required = new ObjectOpenHashSet<>();
@@ -149,8 +152,9 @@ public class ContextValidator {
 
 			public Parameters.Builder required(ContextParameter<?> parameter) {
 
-				this.optional.remove(parameter);
-				this.required.add(parameter);
+				if (!optional.contains(parameter)) {
+					this.required.add(parameter);
+				}
 
 				return this;
 
@@ -158,15 +162,18 @@ public class ContextValidator {
 
 			public Parameters.Builder optional(ContextParameter<?> parameter) {
 
-				this.required.remove(parameter);
-				this.optional.add(parameter);
+				if (!required.contains(parameter)) {
+					this.optional.add(parameter);
+				}
 
 				return this;
 
 			}
 
 			public Parameters build() {
-				return new Parameters(this.required, this.optional);
+				return required.isEmpty() && optional.isEmpty()
+					? EMPTY
+					: new Parameters(required, optional);
 			}
 
 		}

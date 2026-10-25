@@ -8,7 +8,6 @@ import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliDirectionProviderTypes;
 import io.github.eggohito.neo_apoli.util.CodecUtil;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
 import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.Direction;
@@ -20,18 +19,18 @@ import java.util.Optional;
 
 public record RotateDirectionProvider(Orientation orientation, DirectionProvider direction, Direction.Axis axis) implements DirectionProvider {
 
-	public static final MapCodec<RotateDirectionProvider> CODEC = MapCodecUtil.lazy(RotateDirectionProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<RotateDirectionProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Orientation.CODEC.fieldOf("orientation").forGetter(RotateDirectionProvider::orientation),
 		DirectionProvider.CODEC.fieldOf("direction").forGetter(RotateDirectionProvider::direction),
 		Direction.Axis.CODEC.fieldOf("axis").forGetter(RotateDirectionProvider::axis)
-	).apply(instance, RotateDirectionProvider::new)));
+	).apply(instance, RotateDirectionProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, RotateDirectionProvider> STREAM_CODEC = StreamCodecUtil.lazy(RotateDirectionProvider.class.getSimpleName(), () -> StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, RotateDirectionProvider> STREAM_CODEC = StreamCodec.composite(
 		Orientation.STREAM_CODEC, RotateDirectionProvider::orientation,
 		DirectionProvider.STREAM_CODEC, RotateDirectionProvider::direction,
 		NeoApoliStreamCodecs.AXIS, RotateDirectionProvider::axis,
 		RotateDirectionProvider::new
-	));
+	);
 
 	@Override
 	public @NotNull Type<?> getType() {

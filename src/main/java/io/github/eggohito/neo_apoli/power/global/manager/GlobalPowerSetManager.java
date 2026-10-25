@@ -21,8 +21,7 @@ import io.github.eggohito.neo_apoli.util.MiscUtil;
 import io.github.eggohito.neo_apoli.util.Reporter;
 import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
 import io.github.eggohito.neo_apoli.util.manager.AbstractContentManager;
-import io.github.eggohito.neo_apoli.util.tag.LazyTagLike;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
@@ -30,14 +29,12 @@ import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -61,6 +58,7 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 	private static final JsonFileToIdConverter LOADER = JsonFileToIdConverter.registry(NeoApoliRegistryKeys.GLOBAL_POWER_SET);
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalPowerSetManager.class);
 
+	private ImmutableMap<ResourceLocation, GlobalPowerSet.SourcedFile> merged = ImmutableMap.of();
 	private DynamicOps<JsonElement> ops = JsonOps.INSTANCE;
 
 	private GlobalPowerSetManager() {
@@ -86,18 +84,17 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 
 	public List<GlobalPowerSet> getApplicableSets(Entity entity) {
 
-		List<GlobalPowerSet> applicableSets = new ObjectArrayList<>();
+		List<GlobalPowerSet> applicable = new ObjectArrayList<>();
 
 		for (var globalPower : values()) {
 
 			if (globalPower.doesApply(entity)) {
-				applicableSets.add(globalPower);
+				applicable.add(globalPower);
 			}
 
 		}
 
-		applicableSets.sort(GlobalPowerSet::compareTo);
-		return applicableSets;
+		return applicable;
 
 	}
 
@@ -138,31 +135,31 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 		}
 
 		LOGGER.info("Parsing global power sets from data packs...");
-		ImmutableMap.Builder<ResourceLocation, GlobalPowerSet> builder = ImmutableMap.builder();
+		Map<ResourceLocation, List<GlobalPowerSet.SourcedFile>> toMerge = new Object2ObjectLinkedOpenHashMap<>();
 
-		Map<ResourceLocation, List<GlobalPowerSet.WithSource>> parsed = new Object2ObjectOpenHashMap<>();
 		pending.forEach((id, elementWithSources) -> {
 
 			ResourceLocationUtil.setCurrent(id);
-			elementWithSources.forEach(jsonWithSource -> GlobalPowerSet.CODEC.compressedDecode(ops, jsonWithSource.json())
+			elementWithSources.forEach(jsonWithSource -> GlobalPowerSet.File.CODEC.compressedDecode(ops, jsonWithSource.json())
 				.ifError(error -> LOGGER.error("Error trying to parse global power set \"{}\" from data pack [{}] (skipping): {}", id, jsonWithSource.source(), error.message()))
-				.ifSuccess(set -> parsed
-					.computeIfAbsent(id, k -> new ObjectArrayList<>())
-					.add(new GlobalPowerSet.WithSource(set, jsonWithSource.source()))));
+				.ifSuccess(file -> toMerge
+					.computeIfAbsent(id, ignored -> new ObjectArrayList<>())
+					.add(new GlobalPowerSet.SourcedFile(file, jsonWithSource.source()))));
 
 			ResourceLocationUtil.setCurrent(null);
 
 		});
 
-		LOGGER.info("Finished parsing global power sets. Merging {} similar global power sets...", parsed.values().stream().mapToInt(Collection::size).sum());
+		LOGGER.info("Finished parsing global power sets. Merging {} similar global power sets...", toMerge.values().stream().mapToInt(Collection::size).sum());
 
-		parsed.forEach((id, setWithSources) -> setWithSources
+		ImmutableMap.Builder<ResourceLocation, GlobalPowerSet.SourcedFile> builder = ImmutableMap.builder();
+		toMerge.forEach((id, sourcedFiles) -> sourcedFiles
 			.stream()
-			.reduce((first, second) -> merge(id, first, second))
-			.ifPresent(withSource -> builder.put(id, withSource.set())));
+			.reduce((first, second) -> first.merge(second, () -> LOGGER.warn("Global power set \"{}\" from data pack [{}] has been replaced with a similar one from data pack [{}]!", id, first.source(), second.source())))
+			.ifPresent(sourcedFile -> builder.put(id, sourcedFile)));
 
-		this.contents = builder.build();
-		LOGGER.info("Finished merging global power sets");
+		this.merged = builder.build();
+		LOGGER.info("Finished merging global power sets.");
 
 	}
 
@@ -194,28 +191,26 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 
 	private void finalize(ReloadableServerResources resources) {
 
-		if (contents.isEmpty()) {
+		if (merged.isEmpty()) {
 			return;
 		}
 
 		ImmutableMap.Builder<ResourceLocation, GlobalPowerSet> builder = ImmutableMap.builder();
-		int size = contents.size();
+		int size = merged.size();
 
 		LOGGER.info("Validating {} global power set(s)...", size);
 
-		try (Reporter.Scoped reporter = new Reporter.Scoped(errors -> LOGGER.error("Found errors while validating the following global power sets:\n{}", errors))) {
+		for (var entry : merged.entrySet()) {
 
-			for (var entry : contents.entrySet()) {
+			ResourceLocation id = entry.getKey();
+			GlobalPowerSet set = entry.getValue().asSet();
 
-				ResourceLocation id = entry.getKey();
-				GlobalPowerSet set = entry.getValue();
+			try (Reporter.Scoped reporter = new Reporter.Scoped("{\"" + id + "\"}", problems -> LOGGER.error("Found problems while validating global power set \"{}\":\n{}", id, problems))) {
 
-				Reporter setReporter = reporter.forChild("{\"" + id + "\"}");
-				ContextValidator validator = new ContextValidator(ContextValidator.Parameters.INTENTIONALLY_EMPTY, setReporter).withResolver(MiscUtil.getLookupProvider(resources));
-
+				ContextValidator validator = new ContextValidator(ContextValidator.Parameters.EMPTY, reporter, MiscUtil.getRegistries(resources));
 				set.validate(validator);
 
-				if (!setReporter.hasProblems()) {
+				if (!reporter.hasProblems()) {
 					builder.put(id, set);
 				}
 
@@ -223,48 +218,15 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 
 		}
 
+		this.merged = ImmutableMap.of();
 		this.contents = builder.build();
+
 		LOGGER.info("Finished validating {} global power set(s). Global power set manager contains {} global power set(s)", size, this.size());
 
 	}
 
 	public static GlobalPowerSetManager getInstance() {
 		return INSTANCE;
-	}
-
-	private static GlobalPowerSet.WithSource merge(ResourceLocation id, GlobalPowerSet.WithSource first, GlobalPowerSet.WithSource second) {
-
-		LazyTagLike.Builder<EntityType<?>> entityTypes = new LazyTagLike.Builder<>(BuiltInRegistries.ENTITY_TYPE);
-		LazyTagLike.Builder<PowerHolder<?>> powers = new LazyTagLike.Builder<>(PowerManager.TAG_LOOKUP);
-
-		boolean replace = second.set().replace();
-		int order = first.set().order();
-
-		if (replace) {
-
-			LOGGER.warn("Global power set \"{}\" from data pack [{}] has been replaced with a similar one from data pack [{}]!", id, first.source(), second.source());
-
-			order = second.set().order();
-
-		}
-
-		else {
-			entityTypes.addAll(first.set().entityTypes().entries());
-			powers.addAll(first.set().powers().entries());
-		}
-
-		entityTypes.addAll(second.set().entityTypes().entries());
-		powers.addAll(second.set().powers().entries());
-
-		GlobalPowerSet set = new GlobalPowerSet(
-			entityTypes.build().resultOrPartial().orElseThrow(),
-			powers.build().resultOrPartial().orElseThrow(),
-			replace,
-			order
-		);
-
-		return new GlobalPowerSet.WithSource(set, second.source());
-
 	}
 
 }

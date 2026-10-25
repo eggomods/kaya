@@ -29,6 +29,11 @@ import static net.minecraft.commands.Commands.literal;
 
 public class ConditionCommand {
 
+	public static final ContextValidator.Parameters COMMAND_PARAMETERS = new ContextValidator.Parameters.Builder()
+		.optional(NeoApoliContextParameters.COMMAND_ENTITY)
+		.required(NeoApoliContextParameters.COMMAND_POSITION)
+		.build();
+
 	public static void register(CommandBuildContext buildContext, CommandNode<CommandSourceStack> rootNode) {
 
 		var baseNode = literal("condition")
@@ -123,7 +128,7 @@ public class ConditionCommand {
 			String path = ConditionManager.getInstance().getKeyAsResult(condition).mapOrElse(id -> "{\"" + id + "\"}", error -> "{type: \"" + Util.getRegisteredName(NeoApoliRegistries.CONDITION_TYPE, condition.getType()) + "\"}");
 
 			Reporter reporter = new Reporter(path);
-			ContextValidator validator = new ContextValidator(parameters.forValidation(), reporter).withResolver(source.registryAccess());
+			ContextValidator validator = new ContextValidator(COMMAND_PARAMETERS.merge(parameters.forValidation()), reporter).withResolver(source.registryAccess());
 
 			condition.validate(validator);
 

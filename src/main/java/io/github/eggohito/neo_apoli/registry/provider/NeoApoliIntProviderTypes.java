@@ -22,7 +22,6 @@ public final class NeoApoliIntProviderTypes {
 	public static final IntProvider.Type<FromFloatIntProvider> FROM_FLOAT = registerInternal("from_float", FromFloatIntProvider.CODEC, FromFloatIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<MaxIntProvider> MAX = registerInternal("max", MaxIntProvider.CODEC, MaxIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<MinIntProvider> MIN = registerInternal("min", MinIntProvider.CODEC, MinIntProvider.STREAM_CODEC);
-	public static final IntProvider.Type<NbtIntProvider> NBT = registerInternal("nbt", NbtIntProvider.CODEC, NbtIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<NegateIntProvider> NEGATE = registerInternal("negate", NegateIntProvider.CODEC, NegateIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<ProductIntProvider> PRODUCT = registerInternal("product", ProductIntProvider.CODEC, ProductIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<QuotientIntProvider> QUOTIENT = registerInternal("quotient", QuotientIntProvider.CODEC, QuotientIntProvider.STREAM_CODEC);
@@ -33,10 +32,9 @@ public final class NeoApoliIntProviderTypes {
 
 	public static final IntProvider.Type<AdjacentBlocksIntProvider> ADJACENT_BLOCKS = registerInternal("adjacent_blocks", AdjacentBlocksIntProvider.CODEC, AdjacentBlocksIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<BlocksCollidingBoxIntProvider> BLOCKS_COLLIDING_BOX = registerInternal("blocks_colliding_box", BlocksCollidingBoxIntProvider.CODEC, BlocksCollidingBoxIntProvider.STREAM_CODEC);
-	public static final IntProvider.Type<BlocksInRadiusIntProvider> BLOCKS_IN_RADIUS = registerInternal("blocks_in_radius", BlocksInRadiusIntProvider.CODEC, BlocksInRadiusIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<BlocksIntersectingBoxIntProvider> BLOCKS_INTERSECTING_BOX = registerInternal("blocks_intersecting_box", BlocksIntersectingBoxIntProvider.CODEC, BlocksIntersectingBoxIntProvider.STREAM_CODEC);
+	public static final IntProvider.Type<CountInAreaIntProvider> COUNT_IN_AREA = registerInternal("count_in_area", CountInAreaIntProvider.CODEC, CountInAreaIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<EffectAmplifierIntProvider> EFFECT_AMPLIFIER = registerInternal("effect/amplifier", EffectAmplifierIntProvider.CODEC, EffectAmplifierIntProvider.STREAM_CODEC);
-	public static final IntProvider.Type<EntitiesInRadiusIntProvider> ENTITIES_IN_RADIUS = registerInternal("entities_in_radius", EntitiesInRadiusIntProvider.CODEC, EntitiesInRadiusIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<EntityActiveEffectsIntProvider> ENTITY_ACTIVE_EFFECTS = registerInternal("entity/active_effects", EntityActiveEffectsIntProvider.CODEC, EntityActiveEffectsIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<EquippedEnchantmentLevelIntProvider> EQUIPPED_ENCHANTMENT_LEVEL = registerInternal("equipped_enchantment_level", EquippedEnchantmentLevelIntProvider.CODEC, EquippedEnchantmentLevelIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<ItemCountIntProvider> ITEM_COUNT = registerInternal("item/count", ItemCountIntProvider.CODEC, ItemCountIntProvider.STREAM_CODEC);
@@ -45,6 +43,7 @@ public final class NeoApoliIntProviderTypes {
 	public static final IntProvider.Type<KeyPressedTicksIntProvider> KEY_PRESSED_TICKS = registerInternal("key/pressed_ticks", KeyPressedTicksIntProvider.CODEC, KeyPressedTicksIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<KeyPressedTimeIntProvider> KEY_PRESSED_TIME = registerInternal("key/pressed_time", KeyPressedTimeIntProvider.CODEC, KeyPressedTimeIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<LightLevelIntProvider> LIGHT_LEVEL = registerInternal("light_level", LightLevelIntProvider.CODEC, LightLevelIntProvider.STREAM_CODEC);
+	public static final IntProvider.Type<NbtIntProvider> NBT = registerInternal("nbt", NbtIntProvider.CODEC, NbtIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<PlayerFoodIntProvider> PLAYER_FOOD = registerInternal("player/food", PlayerFoodIntProvider.CODEC, PlayerFoodIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<PowerCooldownRemainingTicksIntProvider> POWER_COOLDOWN_REMAINING_TICKS = registerInternal("power/cooldown/remaining_ticks", PowerCooldownRemainingTicksIntProvider.CODEC, PowerCooldownRemainingTicksIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<SlotIdIntProvider> SLOT_ID = registerInternal("slot_id", SlotIdIntProvider.CODEC, SlotIdIntProvider.STREAM_CODEC);

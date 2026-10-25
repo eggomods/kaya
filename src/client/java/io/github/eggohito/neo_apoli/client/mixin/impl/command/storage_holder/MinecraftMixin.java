@@ -1,6 +1,6 @@
 package io.github.eggohito.neo_apoli.client.mixin.impl.command.storage_holder;
 
-import io.github.eggohito.neo_apoli.duck.internal.CommandStorageHolder;
+import io.github.eggohito.neo_apoli.client.duck.internal.ClientCommandStorageHolder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(Minecraft.class)
-public abstract class MinecraftMixin implements CommandStorageHolder {
+public abstract class MinecraftMixin implements ClientCommandStorageHolder {
 
 	@Unique
 	private final Object2ObjectOpenHashMap<ResourceLocation, CompoundTag> neo_apoli$commandStorageCache = new Object2ObjectOpenHashMap<>();

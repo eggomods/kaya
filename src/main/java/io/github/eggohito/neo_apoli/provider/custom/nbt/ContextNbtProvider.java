@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.provider.custom.nbt;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.context.Context;
@@ -20,6 +21,11 @@ public record ContextNbtProvider(NbtContextParameter parameter) implements NbtPr
 	public static final MapCodec<ContextNbtProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 		.group(NeoApoliContextParameterTypes.NBT.codec().fieldOf("parameter").forGetter(ContextNbtProvider::parameter))
 		.apply(instance, ContextNbtProvider::new)
+	);
+
+	public static final Codec<ContextNbtProvider> INLINE_CODEC = NeoApoliContextParameterTypes.NBT.codec().xmap(
+		ContextNbtProvider::new,
+		ContextNbtProvider::parameter
 	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ContextNbtProvider> STREAM_CODEC = StreamCodec.composite(

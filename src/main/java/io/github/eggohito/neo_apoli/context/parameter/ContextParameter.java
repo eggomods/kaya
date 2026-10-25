@@ -2,14 +2,18 @@ package io.github.eggohito.neo_apoli.context.parameter;
 
 import com.mojang.serialization.Codec;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.provider.ValueProvider;
+import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistries;
 import io.github.eggohito.neo_apoli.registry.NeoApoliRegistryKeys;
-import io.github.eggohito.neo_apoli.util.ResourceLocationUtil;
+import io.github.eggohito.neo_apoli.util.StringDisplayable;
 import io.github.eggohito.neo_apoli.util.alias.FixedRegistryAlias;
 import io.github.eggohito.neo_apoli.util.alias.ResourceLocationAlias;
 import io.netty.buffer.ByteBuf;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.experimental.Accessors;
+import net.minecraft.Util;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -18,65 +22,57 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public interface ContextParameter<T> {
+public interface ContextParameter<T> extends StringDisplayable {
+
+	Codec<ContextParameter<?>> CODEC = Type.CODEC.dispatch(ContextParameter::getType, type -> type.codec().fieldOf("name"));
+
+	StreamCodec<RegistryFriendlyByteBuf, ContextParameter<?>> STREAM_CODEC = Type.STREAM_CODEC.dispatch(ContextParameter::getType, Type::streamCodec);
 
 	ResourceLocation name();
 
 	Type<?> getType();
 
+	@Override
+	default String asDisplayString() {
+		return this.name().toString() + "(type: \"" + this.getType() + "\")";
+	}
+
+	@Accessors(fluent = true)
 	@Getter
-	sealed class Type<Parameter extends ContextParameter<?>> {
+	@AllArgsConstructor(access = AccessLevel.PRIVATE)
+	final class Type<P extends ContextParameter<?>> {
 
 		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(NeoApoliRegistries.CONTEXT_PARAMETER_TYPE);
+
 		public static final Codec<Type<?>> CODEC = ALIASES.createCodec(NeoApoli.MOD_NAMESPACE);
 		public static final StreamCodec<RegistryFriendlyByteBuf, Type<?>> STREAM_CODEC = ByteBufCodecs.registry(NeoApoliRegistryKeys.CONTEXT_PARAMETER_TYPE);
 
-		private final Codec<Parameter> codec;
-		private final StreamCodec<ByteBuf, Parameter> streamCodec;
-
+		private final Codec<P> codec;
+		private final StreamCodec<ByteBuf, P> streamCodec;
 		private final ResourceLocationAlias aliases;
-		private final Function<ResourceLocation, Parameter> factory;
+		private final Function<ResourceLocation, P> constructor;
 
-		public Type(ResourceLocationAlias aliases, Function<ResourceLocation, Parameter> factory) {
-			this.codec = ResourceLocationUtil.codecWithDefaultNamespace(NeoApoli.MOD_NAMESPACE).xmap(id -> aliases.resolve(id, Predicate.not(id::equals)), Function.identity()).xmap(factory, ContextParameter::name);
-			this.streamCodec = ResourceLocation.STREAM_CODEC.map(factory, ContextParameter::name);
-			this.aliases = aliases;
-			this.factory = factory;
+		public P create(ResourceLocation id) {
+			return constructor().apply(id);
 		}
 
-		public Parameter create(ResourceLocation name) {
-			return factory().apply(name);
+		@Override
+		public String toString() {
+			return Util.getRegisteredName(NeoApoliRegistries.CONTEXT_PARAMETER_TYPE, this);
 		}
 
-	}
-
-	@Getter
-	final class TypeWithProvider<Parameter extends ContextParameter<?>, Provider extends ValueProvider<?>> extends Type<Parameter> {
-
-		private final Codec<Provider> providerCodec;
-		private final StreamCodec<RegistryFriendlyByteBuf, Provider> providerStreamCodec;
-
-		public TypeWithProvider(Codec<Provider> providerCodec, StreamCodec<RegistryFriendlyByteBuf, Provider> providerStreamCodec, ResourceLocationAlias aliases, Function<ResourceLocation, Parameter> factory) {
-			super(aliases, factory);
-			this.providerCodec = providerCodec;
-			this.providerStreamCodec = providerStreamCodec;
+		public static <P extends ContextParameter<?>> Type<P> of(Function<ResourceLocation, P> constructor, ResourceLocationAlias aliases) {
+			Function<ResourceLocation, P> composed = constructor.compose(id -> aliases.resolve(id, Predicate.not(id::equals)));
+			return new Type<>(
+				NeoApoliCodecs.MOD_NAMESPACE_IDENTIFIER.xmap(composed, ContextParameter::name),
+				ResourceLocation.STREAM_CODEC.map(constructor, ContextParameter::name),
+				aliases,
+				composed
+			);
 		}
 
-		public TypeWithProvider(Codec<Provider> providerCodec, StreamCodec<RegistryFriendlyByteBuf, Provider> providerStreamCodec, Function<ResourceLocation, Parameter> factory) {
-			this(providerCodec, providerStreamCodec, new ResourceLocationAlias(), factory);
-		}
-
-	}
-
-	@Getter
-	final class SimpleType<Parameter extends ContextParameter<?>> extends Type<Parameter> {
-
-		public SimpleType(ResourceLocationAlias aliases, Function<ResourceLocation, Parameter> factory) {
-			super(aliases, factory);
-		}
-
-		public SimpleType(Function<ResourceLocation, Parameter> factory) {
-			this(new ResourceLocationAlias(), factory);
+		public static <P extends ContextParameter<?>> Type<P> of(Function<ResourceLocation, P> constructor) {
+			return of(constructor, new ResourceLocationAlias());
 		}
 
 	}

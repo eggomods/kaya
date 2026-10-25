@@ -8,7 +8,7 @@ import io.github.eggohito.neo_apoli.power.PowerHolder;
 import io.github.eggohito.neo_apoli.power.PowerIdentifier;
 import io.github.eggohito.neo_apoli.power.custom.MultiplePower;
 import io.github.eggohito.neo_apoli.util.manager.ContentAndTagManager;
-import io.github.eggohito.neo_apoli.util.services.NeoApoliServices;
+import io.github.eggohito.neo_apoli.util.manager.NeoApoliManagers;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagEntry;
 import org.jetbrains.annotations.ApiStatus;
@@ -24,7 +24,7 @@ public interface PowerManager extends ContentAndTagManager<PowerIdentifier, Powe
 
 	ResourceLocation ID = NeoApoli.id("manager/power");
 
-	Supplier<PowerManager> DEFERRED_INSTANCE = NeoApoliServices.deferredLoadPhysicalSideSpecific(PowerManager.class, ServerPowerManager::new);
+	Supplier<PowerManager> DEFERRED_INSTANCE = NeoApoliManagers.deferredPhysicalSideSpecific(PowerManager.class, ServerPowerManager::new);
 
 	TagEntry.Lookup<PowerHolder<?>> TAG_LOOKUP = new TagEntry.Lookup<>() {
 

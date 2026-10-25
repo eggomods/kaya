@@ -5,6 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.isxander.yacl3.config.v3.ConfigEntry;
 import io.github.eggohito.neo_apoli.codec.NeoApoliCodecs;
 import io.github.eggohito.neo_apoli.mixin.access.CommandSourceStackAccessor;
+import io.github.eggohito.neo_apoli.util.Reporter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -18,12 +19,11 @@ import org.quiltmc.parsers.json.JsonFormat;
 public final class NeoApoliCommonConfig extends AbstractJsonCodecConfig<NeoApoliCommonConfig> {
 
 	public static final NeoApoliCommonConfig INSTANCE = new NeoApoliCommonConfig();
-	public static final int VERSION = 1;
 
-	public final ConfigEntry<Integer> version = register("version", VERSION, Codec.INT);
 	public final ConfigEntry<TriState> performHandshake = register("perform_handshake", TriState.DEFAULT, Codec.lazyInitialized(() -> NeoApoliCodecs.TRI_STATE));
 	public final ConfigEntry<Command> command = register("command", Command.DEFAULT, Command.CODEC);
 	public final ConfigEntry<PlaceholderIdentifier> placeholderIdentifier = register("placeholder_identifier", PlaceholderIdentifier.DEFAULT, PlaceholderIdentifier.CODEC);
+	public final ConfigEntry<ReporterConfig> reporter = register("reporter", ReporterConfig.DEFAULT, ReporterConfig.CODEC);
 
 	private NeoApoliCommonConfig() {
 		super(FabricLoader.getInstance().getConfigDir().resolve("neo-apoli/common.json5"), JsonFormat.JSON5);
@@ -66,6 +66,22 @@ public final class NeoApoliCommonConfig extends AbstractJsonCodecConfig<NeoApoli
 		);
 
 		private boolean enabled;
+
+	}
+
+	@AllArgsConstructor
+	@Accessors(fluent = true)
+	@Data
+	public static final class ReporterConfig {
+
+		public static final ReporterConfig DEFAULT = new ReporterConfig(Reporter.TreeDisplay.EXPANDED);
+
+		public static final Codec<ReporterConfig> CODEC = RecordCodecBuilder.create(instance -> instance
+			.group(Reporter.TreeDisplay.CODEC.fieldOf("tree_display").forGetter(ReporterConfig::treeDisplay))
+			.apply(instance, ReporterConfig::new)
+		);
+
+		private Reporter.TreeDisplay treeDisplay;
 
 	}
 

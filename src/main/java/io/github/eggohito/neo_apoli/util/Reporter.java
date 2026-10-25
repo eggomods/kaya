@@ -1,7 +1,10 @@
 package io.github.eggohito.neo_apoli.util;
 
+import com.mojang.serialization.Codec;
+import io.github.eggohito.neo_apoli.config.NeoApoliCommonConfig;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
+import net.minecraft.Util;
 import net.minecraft.util.ProblemReporter;
 import org.apache.commons.lang3.function.Consumers;
 import org.jetbrains.annotations.NotNull;
@@ -11,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
+@SuppressWarnings("UnstableApiUsage")
 public class Reporter implements ProblemReporter {
 
 	public static Reporter NO_OP = new Reporter() {
@@ -87,32 +91,7 @@ public class Reporter implements ProblemReporter {
 	}
 
 	public List<String> getTreeReport() {
-
-		List<String> lines = new ObjectArrayList<>();
-		boolean oneLined = false, prependPath = false;
-
-		if (this.problems.size() == 1 && !this.path.isEmpty()) {
-			oneLined = lines.add(this.indent(this.getPathForTree() + ": " + this.problems.iterator().next()));
-		}
-
-		else {
-
-			for (var problem : this.problems) {
-				lines.add(this.indent("    * " + problem));
-			}
-
-		}
-
-		for (var child : this.children) {
-			prependPath |= lines.addAll(child.getTreeReport());
-		}
-
-		if (!oneLined && prependPath && !this.path.isEmpty()) {
-			lines.addFirst(this.indent(this.getPathForTree() + ": "));
-		}
-
-		return lines;
-
+		return this.getRoot().getTreeReportInternal();
 	}
 
 	public String getReport() {
@@ -141,8 +120,128 @@ public class Reporter implements ProblemReporter {
 		return "  ".repeat(this.depth) + line;
 	}
 
-	protected String getPathForTree() {
+	protected String getExpandedPath() {
 		return this.depth > 0 ? "|-" + this.path : this.path;
+	}
+
+	protected List<String> getTreeReportInternal() {
+		return NeoApoliCommonConfig.INSTANCE.reporter.get().treeDisplay().formatReport(this);
+	}
+
+	protected List<Reporter> getFlattenedChildren() {
+
+		List<Reporter> result = new ObjectArrayList<>();
+
+		for (var child : this.children) {
+			result.add(child);
+			result.addAll(child.getFlattenedChildren());
+		}
+
+		return result;
+
+	}
+
+	public enum TreeDisplay {
+
+		COMPACT {
+
+			@Override
+			public List<String> formatReport(Reporter reporter) {
+
+				List<Reporter> nodes = Util.make(reporter.getFlattenedChildren(), list -> list.addFirst(reporter));
+				StringBuilder line = new StringBuilder();
+
+				for (var node : nodes) {
+
+					String fullPath = node.fullPath;
+					Set<String> problems = node.problems;
+
+					if (problems.isEmpty()) {
+						continue;
+					}
+
+					if (!line.isEmpty()) {
+						line.append("\n");
+					}
+
+					if (nodes.size() > 1) {
+						line.append("  - ");
+					}
+
+					line.append(fullPath).append(": ");
+
+					if (problems.size() == 1) {
+						line.append(problems.iterator().next());
+					}
+
+					else {
+
+						for (var problem : problems) {
+							line.append("\n").append("      * ").append(problem);
+						}
+
+					}
+
+				}
+
+				return !line.isEmpty()
+					? List.of(line.toString())
+					: List.of();
+
+			}
+
+		},
+
+		EXPANDED {
+
+			@Override
+			public List<String> formatReport(Reporter reporter) {
+
+				List<String> lines = new ObjectArrayList<>();
+
+				String path = reporter.getExpandedPath();
+				boolean prepend = false;
+
+				if (reporter.problems.size() == 1) {
+
+					String problem = reporter.problems.iterator().next();
+
+					if (reporter.path.isEmpty()) {
+						lines.add(problem);
+					}
+
+					else {
+						lines.add(reporter.indent(path + ": " + problem));
+					}
+
+				}
+
+				else {
+
+					for (var problem : reporter.problems) {
+						prepend |= lines.add(reporter.indent("    * " + problem));
+					}
+
+				}
+
+				for (var child : reporter.children) {
+					prepend |= lines.addAll(child.getTreeReportInternal());
+				}
+
+				if (prepend && !reporter.path.isEmpty()) {
+					lines.addFirst(reporter.indent(path + ": "));
+				}
+
+				return lines;
+
+			}
+
+		};
+
+		public static final Codec<TreeDisplay> CODEC = CodecUtil.enumType(TreeDisplay.class);
+
+		public abstract List<String> formatReport(Reporter reporter);
+
 	}
 
 	public static class Scoped extends Reporter implements AutoCloseable {

@@ -11,8 +11,6 @@ import io.github.eggohito.neo_apoli.provider.custom.number.IntProvider;
 import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliIntProviderTypes;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
-import io.github.eggohito.neo_apoli.util.MapCodecUtil;
-import io.github.eggohito.neo_apoli.util.StreamCodecUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -27,16 +25,16 @@ public record AdjacentBlocksIntProvider(Condition condition, Vec3Provider positi
 	public static final BlockContextParameter ADJACENT_BLOCK = new BlockContextParameter(NeoApoli.id("adjacent_block"));
 	public static final ContextValidator.Parameters CONDITION_PARAMETER_SET = new ContextValidator.Parameters.Builder().required(ADJACENT_BLOCK).build();
 
-	public static final MapCodec<AdjacentBlocksIntProvider> CODEC = MapCodecUtil.lazy(AdjacentBlocksIntProvider.class.getSimpleName(), () -> RecordCodecBuilder.mapCodec(instance -> instance.group(
+	public static final MapCodec<AdjacentBlocksIntProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Condition.CODEC.fieldOf("condition").forGetter(AdjacentBlocksIntProvider::condition),
 		Vec3Provider.CODEC.fieldOf("position").forGetter(AdjacentBlocksIntProvider::position)
-	).apply(instance, AdjacentBlocksIntProvider::new)));
+	).apply(instance, AdjacentBlocksIntProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, AdjacentBlocksIntProvider> STREAM_CODEC = StreamCodecUtil.lazy(AdjacentBlocksIntProvider.class.getSimpleName(), () -> StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, AdjacentBlocksIntProvider> STREAM_CODEC = StreamCodec.composite(
 		Condition.STREAM_CODEC, AdjacentBlocksIntProvider::condition,
 		Vec3Provider.STREAM_CODEC, AdjacentBlocksIntProvider::position,
 		AdjacentBlocksIntProvider::new
-	));
+	);
 
 	@Override
 	public @NotNull IntProvider.Type<?> getType() {
