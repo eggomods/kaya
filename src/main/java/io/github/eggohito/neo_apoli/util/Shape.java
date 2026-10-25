@@ -1,5 +1,6 @@
 package io.github.eggohito.neo_apoli.util;
 
+import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
@@ -12,6 +13,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.Iterator;
 import java.util.List;
 
 public enum Shape {
@@ -55,55 +57,92 @@ public enum Shape {
 	public abstract double getDistance(Vec3 first, Vec3 second);
 
 	public List<CachedBlock> getBlocksWithinRadius(Level level, Vec3 center, int radius) {
-		double diameter = radius * 2;
-		return getBlocksWithinBox(level, AABB.ofSize(center, diameter, diameter, diameter));
-	}
-
-	public List<CachedBlock> getBlocksWithinBox(Level level, AABB box) {
-
-		List<CachedBlock> collected = new ObjectArrayList<>();
-		Vec3 center = box.getCenter();
-
-		double radius = box.getSize() / 2;
-
-		for (var position : BlockPos.betweenClosed(box)) {
-
-			BlockPos immutablePosition = position.immutable();
-			CachedBlock block = CachedBlock
-				.optionallyFromLoadedPos(level, immutablePosition)
-				.orElse(null);
-
-			if (block != null && this.getDistance(immutablePosition.getCenter(), center) <= radius) {
-				collected.add(block);
-			}
-
-		}
-
-		return collected;
-
+		return new ObjectArrayList<>(iterateBlocksWithinRadius(level, center, radius).iterator());
 	}
 
 	public List<Entity> getEntitiesWithinRadius(Level level, Vec3 center, double radius) {
-		double diameter = radius * 2;
-		return getEntitiesWithinBox(level, AABB.ofSize(center, diameter, diameter, diameter));
+		return new ObjectArrayList<>(iterateEntitiesWithinRadius(level, center, radius).iterator());
+	}
+
+	public List<CachedBlock> getBlocksWithinBox(Level level, AABB box) {
+		return new ObjectArrayList<>(iterateBlocksWithinBox(level, box).iterator());
 	}
 
 	public List<Entity> getEntitiesWithinBox(Level level, AABB box) {
+		return new ObjectArrayList<>(iterateEntitiesWithinBox(level, box).iterator());
+	}
 
-		List<Entity> collected = new ObjectArrayList<>();
-		Vec3 center = box.getCenter();
+	public Iterable<CachedBlock> iterateBlocksWithinRadius(Level level, Vec3 center, int radius) {
+		double diameter = radius * 2;
+		return iterateBlocksWithinBox(level, AABB.ofSize(center, diameter, diameter, diameter));
+	}
 
-		double radius = box.getSize() / 2;
+	public Iterable<Entity> iterateEntitiesWithinRadius(Level level, Vec3 center, double radius) {
+		double diameter = radius * 2;
+		return iterateEntitiesWithinBox(level, AABB.ofSize(center, diameter, diameter, diameter));
+	}
 
-		for (var entity : level.getEntitiesOfClass(Entity.class, box)) {
+	public Iterable<CachedBlock> iterateBlocksWithinBox(Level level, AABB box) {
+		return () -> new ShapeIterator<>(box) {
 
-			if (this.getDistance(entity.position(), center) <= radius) {
-				collected.add(entity);
+			final Iterator<BlockPos> iterator = BlockPos.betweenClosed(box).iterator();
+
+			@Override
+			protected CachedBlock computeNext() {
+
+				while (iterator.hasNext()) {
+
+					BlockPos pos = iterator.next();
+					CachedBlock block = CachedBlock.optionallyFromLoadedPos(level, pos).orElse(null);
+
+					if (block != null && Shape.this.getDistance(pos.getCenter(), center) <= radius) {
+						return block;
+					}
+
+				}
+
+				return endOfData();
+
 			}
 
-		}
+		};
+	}
 
-		return collected;
+	public Iterable<Entity> iterateEntitiesWithinBox(Level level, AABB box) {
+		return () -> new ShapeIterator<>(box) {
+
+			final Iterator<Entity> iterator = level.getEntitiesOfClass(Entity.class, box).iterator();
+
+			@Override
+			protected Entity computeNext() {
+
+				while (iterator.hasNext()) {
+
+					Entity entity = iterator.next();
+					double distance = Shape.this.getDistance(entity.position(), center);
+
+					if (distance <= radius) {
+						return entity;
+					}
+
+				}
+
+				return endOfData();
+
+			}
+
+		};
+	}
+
+	private static abstract class ShapeIterator<T> extends AbstractIterator<T> {
+
+		protected final Vec3 center;
+		protected final double radius;
+
+		protected ShapeIterator(AABB box) {
+			this.center = box.getCenter();
+			this.radius = box.getSize() / 2;
+		}
 
 	}
 

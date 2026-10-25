@@ -2,6 +2,7 @@ package io.github.eggohito.neo_apoli.util;
 
 import com.google.common.base.Predicates;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -70,6 +71,15 @@ import java.util.*;
 import java.util.function.*;
 
 public class MiscUtil {
+
+	private static final Iterable<?> EMPTY_ITERABLE = () -> new AbstractIterator<>() {
+
+		@Override
+		protected Object computeNext() {
+			return endOfData();
+		}
+
+	};
 
 	public static final ImmutableBiMap<String, InteractionResult> INTERACTION_RESULTS = ImmutableBiMap.<String, InteractionResult>builder()
 		.put("success", InteractionResult.SUCCESS)
@@ -533,6 +543,11 @@ public class MiscUtil {
 
 	public static char unsafelyAssumeStringAsCharacter(String string) {
 		return validateStringAsCharacter(string).getOrThrow();
+	}
+
+	public static <T> Iterable<T> emptyIterable() {
+		//noinspection unchecked
+		return (Iterable<T>) EMPTY_ITERABLE;
 	}
 
 }

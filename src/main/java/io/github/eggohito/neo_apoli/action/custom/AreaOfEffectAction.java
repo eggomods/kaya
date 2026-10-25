@@ -38,20 +38,24 @@ public record AreaOfEffectAction(Area area, Action action, Condition condition, 
 
 	@Override
 	public void execute(Context context) {
-		limit().getValue(context.forChild(".limit")).ifPresent(limit -> area().run(context, action(), condition(), limit));
+		limit().getValue(context.forChild(".limit")).ifPresent(limit -> run(context, limit));
 	}
 
 	@Override
 	public void validate(ContextValidator validator) {
 
 		Action.super.validate(validator);
-		ContextValidator parameterizedValidator = validator.withParams(area().settings().target().parameters());
+		ContextValidator parameterizedValidator = validator.withParams(area().parameters());
 
 		area().validate(validator);
 		action().validate(parameterizedValidator.forChild(".action"));
 		condition().validate(parameterizedValidator.forChild(".condition"));
 		limit().validate(validator.forChild(".limit"));
 
+	}
+
+	private void run(Context context, int limit) {
+		area().run(context, ctx -> action().execute(ctx.forChild(".action")), ctx -> condition().test(ctx.forChild(".condition")), limit);
 	}
 
 }

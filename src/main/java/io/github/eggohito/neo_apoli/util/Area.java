@@ -6,8 +6,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.neo_apoli.NeoApoli;
-import io.github.eggohito.neo_apoli.action.Action;
-import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidatable;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
@@ -23,9 +21,10 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public sealed interface Area extends ContextValidatable {
 
@@ -41,12 +40,16 @@ public sealed interface Area extends ContextValidatable {
 
 	Type<?> getType();
 
-	List<Entity> getEntities(Context context);
+	Iterable<Entity> getEntities(Context context);
 
-	List<CachedBlock> getBlocks(Context context);
+	Iterable<CachedBlock> getBlocks(Context context);
 
-	default void run(Context context, Action action, Condition condition, int limit) {
-		settings().target().run(context, this, action, condition, limit);
+	default ContextValidator.Parameters parameters() {
+		return settings().target().parameters();
+	}
+
+	default void run(Context context, Consumer<Context> onMatch, Predicate<Context> matchFilter, int limit) {
+		settings().target().run(context, this, onMatch, matchFilter, limit);
 	}
 
 	static <A extends Area> Products.P1<RecordCodecBuilder.Mu<A>, Settings> addSettingsField(RecordCodecBuilder.Instance<A> instance) {
@@ -77,13 +80,13 @@ public sealed interface Area extends ContextValidatable {
 		}
 
 		@Override
-		public List<Entity> getEntities(Context context) {
-			return unwrap(context, (position, radius) -> settings().shape().getEntitiesWithinRadius(context.level(), position, radius));
+		public Iterable<Entity> getEntities(Context context) {
+			return unwrap(context, (position, radius) -> settings().shape().iterateEntitiesWithinRadius(context.level(), position, radius));
 		}
 
 		@Override
-		public List<CachedBlock> getBlocks(Context context) {
-			return unwrap(context, (position, radius) -> settings().shape().getBlocksWithinRadius(context.level(), position, Math.round(radius)));
+		public Iterable<CachedBlock> getBlocks(Context context) {
+			return unwrap(context, (position, radius) -> settings().shape().iterateBlocksWithinRadius(context.level(), position, Math.round(radius)));
 		}
 
 		@Override
@@ -92,10 +95,10 @@ public sealed interface Area extends ContextValidatable {
 			radius().validate(validator.forChild(".radius"));
 		}
 
-		private <R> List<R> unwrap(Context context, BiFunction<Vec3, Float, List<R>> applier) {
+		private <R> Iterable<R> unwrap(Context context, BiFunction<Vec3, Float, Iterable<R>> applier) {
 			return position().getValue(context.forChild(".position"))
 				.flatMap(position -> radius().getValue(context.forChild(".radius"))
-					.map(radius -> applier.apply(position, radius))).orElse(List.of());
+					.map(radius -> applier.apply(position, radius))).orElse(MiscUtil.emptyIterable());
 		}
 
 	}
@@ -122,13 +125,13 @@ public sealed interface Area extends ContextValidatable {
 		}
 
 		@Override
-		public List<Entity> getEntities(Context context) {
-			return unwrap(context, box -> settings().shape().getEntitiesWithinBox(context.level(), box));
+		public Iterable<Entity> getEntities(Context context) {
+			return unwrap(context, box -> settings().shape().iterateEntitiesWithinBox(context.level(), box));
 		}
 
 		@Override
-		public List<CachedBlock> getBlocks(Context context) {
-			return unwrap(context, box -> settings().shape().getBlocksWithinBox(context.level(), box));
+		public Iterable<CachedBlock> getBlocks(Context context) {
+			return unwrap(context, box -> settings().shape().iterateBlocksWithinBox(context.level(), box));
 		}
 
 		@Override
@@ -136,10 +139,10 @@ public sealed interface Area extends ContextValidatable {
 			box().validate(validator.forChild(".box"));
 		}
 
-		private <R> List<R> unwrap(Context context, Function<AABB, List<R>> applier) {
+		private <R> Iterable<R> unwrap(Context context, Function<AABB, Iterable<R>> applier) {
 			return box().getValue(context.forChild(".box"))
 				.map(applier)
-				.orElse(List.of());
+				.orElse(MiscUtil.emptyIterable());
 		}
 
 	}
@@ -186,24 +189,24 @@ public sealed interface Area extends ContextValidatable {
 			}
 
 			@Override
-			public void run(Context context, Area area, Action action, Condition condition, int limit) {
+			public void run(Context context, Area area, Consumer<Context> onMatch, Predicate<Context> matchFilter, int limit) {
 
-				List<Entity> entities = area.getEntities(context);
+				Iterable<Entity> entities = area.getEntities(context);
 				int processed = 0;
 
 				for (var entity : entities) {
 
-					if (limit > 0 && processed >= limit) {
-						break;
-					}
-
-					processed++;
 					Context areaContext = new Context.Builder(context)
 						.withRequired(ENTITY_IN_AREA, entity)
 						.build(context.level());
 
-					if (condition.test(areaContext.forChild(".area_condition"))) {
-						action.execute(areaContext.forChild(".area_action"));
+					if (matchFilter.test(areaContext)) {
+						onMatch.accept(areaContext);
+						processed++;
+					}
+
+					if (limit >= 0 && processed >= limit) {
+						break;
 					}
 
 				}
@@ -224,24 +227,24 @@ public sealed interface Area extends ContextValidatable {
 			}
 
 			@Override
-			public void run(Context context, Area area, Action action, Condition condition, int limit) {
+			public void run(Context context, Area area, Consumer<Context> onMatch, Predicate<Context> matchFilter, int limit) {
 
-				List<CachedBlock> blocks = area.getBlocks(context);
+				Iterable<CachedBlock> blocks = area.getBlocks(context);
 				int processed = 0;
 
 				for (var block : blocks) {
 
-					if (limit > 0 && processed >= limit) {
-						break;
-					}
-
-					processed++;
 					Context areaContext = new Context.Builder(context)
 						.withRequired(BLOCK_IN_AREA, block)
 						.build(context.level());
 
-					if (condition.test(areaContext.forChild(".area_condition"))) {
-						action.execute(areaContext.forChild(".area_action"));
+					if (matchFilter.test(areaContext)) {
+						onMatch.accept(areaContext);
+						processed++;
+					}
+
+					if (limit >= 0 && processed >= limit) {
+						break;
 					}
 
 				}
@@ -256,7 +259,7 @@ public sealed interface Area extends ContextValidatable {
 
 		public abstract ContextValidator.Parameters parameters();
 
-		public abstract void run(Context context, Area area, Action action, Condition condition, int limit);
+		public abstract void run(Context context, Area area, Consumer<Context> onMatch, Predicate<Context> matchFilter, int limit);
 
 	}
 

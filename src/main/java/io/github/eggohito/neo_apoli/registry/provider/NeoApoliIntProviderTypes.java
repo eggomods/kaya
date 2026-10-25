@@ -32,10 +32,9 @@ public final class NeoApoliIntProviderTypes {
 
 	public static final IntProvider.Type<AdjacentBlocksIntProvider> ADJACENT_BLOCKS = registerInternal("adjacent_blocks", AdjacentBlocksIntProvider.CODEC, AdjacentBlocksIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<BlocksCollidingBoxIntProvider> BLOCKS_COLLIDING_BOX = registerInternal("blocks_colliding_box", BlocksCollidingBoxIntProvider.CODEC, BlocksCollidingBoxIntProvider.STREAM_CODEC);
-	public static final IntProvider.Type<BlocksInRadiusIntProvider> BLOCKS_IN_RADIUS = registerInternal("blocks_in_radius", BlocksInRadiusIntProvider.CODEC, BlocksInRadiusIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<BlocksIntersectingBoxIntProvider> BLOCKS_INTERSECTING_BOX = registerInternal("blocks_intersecting_box", BlocksIntersectingBoxIntProvider.CODEC, BlocksIntersectingBoxIntProvider.STREAM_CODEC);
+	public static final IntProvider.Type<CountInAreaIntProvider> COUNT_IN_AREA = registerInternal("count_in_area", CountInAreaIntProvider.CODEC, CountInAreaIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<EffectAmplifierIntProvider> EFFECT_AMPLIFIER = registerInternal("effect/amplifier", EffectAmplifierIntProvider.CODEC, EffectAmplifierIntProvider.STREAM_CODEC);
-	public static final IntProvider.Type<EntitiesInRadiusIntProvider> ENTITIES_IN_RADIUS = registerInternal("entities_in_radius", EntitiesInRadiusIntProvider.CODEC, EntitiesInRadiusIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<EntityActiveEffectsIntProvider> ENTITY_ACTIVE_EFFECTS = registerInternal("entity/active_effects", EntityActiveEffectsIntProvider.CODEC, EntityActiveEffectsIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<EquippedEnchantmentLevelIntProvider> EQUIPPED_ENCHANTMENT_LEVEL = registerInternal("equipped_enchantment_level", EquippedEnchantmentLevelIntProvider.CODEC, EquippedEnchantmentLevelIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<ItemCountIntProvider> ITEM_COUNT = registerInternal("item/count", ItemCountIntProvider.CODEC, ItemCountIntProvider.STREAM_CODEC);
