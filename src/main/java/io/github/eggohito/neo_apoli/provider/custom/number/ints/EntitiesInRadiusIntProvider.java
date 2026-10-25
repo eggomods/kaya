@@ -62,7 +62,7 @@ public record EntitiesInRadiusIntProvider(Condition condition, Vec3Provider posi
 		int matches = 0;
 
 		float radius = radius().getFloat(context.forChild(".radius"));
-		List<Entity> targets = shape().getEntities(level, position, radius);
+		List<Entity> targets = shape().getEntitiesWithinRadius(level, position, radius);
 
 		for (var target : targets) {
 

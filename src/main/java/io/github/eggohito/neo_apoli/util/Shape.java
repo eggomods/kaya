@@ -6,6 +6,7 @@ import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -13,13 +14,13 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
-public enum Shape implements DistanceGetter {
+public enum Shape {
 
 	CUBE {
 
 		@Override
-		public double getDistance(double x, double y, double z) {
-			return Math.max(Math.max(x, y), z);
+		public double getDistance(Vec3 first, Vec3 second) {
+			return Math.max(Math.max(Math.abs(second.x() - first.x()), Math.abs(second.y() - first.y())), Math.abs(second.z() - first.z()));
 		}
 
 	},
@@ -27,8 +28,8 @@ public enum Shape implements DistanceGetter {
 	STAR {
 
 		@Override
-		public double getDistance(double x, double y, double z) {
-			return x + y + z;
+		public double getDistance(Vec3 first, Vec3 second) {
+			return Math.abs(second.x() - first.x()) + Math.abs(second.y() - first.y()) + Math.abs(second.z() - first.z());
 		}
 
 	},
@@ -36,8 +37,8 @@ public enum Shape implements DistanceGetter {
 	SPHERE {
 
 		@Override
-		public double getDistance(double x, double y, double z) {
-			return Math.sqrt(x * x + y * y + z * z);
+		public double getDistance(Vec3 first, Vec3 second) {
+			return Math.sqrt(Mth.square(second.x() - first.x()) + Mth.square(second.y() - first.y()) + Mth.square(second.z() - first.z()));
 		}
 
 	};
@@ -51,43 +52,52 @@ public enum Shape implements DistanceGetter {
 	public static final Codec<Shape> CODEC = CodecUtil.enumType(Shape.class, ALIASES);
 	public static final StreamCodec<ByteBuf, Shape> STREAM_CODEC = StreamCodecUtil.enumType(Shape.class);
 
-	public List<BlockPos> getBlockPositions(BlockPos center, int radius) {
+	public abstract double getDistance(Vec3 first, Vec3 second);
 
-		List<BlockPos> collected = new ObjectArrayList<>();
-		int x, y, z;
+	public List<CachedBlock> getBlocksWithinRadius(Level level, Vec3 center, int radius) {
+		double diameter = radius * 2;
+		return getBlocksWithinBox(level, AABB.ofSize(center, diameter, diameter, diameter));
+	}
 
-		for (x = -radius; x <= radius; x++) {
-			for (y = -radius; y <= radius; y++) {
-				for (z = -radius; z <= radius; z++) {
+	public List<CachedBlock> getBlocksWithinBox(Level level, AABB box) {
 
-					BlockPos pos = center.offset(x, y, z);
+		List<CachedBlock> collected = new ObjectArrayList<>();
+		Vec3 center = box.getCenter();
 
-					if (this.getDistance(x, y, z) <= radius) {
-						collected.add(pos);
-					}
+		double radius = box.getSize() / 2;
 
-				}
+		for (var position : BlockPos.betweenClosed(box)) {
+
+			BlockPos immutablePosition = position.immutable();
+			CachedBlock block = CachedBlock
+				.optionallyFromLoadedPos(level, immutablePosition)
+				.orElse(null);
+
+			if (block != null && this.getDistance(immutablePosition.getCenter(), center) <= radius) {
+				collected.add(block);
 			}
+
 		}
 
 		return collected;
 
 	}
 
-	public List<Entity> getEntities(Level level, Vec3 center, double radius) {
+	public List<Entity> getEntitiesWithinRadius(Level level, Vec3 center, double radius) {
+		double diameter = radius * 2;
+		return getEntitiesWithinBox(level, AABB.ofSize(center, diameter, diameter, diameter));
+	}
+
+	public List<Entity> getEntitiesWithinBox(Level level, AABB box) {
 
 		List<Entity> collected = new ObjectArrayList<>();
+		Vec3 center = box.getCenter();
 
-		double diameter = radius * 2;
-		double x, y, z;
+		double radius = box.getSize() / 2;
 
-		for (Entity entity : level.getEntitiesOfClass(Entity.class, AABB.ofSize(center, diameter, diameter, diameter))) {
+		for (var entity : level.getEntitiesOfClass(Entity.class, box)) {
 
-			x = center.x() - entity.getX();
-			y = center.y() - entity.getY();
-			z = center.z() - entity.getZ();
-
-			if (this.getDistance(x, y, z) <= radius + 1) {
+			if (this.getDistance(entity.position(), center) <= radius) {
 				collected.add(entity);
 			}
 

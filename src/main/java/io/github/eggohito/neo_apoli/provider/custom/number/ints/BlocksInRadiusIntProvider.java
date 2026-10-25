@@ -12,10 +12,10 @@ import io.github.eggohito.neo_apoli.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.neo_apoli.registry.provider.NeoApoliIntProviderTypes;
 import io.github.eggohito.neo_apoli.util.CachedBlock;
 import io.github.eggohito.neo_apoli.util.Shape;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -49,8 +49,8 @@ public record BlocksInRadiusIntProvider(Condition condition, Vec3Provider positi
 	@Override
 	public Optional<Integer> getValue(Context context) {
 
-		BlockPos position = position().getValue(context.forChild(".position"))
-			.map(BlockPos::containing)
+		Vec3 position = position()
+			.getValue(context.forChild(".position"))
 			.orElse(null);
 
 		if (position == null) {
@@ -61,20 +61,12 @@ public record BlocksInRadiusIntProvider(Condition condition, Vec3Provider positi
 		int matches = 0;
 
 		int radius = radius().getInt(context.forChild(".radius"));
-		List<BlockPos> areaPositions = shape().getBlockPositions(position, radius);
+		List<CachedBlock> blocks = shape().getBlocksWithinRadius(level, position, radius);
 
-		for (var areaPosition : areaPositions) {
-
-			CachedBlock blockInRadius = CachedBlock
-				.optionallyFromLoadedPos(level, areaPosition)
-				.orElse(null);
-
-			if (blockInRadius == null) {
-				continue;
-			}
+		for (var block : blocks) {
 
 			Context blockContext = new Context.Builder(context)
-				.withRequired(BLOCK_IN_RADIUS, blockInRadius)
+				.withRequired(BLOCK_IN_RADIUS, block)
 				.build(level);
 
 			if (condition().test(blockContext.forChild(".condition"))) {
