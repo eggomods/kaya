@@ -7,6 +7,7 @@ import io.github.eggohito.neo_apoli.action.Action;
 import io.github.eggohito.neo_apoli.condition.Condition;
 import io.github.eggohito.neo_apoli.context.Context;
 import io.github.eggohito.neo_apoli.context.ContextValidator;
+import io.github.eggohito.neo_apoli.context.visitor.ClearableVisitor;
 import io.github.eggohito.neo_apoli.power.Power;
 import io.github.eggohito.neo_apoli.power.custom.misc.PrioritizedPower;
 import io.github.eggohito.neo_apoli.registry.NeoApoliPowerTypes;
@@ -22,6 +23,8 @@ import java.util.Optional;
 
 
 public record CallbackDamageDealtPower(Optional<Condition> activeCondition, Action onHitAction, int priority) implements PrioritizedPower<CallbackDamageDealtPower> {
+
+	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
 	public static final MapCodec<CallbackDamageDealtPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
 		.addActiveConditionField(instance)
@@ -59,7 +62,7 @@ public record CallbackDamageDealtPower(Optional<Condition> activeCondition, Acti
 			super(power);
 		}
 
-		public Context createContext(Entity holder, Entity target, DamageSource source, float amount) {
+		public Context createContext(@NotNull Entity holder, @NotNull Entity target, DamageSource source, float amount) {
 			return this.createHolderContextBuilder(holder)
 				.withRequired(NeoApoliContextParameters.DEALT_DAMAGE_SOURCE, source)
 				.withRequired(NeoApoliContextParameters.DEALT_DAMAGE_AMOUNT, amount)
@@ -78,12 +81,16 @@ public record CallbackDamageDealtPower(Optional<Condition> activeCondition, Acti
 
 	public static void execute(Entity actor, Entity target, DamageSource damageSource, float damageAmount) {
 
-		for (var instance : new InstanceCollection<>(actor, Instance.class)) {
+		try (VISITOR) {
 
-			Context context = instance.createContext(actor, target, damageSource, damageAmount);
+			for (var instance : new InstanceCollection<>(actor, Instance.class, VISITOR::push)) {
 
-			if (instance.isActive(context)) {
-				instance.execute(context);
+				Context context = instance.createContext(actor, target, damageSource, damageAmount);
+
+				if (instance.isActive(context)) {
+					instance.execute(context);
+				}
+
 			}
 
 		}

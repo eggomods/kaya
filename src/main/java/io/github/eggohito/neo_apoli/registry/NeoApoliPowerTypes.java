@@ -53,6 +53,19 @@ public final class NeoApoliPowerTypes {
 			.optional(NeoApoliContextParameters.DIRECT_DAMAGING_ENTITY)
 	);
 
+	public static final Power.Type<CallbackDamageTakenPower> CALLBACK_DAMAGE_TAKEN = registerInternal(
+		"callback/damage/taken",
+		CallbackDamageTakenPower.CODEC,
+		CallbackDamageTakenPower.STREAM_CODEC,
+		params -> params
+			.required(NeoApoliContextParameters.TAKEN_DAMAGE_SOURCE)
+			.required(NeoApoliContextParameters.TAKEN_DAMAGE_AMOUNT)
+			.optional(NeoApoliContextParameters.ACTOR_ENTITY)
+			.required(NeoApoliContextParameters.TARGET_ENTITY)
+			.optional(NeoApoliContextParameters.DAMAGING_ENTITY)
+			.optional(NeoApoliContextParameters.DIRECT_DAMAGING_ENTITY)
+	);
+
 	public static final Power.Type<CallbackPlayerRespawnedPower> CALLBACK_PLAYER_RESPAWNED = registerInternal(
 		"callback/player/respawned",
 		CallbackPlayerRespawnedPower.CODEC,
