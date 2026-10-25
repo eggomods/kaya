@@ -80,7 +80,7 @@ public record FloatResourcePower(FloatProvider min, FloatProvider max, Optional<
 				.map(start -> start.getFloat(context.forChild(".start_value")))
 				.orElseGet(() -> power.min().getFloat(context.forChild(".min")));
 
-			this.setAndSyncValue(holder, startValue);
+			this.setAndSyncValueNoCallbacks(holder, startValue);
 
 		}
 
@@ -96,7 +96,7 @@ public record FloatResourcePower(FloatProvider min, FloatProvider max, Optional<
 			return VALUE_CODEC.encode(this.value, ops, prefix);
 		}
 
-		public boolean setValue(Entity holder, float value) {
+		public boolean setValue(Entity holder, float value, boolean executeActions) {
 
 			Context context = this.createHolderContext(holder);
 			float prevValue = this.getValue();
@@ -109,14 +109,18 @@ public record FloatResourcePower(FloatProvider min, FloatProvider max, Optional<
 
 			if (Float.compare(nextValue, prevValue) != 0) {
 
-				power.onChangedAction().execute(context.forChild(".on_changed_action"));
+				if (executeActions) {
 
-				if (Float.compare(nextValue, max) >= 1) {
-					power.maxAction().execute(context.forChild(".max_action"));
-				}
+					power.onChangedAction().execute(context.forChild(".on_changed_action"));
 
-				else if (Float.compare(nextValue, min) <= 0) {
-					power.minAction().execute(context.forChild(".min_action"));
+					if (Float.compare(nextValue, max) >= 1) {
+						power.maxAction().execute(context.forChild(".max_action"));
+					}
+
+					else if (Float.compare(nextValue, min) <= 0) {
+						power.minAction().execute(context.forChild(".min_action"));
+					}
+
 				}
 
 				return true;
@@ -127,9 +131,25 @@ public record FloatResourcePower(FloatProvider min, FloatProvider max, Optional<
 
 		}
 
+		public boolean setValue(Entity holder, float value) {
+			return setValue(holder, value, true);
+		}
+
+		public boolean setValueNoCallbacks(Entity holder, float value) {
+			return setValue(holder, value, false);
+		}
+
 		public void setAndSyncValue(Entity holder, float value) {
 
 			if (this.setValue(holder, value)) {
+				this.syncData(holder);
+			}
+
+		}
+
+		public void setAndSyncValueNoCallbacks(Entity holder, float value) {
+
+			if (this.setValueNoCallbacks(holder, value)) {
 				this.syncData(holder);
 			}
 

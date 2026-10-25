@@ -80,7 +80,7 @@ public record IntResourcePower(IntProvider min, IntProvider max, Optional<IntPro
 				.map(start -> start.getInt(context.forChild(".start_value")))
 				.orElseGet(() -> power.min().getInt(context.forChild(".min")));
 
-			this.setAndSyncValue(holder, startValue);
+			this.setAndSyncValueNoCallbacks(holder, startValue);
 
 		}
 
@@ -96,7 +96,7 @@ public record IntResourcePower(IntProvider min, IntProvider max, Optional<IntPro
 			return VALUE_CODEC.encode(this.value, ops, prefix);
 		}
 
-		public boolean setValue(Entity holder, int value) {
+		public boolean setValue(Entity holder, int value, boolean executeActions) {
 
 			Context context = this.createHolderContext(holder);
 			int prevValue = this.getValue();
@@ -109,14 +109,18 @@ public record IntResourcePower(IntProvider min, IntProvider max, Optional<IntPro
 
 			if (nextValue != prevValue) {
 
-				power.onChangedAction().execute(context.forChild(".on_changed_action"));
+				if (executeActions) {
 
-				if (nextValue >= max) {
-					power.maxAction().execute(context.forChild(".max_action"));
-				}
+					power.onChangedAction().execute(context.forChild(".on_changed_action"));
 
-				else if (nextValue <= min) {
-					power.minAction().execute(context.forChild(".min_action"));
+					if (nextValue >= max) {
+						power.maxAction().execute(context.forChild(".max_action"));
+					}
+
+					else if (nextValue <= min) {
+						power.minAction().execute(context.forChild(".min_action"));
+					}
+
 				}
 
 				return true;
@@ -127,9 +131,25 @@ public record IntResourcePower(IntProvider min, IntProvider max, Optional<IntPro
 
 		}
 
+		public boolean setValue(Entity holder, int value) {
+			return setValue(holder, value, true);
+		}
+
+		public boolean setValueNoCallbacks(Entity holder, int value) {
+			return setValue(holder, value, false);
+		}
+
 		public void setAndSyncValue(Entity holder, int value) {
 
 			if (this.setValue(holder, value)) {
+				this.syncData(holder);
+			}
+
+		}
+
+		public void setAndSyncValueNoCallbacks(Entity holder, int value) {
+
+			if (this.setValueNoCallbacks(holder, value)) {
 				this.syncData(holder);
 			}
 
