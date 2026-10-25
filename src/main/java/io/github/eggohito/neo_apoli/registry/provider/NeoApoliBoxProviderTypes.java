@@ -18,6 +18,7 @@ public final class NeoApoliBoxProviderTypes {
 	public static final BoxProvider.Type<DynamicBoxProvider> DYNAMIC = registerInternal("dynamic", DynamicBoxProvider.CODEC, DynamicBoxProvider.STREAM_CODEC);
 	public static final BoxProvider.Type<InflateBoxProvider> INFLATE = registerInternal("inflate", InflateBoxProvider.CODEC, InflateBoxProvider.STREAM_CODEC);
 	public static final BoxProvider.Type<ResizeBoxProvider> RESIZE = registerInternal("resize", ResizeBoxProvider.CODEC, ResizeBoxProvider.STREAM_CODEC);
+	public static final BoxProvider.Type<TranslateBoxProvider> TRANSLATE = registerInternal("translate", TranslateBoxProvider.CODEC, TranslateBoxProvider.STREAM_CODEC);
 	public static final BoxProvider.Type<WeightedBoxProvider> WEIGHTED = registerInternal("weighted", WeightedBoxProvider.CODEC, WeightedBoxProvider.STREAM_CODEC);
 
 	public static final BoxProvider.Type<BlockBoundsBoxProvider> BLOCK_BOUNDS = registerInternal("block/bounds", BlockBoundsBoxProvider.CODEC, BlockBoundsBoxProvider.STREAM_CODEC);
