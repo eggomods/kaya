@@ -46,6 +46,7 @@ public final class NeoApoliIntProviderTypes {
 	public static final IntProvider.Type<NbtIntProvider> NBT = registerInternal("nbt", NbtIntProvider.CODEC, NbtIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<PlayerFoodIntProvider> PLAYER_FOOD = registerInternal("player/food", PlayerFoodIntProvider.CODEC, PlayerFoodIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<PowerCooldownRemainingTicksIntProvider> POWER_COOLDOWN_REMAINING_TICKS = registerInternal("power/cooldown/remaining_ticks", PowerCooldownRemainingTicksIntProvider.CODEC, PowerCooldownRemainingTicksIntProvider.STREAM_CODEC);
+	public static final IntProvider.Type<ResourceIntProvider> RESOURCE = registerInternal("resource", ResourceIntProvider.CODEC, ResourceIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<SlotIdIntProvider> SLOT_ID = registerInternal("slot_id", SlotIdIntProvider.CODEC, SlotIdIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<TimeIntProvider> TIME = registerInternal("time", TimeIntProvider.CODEC, TimeIntProvider.STREAM_CODEC);
 
