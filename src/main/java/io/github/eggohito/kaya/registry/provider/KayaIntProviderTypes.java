@@ -45,6 +45,9 @@ public final class KayaIntProviderTypes {
 	public static final IntProvider.Type<LightLevelIntProvider> LIGHT_LEVEL = registerInternal("light_level", LightLevelIntProvider.CODEC, LightLevelIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<NbtIntProvider> NBT = registerInternal("nbt", NbtIntProvider.CODEC, NbtIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<PlayerFoodIntProvider> PLAYER_FOOD = registerInternal("player/food", PlayerFoodIntProvider.CODEC, PlayerFoodIntProvider.STREAM_CODEC);
+    public static final IntProvider.Type<PlayerXPLevelIntProvider> PLAYER_XP_LEVEL = registerInternal("player/xp/level", PlayerXPLevelIntProvider.CODEC, PlayerXPLevelIntProvider.STREAM_CODEC);
+    public static final IntProvider.Type<PlayerXPNextIntProvider> PLAYER_XP_NEXT = registerInternal("player/xp/next", PlayerXPNextIntProvider.CODEC, PlayerXPNextIntProvider.STREAM_CODEC);
+    public static final IntProvider.Type<PlayerXPScoreIntProvider> PLAYER_XP_SCORE = registerInternal("player/xp/score", PlayerXPScoreIntProvider.CODEC, PlayerXPScoreIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<PowerCooldownRemainingTicksIntProvider> POWER_COOLDOWN_REMAINING_TICKS = registerInternal("power/cooldown/remaining_ticks", PowerCooldownRemainingTicksIntProvider.CODEC, PowerCooldownRemainingTicksIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<ResourceIntProvider> RESOURCE = registerInternal("resource", ResourceIntProvider.CODEC, ResourceIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<SlotIdIntProvider> SLOT_ID = registerInternal("slot_id", SlotIdIntProvider.CODEC, SlotIdIntProvider.STREAM_CODEC);
