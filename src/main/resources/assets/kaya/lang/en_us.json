@@ -74,8 +74,6 @@
 	"config.kaya.type.hud_element.resource_bar.option.offset_y.name": "Offset Y",
 	"config.kaya.type.power.modify_player_spawn.description": "Options for configuring the behavior of the 'modify_player_spawn' power type.",
 	"config.kaya.type.power.modify_player_spawn.name": "Modify Player Spawn",
-	"config.kaya.type.power.modify_player_spawn.option.enabled.description": "Determines whether the power type is enabled.",
-	"config.kaya.type.power.modify_player_spawn.option.enabled.name": "Enabled",
 	"config.kaya.type.power.modify_player_spawn.option.horizontal_step.description": "Determines the amount of horizontal steps used for searching for structures/biomes.",
 	"config.kaya.type.power.modify_player_spawn.option.horizontal_step.name": "Horizontal Steps",
 	"config.kaya.type.power.modify_player_spawn.option.radius.description": "Determines the radius (in blocks) used for searching structures/biomes.",
@@ -84,8 +82,6 @@
 	"config.kaya.type.power.modify_player_spawn.option.vertical_step.name": "Vertical Steps",
 	"config.kaya.type.power.multiple.description": "Options for configuring the behavior of the 'multiple' power type.",
 	"config.kaya.type.power.multiple.name": "Multiple",
-	"config.kaya.type.power.multiple.option.enabled.description": "Determines whether the power type is enabled.",
-	"config.kaya.type.power.multiple.option.enabled.name": "Enabled",
 	"config.kaya.type.power.name": "Power types",
 	"power.type.kaya.crafting_recipe.missing_power": "Missing power: %s"
 }
