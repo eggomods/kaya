@@ -74,14 +74,22 @@ public final class KayaCommonConfig extends AbstractJsonCodecConfig<KayaCommonCo
 	@Data
 	public static final class ReporterConfig {
 
-		public static final ReporterConfig DEFAULT = new ReporterConfig(Reporter.TreeDisplay.EXPANDED);
+		public static final ReporterConfig DEFAULT = new ReporterConfig(Reporter.TreeView.EXPANDED);
 
-		public static final Codec<ReporterConfig> CODEC = RecordCodecBuilder.create(instance -> instance
-			.group(Reporter.TreeDisplay.CODEC.fieldOf("tree_display").forGetter(ReporterConfig::treeDisplay))
+		@Deprecated
+		public static final Codec<ReporterConfig> LEGACY_CODEC = RecordCodecBuilder.create(instance -> instance
+			.group(Reporter.TreeView.CODEC.fieldOf("tree_display").forGetter(ReporterConfig::treeView))
 			.apply(instance, ReporterConfig::new)
 		);
 
-		private Reporter.TreeDisplay treeDisplay;
+		public static final Codec<ReporterConfig> DIRECT_CODEC = RecordCodecBuilder.create(instance -> instance
+			.group(Reporter.TreeView.CODEC.fieldOf("tree_view").forGetter(ReporterConfig::treeView))
+			.apply(instance, ReporterConfig::new)
+		);
+
+		public static final Codec<ReporterConfig> CODEC = Codec.withAlternative(DIRECT_CODEC, LEGACY_CODEC);
+
+		private Reporter.TreeView treeView;
 
 	}
 

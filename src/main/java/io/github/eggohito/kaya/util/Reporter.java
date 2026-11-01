@@ -125,7 +125,7 @@ public class Reporter implements ProblemReporter {
 	}
 
 	protected List<String> getTreeReportInternal() {
-		return KayaCommonConfig.INSTANCE.reporter.get().treeDisplay().formatReport(this);
+		return KayaCommonConfig.INSTANCE.reporter.get().treeView().formatReport(this);
 	}
 
 	protected List<Reporter> getFlattenedChildren() {
@@ -141,7 +141,7 @@ public class Reporter implements ProblemReporter {
 
 	}
 
-	public enum TreeDisplay {
+	public enum TreeView {
 
 		COMPACT {
 
@@ -238,7 +238,7 @@ public class Reporter implements ProblemReporter {
 
 		};
 
-		public static final Codec<TreeDisplay> CODEC = CodecUtil.enumType(TreeDisplay.class);
+		public static final Codec<TreeView> CODEC = CodecUtil.enumType(TreeView.class);
 
 		public abstract List<String> formatReport(Reporter reporter);
 
