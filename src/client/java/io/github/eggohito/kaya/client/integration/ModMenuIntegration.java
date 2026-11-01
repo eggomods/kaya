@@ -4,9 +4,11 @@ import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
+import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
 import io.github.eggohito.kaya.client.event.ConfigCategoryRegistrant;
 import io.github.eggohito.kaya.config.KayaCommonConfig;
+import io.github.eggohito.kaya.util.Reporter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 
@@ -40,11 +42,13 @@ public class ModMenuIntegration implements ModMenuApi {
 
 		var commandsGroup = this.createCommandGroup(KayaCommonConfig.INSTANCE.command.asBinding());
 		var placeholderIdentifierGroup = this.createPlaceholderIdentifierGroup(KayaCommonConfig.INSTANCE.placeholderIdentifier.asBinding());
+		var reporterGroup = this.createReporterGroup(KayaCommonConfig.INSTANCE.reporter.asBinding());
 
 		return ConfigCategory.createBuilder()
 			.name(Component.translatable("config.kaya.common.name"))
 			.group(commandsGroup)
 			.group(placeholderIdentifierGroup)
+			.group(reporterGroup)
 			.build();
 
 	}
@@ -109,6 +113,23 @@ public class ModMenuIntegration implements ModMenuApi {
 			.name(Component.translatable("config.kaya.common.placeholder_identifier.name"))
 			.description(OptionDescription.of(Component.translatable("config.kaya.common.placeholder_identifier.description")))
 			.option(enabled.build())
+			.build();
+
+	}
+
+	private OptionGroup createReporterGroup(Binding<KayaCommonConfig.ReporterConfig> binding) {
+
+		var treeView = Option.<Reporter.TreeView>createBuilder()
+			.name(Component.translatable("config.kaya.common.reporter.option.tree_view.name"))
+			.description(OptionDescription.of(Component.translatable("config.kaya.common.reporter.option.tree_view.description")))
+			.binding(binding.xmap(KayaCommonConfig.ReporterConfig::treeView, binding.getValue()::treeView))
+			.controller(option -> EnumControllerBuilder.create(option)
+				.enumClass(Reporter.TreeView.class));
+
+		return OptionGroup.createBuilder()
+			.name(Component.translatable("config.kaya.common.reporter.name"))
+			.description(OptionDescription.of(Component.translatable("config.kaya.common.reporter.description")))
+			.option(treeView.build())
 			.build();
 
 	}
