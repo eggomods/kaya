@@ -53,7 +53,7 @@
 	"commands.kaya.resource.set.int.success.single": "Entity %s had value of power '%s' set to %s",
 	"commands.kaya.resource.set.int.fail.multiple": "Nothing changed for power '%s' on %s entities",
 	"commands.kaya.resource.set.int.fail.single": "Nothing changed for power '%s' on entity %s",
-	"config.kaya": "neo-apoli",
+	"config.kaya": "Kaya",
 	"config.kaya.common.command.description": "Options for controlling behavior of types that execute Minecraft commands.",
 	"config.kaya.common.command.name": "Commands",
 	"config.kaya.common.command.option.permission_level.description": "Determines the level of permission for the command that will be executed.",
