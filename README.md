@@ -14,7 +14,7 @@ Kaya (shortened form of 'kakayahan', which is the tagalog translation for 'capab
 
 ### For players/mod pack authors
 
-You don't have to install this library as most if not all dependents will include or require it, but this library will work fine as a standalone mod. See here for the documentation: https://eggodocs.github.io/kaya
+You don't have to install this library as most if not all dependents will include or require it, but this library will work fine as a standalone mod.
 
 
 ###  For developers
@@ -62,8 +62,6 @@ dependencies {
 <li>
 <details>
 <summary><b>Using local maven / as a local dependency</b></summary>
-
-<br>
 
 You can clone this repository and run `./gradlew publishToMavenLocal`. It will publish the artifacts to the local maven and under the `io.github.eggohito` group:
 
