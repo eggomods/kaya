@@ -142,15 +142,17 @@ public record PowersAttachment(ImmutableMap<PowerIdentifier, Power.Instance<?>> 
 		//  If there is no old value and a new value, it means the attachment was initialized
 		else if (oldValue == null && newValue != null) {
 
-			//  Skip invoking the granted/added callbacks if it's the entity's first tick
-			//  (which is the case if the entity is newly spawned)
-			if (((EntityAccessor) holder).isFirstTick()) {
-				return;
-			}
-
 			for (var instance : newValue.instances().values()) {
-				instance.onGranted(holder);
-				instance.onAdded(holder);
+
+				//  Only invoke the granted/added callbacks if it's NOT the entity's first tick
+				//  (which is the case if the entity is newly spawned
+				if (!((EntityAccessor) holder).isFirstTick()) {
+					instance.onGranted(holder);
+					instance.onAdded(holder);
+				}
+
+				instance.onInit(holder);
+
 			}
 
 		}

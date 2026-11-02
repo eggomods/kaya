@@ -174,6 +174,10 @@ public interface Power extends ContextUser {
 
 		}
 
+		public void onInit(Entity holder) {
+
+		}
+
 		public boolean isImmutable(Entity holder) {
 			return true;
 		}
