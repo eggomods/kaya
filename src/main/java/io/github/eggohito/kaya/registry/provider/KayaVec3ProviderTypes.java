@@ -19,6 +19,7 @@ public final class KayaVec3ProviderTypes {
 	public static final Vec3Provider.Type<DynamicVec3Provider> DYNAMIC = registerInternal("dynamic", DynamicVec3Provider.CODEC, DynamicVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<NormalizeVec3Provider> NORMALIZE = registerInternal("normalize", NormalizeVec3Provider.CODEC, NormalizeVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<OffsetVec3Provider> OFFSET = registerInternal("offset", OffsetVec3Provider.CODEC, OffsetVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<ProductVec3Provider> PRODUCT = registerInternal("product", ProductVec3Provider.CODEC, ProductVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<ReverseVec3Provider> REVERSE = registerInternal("reverse", ReverseVec3Provider.CODEC, ReverseVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<WeightedVec3Provider> WEIGHTED = registerInternal("weighted", WeightedVec3Provider.CODEC, WeightedVec3Provider.STREAM_CODEC);
 
