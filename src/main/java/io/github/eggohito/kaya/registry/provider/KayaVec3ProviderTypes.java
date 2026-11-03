@@ -16,6 +16,7 @@ public final class KayaVec3ProviderTypes {
 	public static final Vec3Provider.Type<ConstantVec3Provider> CONSTANT = registerInternal("constant", ConstantVec3Provider.CODEC, ConstantVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<ContextVec3Provider> CONTEXT = registerInternal("context", ContextVec3Provider.CODEC, ContextVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<DynamicVec3Provider> DYNAMIC = registerInternal("dynamic", DynamicVec3Provider.CODEC, DynamicVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<NormalizeVec3Provider> NORMALIZE = registerInternal("normalize", NormalizeVec3Provider.CODEC, NormalizeVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<OffsetVec3Provider> OFFSET = registerInternal("offset", OffsetVec3Provider.CODEC, OffsetVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<WeightedVec3Provider> WEIGHTED = registerInternal("weighted", WeightedVec3Provider.CODEC, WeightedVec3Provider.STREAM_CODEC);
 
