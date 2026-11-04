@@ -78,20 +78,21 @@ dependencies {
 
 processResources {
 
+	def version = project.version
+	var props = [
+		"version": version,
+		"loader": loader_version,
+		"minecraft": minecraft_version,
+		"fabric": fabric_version,
+		"yacl": yacl_version,
+		"modmenu": modmenu_version,
+		"java": java_version
+	]
+
+	inputs.property "version", version
+
 	filesMatching("fabric.mod.json") {
-
-		var props = [
-		    "version": project.version,
-			"loader": loader_version,
-			"minecraft": minecraft_version,
-			"fabric": fabric_version,
-			"yacl": yacl_version,
-			"modmenu": modmenu_version,
-			"java": java_version
-		]
-
 		expand props
-
 	}
 
 }
