@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version "${loom_version}"
+	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
 	id 'maven-publish'
 }
 
@@ -78,20 +78,21 @@ dependencies {
 
 processResources {
 
+	def version = project.version
+	var props = [
+		"version": version,
+		"loader": loader_version,
+		"minecraft": minecraft_version,
+		"fabric": fabric_version,
+		"yacl": yacl_version,
+		"modmenu": modmenu_version,
+		"java": java_version
+	]
+
+	inputs.property "version", version
+
 	filesMatching("fabric.mod.json") {
-
-		var props = [
-		    "version": project.version,
-			"loader": loader_version,
-			"minecraft": minecraft_version,
-			"fabric": fabric_version,
-			"yacl": yacl_version,
-			"modmenu": modmenu_version,
-			"java": java_version
-		]
-
 		expand props
-
 	}
 
 }
@@ -112,8 +113,11 @@ java {
 
 jar {
 
+	def projectName = project.name
+	inputs.property "projectName", project.name
+
 	from("LICENSE") {
-		rename { "${it}_${project.name}"}
+		rename { "${it}_${projectName}"}
 	}
 
 }
