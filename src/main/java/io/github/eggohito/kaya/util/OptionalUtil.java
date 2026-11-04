@@ -13,7 +13,7 @@ public final class OptionalUtil {
 	 *  @return a populated {@link Optional} with its object type-casted to {@code <U>} if it's an instance of the
 	 *  specified {@code targetClass}. Otherwise, {@link Optional#empty()}
 	 */
-	public static <T, U> Function<? super T, ? extends Optional<? extends U>> safeCast(Class<? extends U> targetClass) {
+	public static <T, U> Function<T, Optional<U>> safeCast(Class<U> targetClass) {
 		return t -> targetClass.isInstance(t)
 			? Optional.of(targetClass.cast(t))
 			: Optional.empty();
