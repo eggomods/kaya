@@ -1,17 +1,18 @@
 package io.github.eggohito.kaya.resource;
 
 import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Objects;
+import java.util.Set;
 
 public final class DependencyList {
 
-	private final ImmutableSet.Builder<ResourceLocation> builder = ImmutableSet.builder();
+	private final Set<ResourceLocation> dependencies = new ObjectLinkedOpenHashSet<>();
 	private final ResourceLocation id;
 
-	private ImmutableSet<ResourceLocation> dependencies;
-	private boolean frozen;
+	private ImmutableSet<ResourceLocation> frozen;
 
 	public DependencyList(ResourceLocation id) {
 		this.id = id;
@@ -19,32 +20,32 @@ public final class DependencyList {
 
 	public void add(ResourceLocation dependency) {
 
-		if (frozen) {
+		if (frozen != null) {
 			throw new IllegalStateException("Cannot add dependency to a frozen dependency list");
 		}
 
 		else if (id.equals(dependency)) {
-			throw new IllegalArgumentException("Attempted to add recursive dependency \"" + dependency + "\"");
+			throw new IllegalArgumentException("Tried to add recursive dependency \"" + dependency + "\"");
 		}
 
 		else {
-			this.builder.add(dependency);
+			this.dependencies.add(dependency);
 		}
 
 	}
 
 	public ImmutableSet<ResourceLocation> freezeAndGet() {
 
-		if (frozen) {
-			return Objects.requireNonNull(this.dependencies, "Dependency list was not frozen properly");
+		if (frozen != null) {
+			return Objects.requireNonNull(this.frozen, "Dependency list was not frozen properly");
 		}
 
 		else {
 
-			this.dependencies = this.builder.build();
-			this.frozen = true;
+			this.frozen = ImmutableSet.copyOf(this.dependencies);
+			this.dependencies.clear();
 
-			return this.dependencies;
+			return this.frozen;
 
 		}
 
