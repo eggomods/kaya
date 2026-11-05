@@ -1,8 +1,6 @@
 package io.github.eggohito.kaya.power.manager;
 
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Pair;
@@ -11,7 +9,6 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.kaya.action.manager.ActionManager;
 import io.github.eggohito.kaya.context.ContextValidator;
-import io.github.eggohito.kaya.event.DependencyManager;
 import io.github.eggohito.kaya.event.PowerPreparation;
 import io.github.eggohito.kaya.event.PowerReloadEvents;
 import io.github.eggohito.kaya.event.ReloadableServerResourcesEvents;
@@ -31,7 +28,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -51,14 +47,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.Supplier;
 
 @ApiStatus.Internal
 @ApiStatus.NonExtendable
 public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdentifier, PowerHolder<?>> implements PowerManager, IdentifiableResourceReloadListener {
 
 	private static final Logger LOGGER = LogUtils.getLogger();
-	private static final Supplier<ImmutableSet<ResourceLocation>> DEPENDENCIES = Suppliers.memoize(() -> Util.make(ImmutableSet.builder(), DependencyManager.POWERS.invoker()::add).build());
 
 	private final JsonFileToIdConverter contentLoader = JsonFileToIdConverter.registry(KayaRegistryKeys.POWER);
 	private final TagLoader<PowerHolder<?>> tagLoader = new TagLoader<>((id, required) -> this.getAsResult(PowerIdentifier.of(id)).result(), Registries.tagsDirPath(KayaRegistryKeys.POWER));
@@ -73,7 +67,7 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 
 	@Override
 	public Collection<ResourceLocation> getFabricDependencies() {
-		return DEPENDENCIES.get();
+		return DEPENDENCIES.freezeAndGet();
 	}
 
 	@Override
@@ -94,7 +88,7 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 	public void init() {
 
 		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, this::withOps);
-		DependencyManager.POWERS.register(ID, dependencies -> dependencies.add(ActionManager.ID));
+		DEPENDENCIES.add(ActionManager.ID);
 
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ActionManager.ID, ID);
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> {
