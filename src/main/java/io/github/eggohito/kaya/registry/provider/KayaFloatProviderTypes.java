@@ -41,6 +41,7 @@ public final class KayaFloatProviderTypes {
 	public static final FloatProvider.Type<ItemAttributeFloatProvider> ITEM_ATTRIBUTE = registerInternal("item/attribute", ItemAttributeFloatProvider.CODEC, ItemAttributeFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<NbtFloatProvider> NBT = registerInternal("nbt", NbtFloatProvider.CODEC, NbtFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<PlayerSaturationFloatProvider> PLAYER_SATURATION = registerInternal("player/saturation", PlayerSaturationFloatProvider.CODEC, PlayerSaturationFloatProvider.STREAM_CODEC);
+    public static final FloatProvider.Type<PlayerXPProgressFloatProvider> PLAYER_XP_PROGRESS = registerInternal("player/xp/progress", PlayerXPProgressFloatProvider.CODEC, PlayerXPProgressFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<PowerCooldownProgressFloatProvider> POWER_COOLDOWN_PROGRESS = registerInternal("power/cooldown/progress", PowerCooldownProgressFloatProvider.CODEC, PowerCooldownProgressFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<RainLevelFloatProvider> RAIN_LEVEL = registerInternal("rain_level", RainLevelFloatProvider.CODEC, RainLevelFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<ResourceFloatProvider> RESOURCE = registerInternal("resource", ResourceFloatProvider.CODEC, ResourceFloatProvider.STREAM_CODEC);
