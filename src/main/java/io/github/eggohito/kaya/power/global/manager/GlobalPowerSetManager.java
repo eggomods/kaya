@@ -1,20 +1,18 @@
 package io.github.eggohito.kaya.power.global.manager;
 
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.context.ContextValidator;
-import io.github.eggohito.kaya.event.DependencyManager;
 import io.github.eggohito.kaya.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.kaya.power.PowerHolder;
 import io.github.eggohito.kaya.power.entity.MutablePowers;
 import io.github.eggohito.kaya.power.global.GlobalPowerSet;
 import io.github.eggohito.kaya.power.manager.PowerManager;
 import io.github.eggohito.kaya.registry.KayaRegistryKeys;
+import io.github.eggohito.kaya.resource.DependencyList;
 import io.github.eggohito.kaya.resource.json.JsonFileToIdConverter;
 import io.github.eggohito.kaya.resource.json.JsonWithSource;
 import io.github.eggohito.kaya.util.MiscUtil;
@@ -27,7 +25,6 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.ReloadableServerResources;
@@ -46,20 +43,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.Supplier;
 
 public final class GlobalPowerSetManager extends AbstractContentManager<ResourceLocation, GlobalPowerSet> implements IdentifiableResourceReloadListener {
 
 	private static final GlobalPowerSetManager INSTANCE = new GlobalPowerSetManager();
 
 	public static final ResourceLocation ID = Kaya.id("manager/global_power_set");
-	public static final Supplier<ImmutableSet<ResourceLocation>> DEPENDENCIES = Suppliers.memoize(() -> Util.make(ImmutableSet.builder(), DependencyManager.GLOBAL_POWER_SETS.invoker()::add).build());
+	public static final DependencyList DEPENDENCIES = new DependencyList(ID);
 
 	private static final JsonFileToIdConverter LOADER = JsonFileToIdConverter.registry(KayaRegistryKeys.GLOBAL_POWER_SET);
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalPowerSetManager.class);
 
-	private ImmutableMap<ResourceLocation, GlobalPowerSet.SourcedFile> merged = ImmutableMap.of();
-	private DynamicOps<JsonElement> ops = JsonOps.INSTANCE;
+	private volatile ImmutableMap<ResourceLocation, GlobalPowerSet.SourcedFile> merged = ImmutableMap.of();
+	private volatile DynamicOps<JsonElement> ops = JsonOps.INSTANCE;
 
 	private GlobalPowerSetManager() {
 
@@ -79,7 +75,7 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 
 	@Override
 	public Collection<ResourceLocation> getFabricDependencies() {
-		return DEPENDENCIES.get();
+		return DEPENDENCIES.freezeAndGet();
 	}
 
 	public List<GlobalPowerSet> getApplicableSets(Entity entity) {
@@ -102,7 +98,7 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 	public void init() {
 
 		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, this::withContext);
-		DependencyManager.GLOBAL_POWER_SETS.register(ID, dependencies -> dependencies.add(PowerManager.ID));
+		DEPENDENCIES.add(PowerManager.ID);
 
 		ReloadableServerResourcesEvents.TAGS_UPDATED.addPhaseOrdering(PowerManager.ID, ID);
 		ReloadableServerResourcesEvents.TAGS_UPDATED.register(ID, this::finalize);
