@@ -27,11 +27,15 @@ public interface CooldownPower extends Power {
 		cooldown().validate(validator.forChild(".cooldown"));
 	}
 
-	static <P extends CooldownPower> Products.P2<RecordCodecBuilder.Mu<P>, HudElement, IntProvider> addFields(RecordCodecBuilder.Instance<P> instance) {
+	static <P extends CooldownPower> Products.P2<RecordCodecBuilder.Mu<P>, HudElement, IntProvider> addFields(RecordCodecBuilder.Instance<P> instance, Codec<HudElement> hudElementCodec, Codec<IntProvider> cooldownCodec) {
 		return instance.group(
-			HudElement.CODEC.fieldOf("hud_element").forGetter(CooldownPower::hudElement),
-			IntProvider.CODEC.fieldOf("cooldown").forGetter(CooldownPower::cooldown)
+			hudElementCodec.fieldOf("hud_element").forGetter(CooldownPower::hudElement),
+			cooldownCodec.fieldOf("cooldown").forGetter(CooldownPower::cooldown)
 		);
+	}
+
+	static <P extends CooldownPower> Products.P2<RecordCodecBuilder.Mu<P>, HudElement, IntProvider> addFields(RecordCodecBuilder.Instance<P> instance) {
+		return addFields(instance, HudElement.CODEC, IntProvider.CODEC);
 	}
 
 	class Instance<P extends CooldownPower> extends Power.Instance<P> {
@@ -83,6 +87,10 @@ public interface CooldownPower extends Power {
 			return timePassed <= cooldown
 				&& hudElement().shouldRender(context, renderPhase);
 
+		}
+
+		public boolean canUse(Context context) {
+			return this.getRemainingTicks(context) <= 0;
 		}
 
 		public double getProgress(Context context) {
