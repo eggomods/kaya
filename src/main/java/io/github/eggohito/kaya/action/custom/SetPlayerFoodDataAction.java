@@ -104,7 +104,7 @@ public record SetPlayerFoodDataAction(Optional<IntProvider> foodLevel, Optional<
 
 	private DataResult<Unit> validate() {
 
-		if (foodLevel().isPresent() && saturation().isPresent()) {
+		if (foodLevel().isEmpty() && saturation().isEmpty()) {
 			return DataResult.error(() -> "Any of 'food_level' or 'saturation' keys must be present");
 		}
 
