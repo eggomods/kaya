@@ -115,7 +115,7 @@ public record SetPlayerFoodDataAction(Optional<IntProvider> foodLevel, Optional<
 	}
 
 	private <I> DataResult<Unit> validateWithInput(MapLike<I> input) {
-		return validate().mapError(error -> error + "in map: " + input);
+		return validate().mapError(error -> error + " in map: " + input);
 	}
 
 }
