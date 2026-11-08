@@ -201,4 +201,9 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 
 	}
 
+	@Override
+	public String toString() {
+		return "Power manager";
+	}
+
 }

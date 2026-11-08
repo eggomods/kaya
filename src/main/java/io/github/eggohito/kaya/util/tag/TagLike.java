@@ -13,26 +13,19 @@ import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.util.CodecUtil;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagEntry;
-import net.minecraft.tags.TagKey;
 import org.apache.commons.lang3.function.Consumers;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public final class TagLike<E> implements ContextValidatable {
 
@@ -49,6 +42,10 @@ public final class TagLike<E> implements ContextValidatable {
 	@Override
 	public void validate(ContextValidator validator) {
 		this.getOrCreateElements(validator::reportProblem);
+	}
+
+	public ImmutableList<TagEntry> entries() {
+		return entries;
 	}
 
 	public ImmutableList<E> elements() {
@@ -76,31 +73,31 @@ public final class TagLike<E> implements ContextValidatable {
 		return (TagLike<T>) EMPTY;
 	}
 
-	public static <T> TagLike<T> of(List<TagEntry> entries, TagEntry.Lookup<T> lookup) {
+	public static <T> TagLike<T> of(List<TagEntry> entries, TagLookup<T> lookup) {
 
 		if (entries.isEmpty()) {
 			return empty();
 		}
 
 		ImmutableList<TagEntry> copy = ImmutableList.copyOf(entries);
-		return new TagLike<>(copy, () -> toElementsWithPartial(copy, lookup));
+		return new TagLike<>(copy, () -> lookup.resolve(copy));
 
 	}
 
-	public static <T> TagLike<T> ofRegistry(List<TagEntry> entries, HolderLookup.RegistryLookup<T> registry) {
-		return of(entries, lookupFromRegistry(registry));
+	public static <T> TagLike<T> fromRegistry(List<TagEntry> entries, HolderLookup.RegistryLookup<T> registry) {
+		return of(entries, TagLookup.fromRegistry(registry));
 	}
 
-	public static <B extends ByteBuf, T> StreamCodec<B, TagLike<T>> registryStreamCodec(HolderLookup.RegistryLookup<T> registryLookup) {
-		return streamCodec(lookupFromRegistry(registryLookup));
+	public static <B extends ByteBuf, T> StreamCodec<B, TagLike<T>> registryStreamCodec(HolderLookup.RegistryLookup<T> registry) {
+		return streamCodec(TagLookup.fromRegistry(registry));
 	}
 
-	public static <B extends ByteBuf, T> StreamCodec<B, TagLike<T>> streamCodec(TagEntry.Lookup<T> lookup) {
-		return KayaStreamCodecs.TAG_ENTRIES.map(tagEntries -> of(tagEntries, lookup), tag -> tag.entries).cast();
+	public static <B extends ByteBuf, T> StreamCodec<B, TagLike<T>> streamCodec(TagLookup<T> lookup) {
+		return KayaStreamCodecs.TAG_ENTRIES.map(tagEntries -> of(tagEntries, lookup), TagLike::entries).cast();
 	}
 
 	public static <T> Codec<TagLike<T>> registryCodec(HolderLookup.RegistryLookup<T> registry) {
-		return codec(lookupFromRegistry(registry));
+		return codec(TagLookup.fromRegistry(registry));
 	}
 
 	public static <T> Codec<TagLike<T>> registryCodec(ResourceKey<? extends Registry<T>> registryKey) {
@@ -111,8 +108,8 @@ public final class TagLike<E> implements ContextValidatable {
 
 				if (ops instanceof RegistryOps<I> registryOps) {
 
-					TagEntry.Lookup<T> lookup = CodecUtil.getRegistry(registryOps, registryKey)
-						.map(TagLike::lookupFromRegistry)
+					TagLookup<T> lookup = CodecUtil.getRegistry(registryOps, registryKey)
+						.map(TagLookup::fromRegistry)
 						.orElse(null);
 
 					if (lookup == null) {
@@ -135,92 +132,32 @@ public final class TagLike<E> implements ContextValidatable {
 
 			@Override
 			public <O> DataResult<O> encode(TagLike<T> input, DynamicOps<O> ops, O prefix) {
-				return KayaCodecs.COMPACT_TAG_ENTRIES.encode(input.entries, ops, prefix);
+				return KayaCodecs.COMPACT_TAG_ENTRIES.encode(input.entries(), ops, prefix);
 			}
 
 		};
 	}
 
-	public static <T> Codec<TagLike<T>> codec(TagEntry.Lookup<T> lookup) {
-		return KayaCodecs.COMPACT_TAG_ENTRIES.xmap(entries -> of(entries, lookup), tag -> tag.entries);
-	}
-
-	private static <T> DataResult<ImmutableList<T>> toElementsWithPartial(List<TagEntry> entries, TagEntry.Lookup<T> lookup) {
-
-		ImmutableList.Builder<T> foundBuilder = ImmutableList.builder();
-		List<TagEntry> missing = new ObjectArrayList<>();
-
-		for (var entry : entries) {
-
-			if (!entry.build(lookup, foundBuilder::add)) {
-				missing.add(entry);
-			}
-
-		}
-
-		ImmutableList<T> found = foundBuilder.build();
-		DataResult<ImmutableList<T>> result = DataResult.success(found);
-
-		if (!missing.isEmpty()) {
-			result = DataResult.error(() -> lookup.toString() + " is missing the following references: [" + missing.stream().map(Objects::toString).map(str -> "\"" + str + "\"").collect(Collectors.joining(", ")) + "]");
-		}
-
-		return result.setPartial(found);
-
-	}
-
-	private static <E> TagEntry.Lookup<E> lookupFromRegistry(HolderLookup.RegistryLookup<E> registry) {
-
-		//noinspection unchecked
-		ResourceKey<? extends Registry<E>> registryKey = (ResourceKey<? extends Registry<E>>) registry.key();
-
-		return new TagEntry.Lookup<>() {
-
-			@Override
-			public @Nullable E element(ResourceLocation id, boolean required) {
-				return registry.get(ResourceKey.create(registryKey, id))
-					.map(Holder.Reference::value)
-					.orElse(null);
-			}
-
-			@Override
-			public @Nullable Collection<E> tag(ResourceLocation id) {
-				return registry.get(TagKey.create(registryKey, id))
-					.map(this::unwrapHolderSet)
-					.orElse(null);
-			}
-
-			@Override
-			public String toString() {
-				return "Registry \"" + registryKey.location() + "\"";
-			}
-
-			private List<E> unwrapHolderSet(HolderSet<E> holderSet) {
-				return holderSet.stream()
-					.map(Holder::value)
-					.toList();
-			}
-
-		};
-
+	public static <T> Codec<TagLike<T>> codec(TagLookup<T> lookup) {
+		return KayaCodecs.COMPACT_TAG_ENTRIES.xmap(entries -> of(entries, lookup), TagLike::entries);
 	}
 
 	public static final class Builder<T> {
 
 		private final List<TagEntry> entries;
-		private final TagEntry.Lookup<T> lookup;
+		private final TagLookup<T> lookup;
 
-		Builder(List<TagEntry> entries, TagEntry.Lookup<T> lookup) {
+		Builder(List<TagEntry> entries, TagLookup<T> lookup) {
 			this.entries = entries;
 			this.lookup = lookup;
 		}
 
-		public Builder(TagEntry.Lookup<T> lookup) {
+		public Builder(TagLookup<T> lookup) {
 			this(new ObjectArrayList<>(), lookup);
 		}
 
 		public Builder(HolderLookup.RegistryLookup<T> registry) {
-			this(lookupFromRegistry(registry));
+			this(TagLookup.fromRegistry(registry));
 		}
 
 		public Builder<T> add(TagEntry entry) {

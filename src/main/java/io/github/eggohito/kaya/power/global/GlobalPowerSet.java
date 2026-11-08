@@ -7,7 +7,7 @@ import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.context.ContextUser;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.power.PowerHolder;
-import io.github.eggohito.kaya.power.manager.PowerManager;
+import io.github.eggohito.kaya.registry.tag.KayaTagLookups;
 import io.github.eggohito.kaya.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -77,8 +77,8 @@ public record GlobalPowerSet(TagLike<EntityType<?>> entityTypes, TagLike<PowerHo
 
 		public GlobalPowerSet asSet() {
 			return new GlobalPowerSet(
-				TagLike.ofRegistry(entityTypes(), BuiltInRegistries.ENTITY_TYPE),
-				TagLike.of(powers(), PowerManager.TAG_LOOKUP)
+				TagLike.fromRegistry(entityTypes(), BuiltInRegistries.ENTITY_TYPE),
+				TagLike.of(powers(), KayaTagLookups.POWER)
 			);
 		}
 

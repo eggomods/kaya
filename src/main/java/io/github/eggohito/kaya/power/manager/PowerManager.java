@@ -10,11 +10,8 @@ import io.github.eggohito.kaya.power.custom.MultiplePower;
 import io.github.eggohito.kaya.util.manager.ContentAndTagManager;
 import io.github.eggohito.kaya.util.manager.KayaManagers;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagEntry;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
@@ -25,25 +22,6 @@ public interface PowerManager extends ContentAndTagManager<PowerIdentifier, Powe
 	ResourceLocation ID = Kaya.id("manager/power");
 
 	Supplier<PowerManager> DEFERRED_INSTANCE = KayaManagers.deferredPhysicalSideSpecific(PowerManager.class, ServerPowerManager::new);
-
-	TagEntry.Lookup<PowerHolder<?>> TAG_LOOKUP = new TagEntry.Lookup<>() {
-
-		@Override
-		public @Nullable PowerHolder<?> element(ResourceLocation id, boolean required) {
-			return getInstance().getAsResult(PowerIdentifier.of(id)).result().orElse(null);
-		}
-
-		@Override
-		public @Nullable Collection<PowerHolder<?>> tag(ResourceLocation id) {
-			return getInstance().getTagAsResult(id).result().orElse(null);
-		}
-
-		@Override
-		public String toString() {
-			return "Power manager";
-		}
-
-	};
 
 	@Override
 	default DataResult<PowerHolder<?>> getAsResult(PowerIdentifier key) {

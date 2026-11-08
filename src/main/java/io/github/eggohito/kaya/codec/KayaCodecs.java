@@ -9,8 +9,8 @@ import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.mixin.access.BlockInputAccessor;
 import io.github.eggohito.kaya.mixin.access.TagParserAccessor;
 import io.github.eggohito.kaya.power.PowerHolder;
-import io.github.eggohito.kaya.power.manager.PowerManager;
 import io.github.eggohito.kaya.registry.KayaParticleTypes;
+import io.github.eggohito.kaya.registry.tag.KayaTagLookups;
 import io.github.eggohito.kaya.util.*;
 import io.github.eggohito.kaya.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -169,11 +169,11 @@ public class KayaCodecs {
 
 	public static final Codec<Difficulty> DIFFICULTY = CodecUtil.enumType(Difficulty.class);
 
-	public static final Codec<List<TagEntry>> COMPACT_TAG_ENTRIES = ExtraCodecs.nonEmptyList(ExtraCodecs.compactListCodec(TagEntry.CODEC));
+	public static final Codec<List<TagEntry>> COMPACT_TAG_ENTRIES = ExtraCodecs.compactListCodec(TagEntry.CODEC);
 
 	public static final Codec<TagLike<EntityType<?>>> ENTITY_TYPE_TAG_LIKE = TagLike.registryCodec(Registries.ENTITY_TYPE);
 
-	public static final Codec<TagLike<PowerHolder<?>>> POWER_TAG_LIKE = TagLike.codec(PowerManager.TAG_LOOKUP);
+	public static final Codec<TagLike<PowerHolder<?>>> POWER_TAG_LIKE = TagLike.codec(KayaTagLookups.POWER);
 
 	public static final Codec<SimpleParticleType> SIMPLE_PARTICLE = KayaParticleTypes.CODEC.comapFlatMap(
 		particleType -> particleType instanceof SimpleParticleType simpleParticleType

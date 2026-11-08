@@ -6,7 +6,7 @@ import com.mojang.serialization.Dynamic;
 import io.github.eggohito.kaya.command.argument.PowerArgument;
 import io.github.eggohito.kaya.mixin.access.TagEntryAccessor;
 import io.github.eggohito.kaya.power.PowerHolder;
-import io.github.eggohito.kaya.power.manager.PowerManager;
+import io.github.eggohito.kaya.registry.tag.KayaTagLookups;
 import io.github.eggohito.kaya.util.*;
 import io.github.eggohito.kaya.util.tag.TagLike;
 import io.netty.buffer.ByteBuf;
@@ -155,6 +155,6 @@ public class KayaStreamCodecs {
 
 	public static final StreamCodec<ByteBuf, Character> CHARACTER = ByteBufCodecs.STRING_UTF8.map(MiscUtil::unsafelyAssumeStringAsCharacter, String::valueOf);
 
-	public static final StreamCodec<ByteBuf, TagLike<PowerHolder<?>>> POWER_TAG_LIKE = TagLike.streamCodec(PowerManager.TAG_LOOKUP);
+	public static final StreamCodec<ByteBuf, TagLike<PowerHolder<?>>> POWER_TAG_LIKE = TagLike.streamCodec(KayaTagLookups.POWER);
 
 }
