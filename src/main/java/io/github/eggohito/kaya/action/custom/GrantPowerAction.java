@@ -3,14 +3,13 @@ package io.github.eggohito.kaya.action.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.action.Action;
-import io.github.eggohito.kaya.codec.KayaCodecs;
-import io.github.eggohito.kaya.codec.KayaStreamCodecs;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.power.PowerHolder;
 import io.github.eggohito.kaya.power.entity.MutablePowers;
 import io.github.eggohito.kaya.provider.custom.entity.EntityProvider;
 import io.github.eggohito.kaya.registry.KayaActionTypes;
+import io.github.eggohito.kaya.registry.tag.KayaTagLikes;
 import io.github.eggohito.kaya.util.tag.TagLike;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -19,13 +18,13 @@ import net.minecraft.resources.ResourceLocation;
 public record GrantPowerAction(TagLike<PowerHolder<?>> power, ResourceLocation source, EntityProvider entity) implements Action {
 
 	public static final MapCodec<GrantPowerAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		KayaCodecs.POWER_TAG_LIKE.fieldOf("power").forGetter(GrantPowerAction::power),
+		KayaTagLikes.POWER.codec().fieldOf("power").forGetter(GrantPowerAction::power),
 		ResourceLocation.CODEC.fieldOf("source").forGetter(GrantPowerAction::source),
 		EntityProvider.CODEC.fieldOf("entity").forGetter(GrantPowerAction::entity)
 	).apply(instance, GrantPowerAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, GrantPowerAction> STREAM_CODEC = StreamCodec.composite(
-		KayaStreamCodecs.POWER_TAG_LIKE, GrantPowerAction::power,
+		KayaTagLikes.POWER.streamCodec(), GrantPowerAction::power,
 		ResourceLocation.STREAM_CODEC, GrantPowerAction::source,
 		EntityProvider.STREAM_CODEC, GrantPowerAction::entity,
 		GrantPowerAction::new
