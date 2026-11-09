@@ -7,6 +7,7 @@ import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidatable;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.event.PowerParsingEvents;
+import io.github.eggohito.kaya.power.custom.MultiplePower;
 import io.github.eggohito.kaya.util.ComponentUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -36,8 +37,12 @@ public record PowerHolder<P extends Power>(PowerIdentifier id, P value, Componen
 		this(id, value, id.createTranslationKey());
 	}
 
-	public boolean canBePartiallyParsed() {
-		return value().canBePartiallyParsed();
+	public PowerHolder {
+
+		if (id.isSubPower()) {
+			MultiplePower.validateSubPower(value).getOrThrow();
+		}
+
 	}
 
 	public boolean isSubPower() {

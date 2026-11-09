@@ -1,10 +1,12 @@
 package io.github.eggohito.kaya.codec;
 
+import com.google.gson.JsonElement;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
+import com.mojang.serialization.JsonOps;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.mixin.access.BlockInputAccessor;
 import io.github.eggohito.kaya.mixin.access.TagParserAccessor;
@@ -203,5 +205,10 @@ public class KayaCodecs {
 	public static final Codec<Character> CHARACTER = Codec.STRING.comapFlatMap(MiscUtil::validateStringAsCharacter, String::valueOf);
 
 	public static final Codec<TriState> TRI_STATE = CodecUtil.enumType(TriState.class);
+
+	public static final Codec<JsonElement> JSON_ELEMENT = Codec.PASSTHROUGH.xmap(
+		dynamic -> dynamic.convert(JsonOps.INSTANCE).getValue(),
+		jsonElement -> new Dynamic<>(JsonOps.INSTANCE, jsonElement)
+	);
 
 }

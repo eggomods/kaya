@@ -5,14 +5,12 @@ import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.power.Power;
 import io.github.eggohito.kaya.power.PowerHolder;
 import io.github.eggohito.kaya.power.PowerIdentifier;
-import io.github.eggohito.kaya.power.custom.MultiplePower;
 import io.github.eggohito.kaya.util.manager.ContentAndTagManager;
 import io.github.eggohito.kaya.util.manager.KayaManagers;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 @ApiStatus.NonExtendable
@@ -60,16 +58,6 @@ public interface PowerManager extends ContentAndTagManager<PowerIdentifier, Powe
 
 	static PowerManager getInstance() {
 		return DEFERRED_INSTANCE.get();
-	}
-
-	static void handleSelfAndSubPowers(PowerHolder<?> holder, BiConsumer<PowerIdentifier, PowerHolder<?>> handler) {
-
-		handler.accept(holder.id(), holder);
-
-		if (holder.value() instanceof MultiplePower multiplePower) {
-			multiplePower.subPowers().forEach(subPower -> handleSelfAndSubPowers(MultiplePower.validateNonRecursiveMultiple(subPower), handler));
-		}
-
 	}
 
 }

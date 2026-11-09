@@ -99,7 +99,7 @@ public record ReplaceLootTablePower(Map<Pattern, String> replacements, int prior
 		public Optional<ResourceKey<LootTable>> getReplacement(Context context, ResourceKey<LootTable> key) {
 
 			String tableId = key.location().toString();
-			ResourceLocationUtil.setCurrent(this.id.value());
+			ResourceLocationUtil.setCurrent(this.id.baseId());
 
 			for (Map.Entry<Pattern, String> entry : power.replacements().entrySet()) {
 

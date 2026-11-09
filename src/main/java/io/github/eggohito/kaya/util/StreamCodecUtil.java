@@ -181,8 +181,12 @@ public final class StreamCodecUtil {
 		};
 	}
 
+	public static <B extends ByteBuf, E, S extends Set<E>> StreamCodec.CodecOperation<B, E, S> set(IntFunction<S> constructor) {
+		return streamCodec -> ByteBufCodecs.collection(constructor, streamCodec);
+	}
+
 	public static <B extends ByteBuf, E> StreamCodec.CodecOperation<B, E, Set<E>> set() {
-		return streamCodec -> ByteBufCodecs.collection(ObjectOpenHashSet::new, streamCodec);
+		return set(ObjectOpenHashSet::new);
 	}
 
 	public static <B extends ByteBuf, T> StreamCodec.CodecOperation<B, T, T> handled(Consumer<Exception> onDecode, Consumer<Exception> onEncode) {

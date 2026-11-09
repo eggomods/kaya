@@ -23,6 +23,7 @@ import io.github.eggohito.kaya.util.Reporter;
 import io.github.eggohito.kaya.util.alias.FixedRegistryAlias;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import net.minecraft.Util;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -266,6 +267,11 @@ public interface Power extends ContextUser {
 		public static final Codec<Type<?>> CODEC = ALIASES.createCodec(Kaya.MOD_NAMESPACE);
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, Type<?>> STREAM_CODEC = ALIASES.createRegistryStreamCodec();
+
+		@Override
+		public @NotNull String toString() {
+			return Util.getRegisteredName(KayaRegistries.POWER_TYPE, this);
+		}
 
 	}
 
