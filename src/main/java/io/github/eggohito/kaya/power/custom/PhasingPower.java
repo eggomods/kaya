@@ -28,27 +28,25 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
 import java.util.function.BiPredicate;
 
-public record PhasingPower(Optional<Condition> activeCondition, Condition phaseDownCondition, RenderEffect renderEffect, float viewDistance) implements Power {
+public record PhasingPower(Condition phaseDownCondition, RenderEffect renderEffect, float viewDistance, Properties properties) implements Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 	public static final BlockContextParameter PHASED_BLOCK = new BlockContextParameter(Kaya.id("phased_block"));
 
-	public static final MapCodec<PhasingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(Condition.CODEC.optionalFieldOf("phase_down_condition", new IsEntitySneakingCondition(KayaContextParameters.THIS_ENTITY)).forGetter(PhasingPower::phaseDownCondition))
-		.and(RenderEffect.CODEC.optionalFieldOf("render_effect", RenderEffect.BLINDNESS).forGetter(PhasingPower::renderEffect))
-		.and(Codec.floatRange(2.0F, Float.MAX_VALUE).optionalFieldOf("view_distance", 8.0F).forGetter(PhasingPower::viewDistance))
-		.apply(instance, PhasingPower::new)
-	);
+	public static final MapCodec<PhasingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Condition.CODEC.optionalFieldOf("phase_down_condition", new IsEntitySneakingCondition(KayaContextParameters.THIS_ENTITY)).forGetter(PhasingPower::phaseDownCondition),
+		RenderEffect.CODEC.optionalFieldOf("render_effect", RenderEffect.BLINDNESS).forGetter(PhasingPower::renderEffect),
+		Codec.floatRange(2.0F, Float.MAX_VALUE).optionalFieldOf("view_distance", 8.0F).forGetter(PhasingPower::viewDistance),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, PhasingPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PhasingPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		Condition.STREAM_CODEC, PhasingPower::phaseDownCondition,
 		RenderEffect.STREAM_CODEC, PhasingPower::renderEffect,
 		ByteBufCodecs.FLOAT, PhasingPower::viewDistance,
+		Properties.STREAM_CODEC, PhasingPower::properties,
 		PhasingPower::new
 	);
 

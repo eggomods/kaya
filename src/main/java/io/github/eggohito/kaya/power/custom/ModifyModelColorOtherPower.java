@@ -3,7 +3,6 @@ package io.github.eggohito.kaya.power.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.color.Color;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.power.Power;
@@ -11,25 +10,22 @@ import io.github.eggohito.kaya.power.entity.Powers;
 import io.github.eggohito.kaya.registry.KayaPowerTypes;
 import io.github.eggohito.kaya.registry.context.KayaContextParameters;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-import java.util.Optional;
 
-public record ModifyModelColorOtherPower(Optional<Condition> activeCondition, Color color) implements Power {
+public record ModifyModelColorOtherPower(Color color, Properties properties) implements Power {
 
-	public static final MapCodec<ModifyModelColorOtherPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(Color.CODEC.fieldOf("color").forGetter(ModifyModelColorOtherPower::color))
-		.apply(instance, ModifyModelColorOtherPower::new)
-	);
+	public static final MapCodec<ModifyModelColorOtherPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Color.CODEC.fieldOf("color").forGetter(ModifyModelColorOtherPower::color),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyModelColorOtherPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyModelColorOtherPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		Color.STREAM_CODEC, ModifyModelColorOtherPower::color,
+		Properties.STREAM_CODEC, ModifyModelColorOtherPower::properties,
 		ModifyModelColorOtherPower::new
 	);
 

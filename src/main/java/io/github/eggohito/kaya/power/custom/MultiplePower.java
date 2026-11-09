@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.*;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.isxander.yacl3.config.v3.ConfigEntry;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.config.AbstractJsonCodecConfig;
@@ -34,7 +35,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @SuppressWarnings("UnstableApiUsage")
-public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements Power {
+public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers, Properties properties) implements Power {
 
 	public static final ResourceLocation ID = Kaya.id("multiple");
 
@@ -145,14 +146,15 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 
 	};
 
-	public static final MapCodec<MultiplePower> CODEC = SUB_POWERS_CODEC.xmap(
-		MultiplePower::new,
-		MultiplePower::subPowers
-	);
+	public static final MapCodec<MultiplePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		SUB_POWERS_CODEC.forGetter(MultiplePower::subPowers),
+		Power.propertiesCodecBuilder(false)
+	).apply(instance, MultiplePower::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplePower> STREAM_CODEC = SUB_POWERS_STREAM_CODEC.map(
-		MultiplePower::new,
-		MultiplePower::subPowers
+	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplePower> STREAM_CODEC = StreamCodec.composite(
+		SUB_POWERS_STREAM_CODEC, MultiplePower::subPowers,
+		Properties.STREAM_CODEC, MultiplePower::properties,
+		MultiplePower::new
 	);
 
 	public MultiplePower {

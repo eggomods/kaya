@@ -16,15 +16,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public record HudRenderPower(List<HudElement> hudElements) implements Power {
+public record HudRenderPower(List<HudElement> hudElements, Properties properties) implements Power {
 
-	public static final MapCodec<HudRenderPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(ExtraCodecs.nonEmptyList(HudElement.CODEC.listOf()).fieldOf("hud_elements").forGetter(HudRenderPower::hudElements))
-		.apply(instance, HudRenderPower::new)
-	);
+	public static final MapCodec<HudRenderPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		ExtraCodecs.nonEmptyList(HudElement.CODEC.listOf()).fieldOf("hud_elements").forGetter(HudRenderPower::hudElements),
+		Power.propertiesCodecBuilder(false)
+	).apply(instance, HudRenderPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, HudRenderPower> STREAM_CODEC = StreamCodec.composite(
 		ByteBufCodecs.collection(ObjectArrayList::new, HudElement.STREAM_CODEC), HudRenderPower::hudElements,
+		Properties.STREAM_CODEC, HudRenderPower::properties,
 		HudRenderPower::new
 	);
 

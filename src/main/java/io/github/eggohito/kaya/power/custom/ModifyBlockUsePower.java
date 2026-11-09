@@ -8,7 +8,6 @@ import io.github.eggohito.kaya.action.Action;
 import io.github.eggohito.kaya.action.custom.NothingAction;
 import io.github.eggohito.kaya.codec.KayaCodecs;
 import io.github.eggohito.kaya.codec.KayaStreamCodecs;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextUser;
 import io.github.eggohito.kaya.context.ContextValidator;
@@ -41,30 +40,28 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public record ModifyBlockUsePower(Optional<Condition> activeCondition, Actions actions, Conditions conditions, EnumSet<BlockUsePhase> usePhases, int priority) implements PrioritizedPower<ModifyBlockUsePower> {
+public record ModifyBlockUsePower(Actions actions, Conditions conditions, EnumSet<BlockUsePhase> usePhases, int priority, Properties properties) implements PrioritizedPower<ModifyBlockUsePower> {
 
 	public static final BlockContextParameter USED_BLOCK = new BlockContextParameter(Kaya.id("used_block"));
 	public static final DirectionContextParameter USED_SIDE = new DirectionContextParameter(Kaya.id("used_side"));
 
-	public static final MapCodec<ModifyBlockUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(Actions.CODEC.forGetter(ModifyBlockUsePower::actions))
-		.and(Conditions.CODEC.forGetter(ModifyBlockUsePower::conditions))
-		.and(BlockUsePhase.SET_CODEC.optionalFieldOf("use_phases", EnumSet.allOf(BlockUsePhase.class)).forGetter(ModifyBlockUsePower::usePhases))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockUsePower::priority))
-		.apply(instance, ModifyBlockUsePower::new)
-	);
+	public static final MapCodec<ModifyBlockUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Actions.CODEC.forGetter(ModifyBlockUsePower::actions),
+		Conditions.CODEC.forGetter(ModifyBlockUsePower::conditions),
+		BlockUsePhase.SET_CODEC.optionalFieldOf("use_phases", EnumSet.allOf(BlockUsePhase.class)).forGetter(ModifyBlockUsePower::usePhases),
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockUsePower::priority),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyBlockUsePower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyBlockUsePower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		Actions.STREAM_CODEC, ModifyBlockUsePower::actions,
 		Conditions.STREAM_CODEC, ModifyBlockUsePower::conditions,
 		BlockUsePhase.SET_STREAM_CODEC, ModifyBlockUsePower::usePhases,
 		ByteBufCodecs.INT, ModifyBlockUsePower::priority,
+		Properties.STREAM_CODEC, ModifyBlockUsePower::properties,
 		ModifyBlockUsePower::new
 	);
 

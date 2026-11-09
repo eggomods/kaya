@@ -36,29 +36,27 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Optional;
 
-public record InventoryPower(Optional<Condition> activeCondition, Component title, ContainerMenu menu, Condition dropOnDeathCondition, BooleanProvider recoverable, KeyReference key, int priority) implements PrioritizedPower<InventoryPower> {
+public record InventoryPower(Component title, ContainerMenu menu, Condition dropOnDeathCondition, BooleanProvider recoverable, KeyReference key, int priority, Properties properties) implements PrioritizedPower<InventoryPower> {
 
-	public static final MapCodec<InventoryPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(ComponentSerialization.CODEC.optionalFieldOf("title", Component.translatable("container.inventory")).forGetter(InventoryPower::title))
-		.and(ContainerMenu.CODEC.optionalFieldOf("menu", KayaContainerMenuTypes.GENERIC_3X3).forGetter(InventoryPower::menu))
-		.and(Condition.CODEC.optionalFieldOf("drop_on_death_condition", new ConstantCondition(false)).forGetter(InventoryPower::dropOnDeathCondition))
-		.and(BooleanProvider.CODEC.optionalFieldOf("recoverable", new ConstantBooleanProvider(true)).forGetter(InventoryPower::recoverable))
-		.and(KeyReference.CODEC.fieldOf("key").forGetter(InventoryPower::key))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(InventoryPower::priority))
-		.apply(instance, InventoryPower::new)
-	);
+	public static final MapCodec<InventoryPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		ComponentSerialization.CODEC.optionalFieldOf("title", Component.translatable("container.inventory")).forGetter(InventoryPower::title),
+		ContainerMenu.CODEC.optionalFieldOf("menu", KayaContainerMenuTypes.GENERIC_3X3).forGetter(InventoryPower::menu),
+		Condition.CODEC.optionalFieldOf("drop_on_death_condition", new ConstantCondition(false)).forGetter(InventoryPower::dropOnDeathCondition),
+		BooleanProvider.CODEC.optionalFieldOf("recoverable", new ConstantBooleanProvider(true)).forGetter(InventoryPower::recoverable),
+		KeyReference.CODEC.fieldOf("key").forGetter(InventoryPower::key),
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(InventoryPower::priority),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, InventoryPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, InventoryPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		ComponentSerialization.TRUSTED_STREAM_CODEC, InventoryPower::title,
 		ContainerMenu.STREAM_CODEC, InventoryPower::menu,
 		Condition.STREAM_CODEC, InventoryPower::dropOnDeathCondition,
 		BooleanProvider.STREAM_CODEC, InventoryPower::recoverable,
 		KeyReference.STREAM_CODEC, InventoryPower::key,
 		ByteBufCodecs.INT, InventoryPower::priority,
+		Properties.STREAM_CODEC, InventoryPower::properties,
 		InventoryPower::new
 	);
 

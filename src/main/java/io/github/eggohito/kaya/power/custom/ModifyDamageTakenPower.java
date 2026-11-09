@@ -2,7 +2,6 @@ package io.github.eggohito.kaya.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.kaya.action.Action;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.modifier.Modifier;
 import io.github.eggohito.kaya.power.Power;
@@ -17,9 +16,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 
-public record ModifyDamageTakenPower(Optional<Condition> activeCondition, List<Modifier> modifiers, Action onModifyAction) implements DamageModifyingPower {
+public record ModifyDamageTakenPower(List<Modifier> modifiers, Action onModifyAction, Properties properties) implements DamageModifyingPower {
 
 	public static final MapCodec<ModifyDamageTakenPower> CODEC = DamageModifyingPower.codec(ModifyDamageTakenPower::new);
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyDamageTakenPower> STREAM_CODEC = DamageModifyingPower.streamCodec(ModifyDamageTakenPower::new);

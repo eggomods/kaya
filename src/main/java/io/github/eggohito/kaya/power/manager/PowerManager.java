@@ -1,6 +1,5 @@
 package io.github.eggohito.kaya.power.manager;
 
-import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.DataResult;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.power.Power;
@@ -67,8 +66,8 @@ public interface PowerManager extends ContentAndTagManager<PowerIdentifier, Powe
 
 		handler.accept(holder.id(), holder);
 
-		if (holder.value() instanceof MultiplePower(ImmutableSet<PowerHolder<?>> subPowers)) {
-			subPowers.forEach(subPower -> handleSelfAndSubPowers(MultiplePower.validateNonRecursiveMultiple(subPower), handler));
+		if (holder.value() instanceof MultiplePower multiplePower) {
+			multiplePower.subPowers().forEach(subPower -> handleSelfAndSubPowers(MultiplePower.validateNonRecursiveMultiple(subPower), handler));
 		}
 
 	}

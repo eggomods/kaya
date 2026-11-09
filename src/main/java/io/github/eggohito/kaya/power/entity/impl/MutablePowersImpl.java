@@ -1,11 +1,13 @@
 package io.github.eggohito.kaya.power.entity.impl;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.SetMultimap;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.attachment.entity.PowersAttachment;
 import io.github.eggohito.kaya.network.packet.clientbound.ClientboundUpdatePowerDataPacket;
 import io.github.eggohito.kaya.power.Power;
-import io.github.eggohito.kaya.power.PowerHolder;
 import io.github.eggohito.kaya.power.PowerIdentifier;
 import io.github.eggohito.kaya.power.custom.MultiplePower;
 import io.github.eggohito.kaya.power.entity.MutablePowers;
@@ -77,9 +79,9 @@ public final class MutablePowersImpl extends AbstractPowers implements MutablePo
 		Power power = PowerManager.getInstance().get(id).value();
 		this.instances.computeIfAbsent(id, k -> power.createInstance());
 
-		if (power instanceof MultiplePower(ImmutableSet<PowerHolder<?>> subPowers)) {
+		if (power instanceof MultiplePower multiplePower) {
 
-			for (var subPower : subPowers) {
+			for (var subPower : multiplePower.subPowers()) {
 				this.grantInternal(subPower.id(), source);
 			}
 
@@ -95,9 +97,9 @@ public final class MutablePowersImpl extends AbstractPowers implements MutablePo
 			return false;
 		}
 
-		if (Objects.requireNonNull(instances.remove(id)).power() instanceof MultiplePower(ImmutableSet<PowerHolder<?>> subPowers)) {
+		if (Objects.requireNonNull(instances.remove(id)).power() instanceof MultiplePower multiplePower) {
 
-			for (var subPower : subPowers) {
+			for (var subPower : multiplePower.subPowers()) {
 				this.revokeInternal(subPower.id(), source);
 			}
 

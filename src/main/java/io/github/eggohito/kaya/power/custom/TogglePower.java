@@ -5,7 +5,6 @@ import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.action.Action;
 import io.github.eggohito.kaya.action.custom.NothingAction;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.key.KeyReference;
@@ -22,23 +21,22 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record TogglePower(Optional<Condition> activeCondition, Action action, Optional<KeyReference> key, BooleanProvider retainState, BooleanProvider activeByDefault) implements Power {
+public record TogglePower(Action action, Optional<KeyReference> key, BooleanProvider retainState, BooleanProvider activeByDefault, Properties properties) implements Power {
 
-	public static final MapCodec<TogglePower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(Action.CODEC.optionalFieldOf("action", NothingAction.INSTANCE).forGetter(TogglePower::action))
-		.and(KeyReference.CODEC.optionalFieldOf("key").forGetter(TogglePower::key))
-		.and(BooleanProvider.CODEC.optionalFieldOf("retain_state", new ConstantBooleanProvider(true)).forGetter(TogglePower::retainState))
-		.and(BooleanProvider.CODEC.optionalFieldOf("active_by_default", new ConstantBooleanProvider(true)).forGetter(TogglePower::activeByDefault))
-		.apply(instance, TogglePower::new)
-	);
+	public static final MapCodec<TogglePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Action.CODEC.optionalFieldOf("action", NothingAction.INSTANCE).forGetter(TogglePower::action),
+		KeyReference.CODEC.optionalFieldOf("key").forGetter(TogglePower::key),
+		BooleanProvider.CODEC.optionalFieldOf("retain_state", new ConstantBooleanProvider(true)).forGetter(TogglePower::retainState),
+		BooleanProvider.CODEC.optionalFieldOf("active_by_default", new ConstantBooleanProvider(true)).forGetter(TogglePower::activeByDefault),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, TogglePower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, TogglePower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		Action.STREAM_CODEC, TogglePower::action,
 		ByteBufCodecs.optional(KeyReference.STREAM_CODEC), TogglePower::key,
 		BooleanProvider.STREAM_CODEC, TogglePower::retainState,
 		BooleanProvider.STREAM_CODEC, TogglePower::activeByDefault,
+		Properties.STREAM_CODEC, TogglePower::properties,
 		TogglePower::new
 	);
 

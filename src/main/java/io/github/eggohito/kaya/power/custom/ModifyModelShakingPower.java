@@ -2,26 +2,22 @@ package io.github.eggohito.kaya.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.power.Power;
 import io.github.eggohito.kaya.registry.KayaPowerTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
-
-public record ModifyModelShakingPower(Optional<Condition> activeCondition) implements Power {
+public record ModifyModelShakingPower(Properties properties) implements Power {
 
 	public static final MapCodec<ModifyModelShakingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
+		.addPropertiesField(instance, true)
 		.apply(instance, ModifyModelShakingPower::new)
 	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyModelShakingPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
+		Properties.STREAM_CODEC, ModifyModelShakingPower::properties,
 		ModifyModelShakingPower::new
 	);
 

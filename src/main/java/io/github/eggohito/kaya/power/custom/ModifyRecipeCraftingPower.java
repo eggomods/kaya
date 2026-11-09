@@ -6,7 +6,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.action.Action;
 import io.github.eggohito.kaya.action.custom.NothingAction;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.context.parameter.BlockContextParameter;
@@ -40,29 +39,28 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-public record ModifyRecipeCraftingPower(Optional<Condition> activeCondition, Optional<ResourceKey<Recipe<?>>> recipe, Optional<ItemStack> replacement, Action onCraftAction, Action onTakeAction, int priority) implements PrioritizedPower<ModifyRecipeCraftingPower> {
+public record ModifyRecipeCraftingPower(Optional<ResourceKey<Recipe<?>>> recipe, Optional<ItemStack> replacement, Action onCraftAction, Action onTakeAction, int priority, Properties properties) implements PrioritizedPower<ModifyRecipeCraftingPower> {
 
 	public static final BlockContextParameter CRAFTING_BLOCK = new BlockContextParameter(Kaya.id("crafting_block"));
 	public static final SlotContextParameter CRAFTED_ITEM_SLOT = new SlotContextParameter(Kaya.id("crafted_item_slot"));
 	public static final ItemContextParameter CRAFTED_ITEM = new ItemContextParameter(Kaya.id("crafted_item"));
 
-	public static final MapCodec<ModifyRecipeCraftingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(ResourceKey.codec(Registries.RECIPE).optionalFieldOf("recipe").forGetter(ModifyRecipeCraftingPower::recipe))
-		.and(ItemStack.OPTIONAL_CODEC.optionalFieldOf("replacement").forGetter(ModifyRecipeCraftingPower::replacement))
-		.and(Action.CODEC.optionalFieldOf("on_craft_action", NothingAction.INSTANCE).forGetter(ModifyRecipeCraftingPower::onCraftAction))
-		.and(Action.CODEC.optionalFieldOf("on_take_action", NothingAction.INSTANCE).forGetter(ModifyRecipeCraftingPower::onTakeAction))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyRecipeCraftingPower::priority))
-		.apply(instance, ModifyRecipeCraftingPower::new)
-	);
+	public static final MapCodec<ModifyRecipeCraftingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		ResourceKey.codec(Registries.RECIPE).optionalFieldOf("recipe").forGetter(ModifyRecipeCraftingPower::recipe),
+		ItemStack.OPTIONAL_CODEC.optionalFieldOf("replacement").forGetter(ModifyRecipeCraftingPower::replacement),
+		Action.CODEC.optionalFieldOf("on_craft_action", NothingAction.INSTANCE).forGetter(ModifyRecipeCraftingPower::onCraftAction),
+		Action.CODEC.optionalFieldOf("on_take_action", NothingAction.INSTANCE).forGetter(ModifyRecipeCraftingPower::onTakeAction),
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyRecipeCraftingPower::priority),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyRecipeCraftingPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyRecipeCraftingPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), ModifyRecipeCraftingPower::activeCondition,
 		ByteBufCodecs.optional(ResourceKey.streamCodec(Registries.RECIPE)), ModifyRecipeCraftingPower::recipe,
 		ByteBufCodecs.optional(ItemStack.OPTIONAL_STREAM_CODEC), ModifyRecipeCraftingPower::replacement,
 		Action.STREAM_CODEC, ModifyRecipeCraftingPower::onCraftAction,
 		Action.STREAM_CODEC, ModifyRecipeCraftingPower::onTakeAction,
 		ByteBufCodecs.INT, ModifyRecipeCraftingPower::priority,
+		Properties.STREAM_CODEC, ModifyRecipeCraftingPower::properties,
 		ModifyRecipeCraftingPower::new
 	);
 

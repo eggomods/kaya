@@ -3,7 +3,6 @@ package io.github.eggohito.kaya.power.custom;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.action.Action;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.parameter.BlockContextParameter;
 import io.github.eggohito.kaya.context.parameter.DirectionContextParameter;
@@ -29,9 +28,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
-
-public record CallbackProjectileLandPower(Optional<Condition> activeCondition, Action action) implements CallbackPower {
+public record CallbackProjectileLandPower(Action action, Properties properties) implements CallbackPower {
 
 	public static final BlockContextParameter LANDED_ON_BLOCK = new BlockContextParameter(Kaya.id("landed_on_block"));
 	public static final DirectionContextParameter LANDED_ON_SIDE = new DirectionContextParameter(Kaya.id("landed_on_side"));
