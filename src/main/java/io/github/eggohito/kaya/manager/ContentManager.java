@@ -1,10 +1,10 @@
-package io.github.eggohito.kaya.util.manager;
+package io.github.eggohito.kaya.manager;
 
 import com.mojang.serialization.DataResult;
 
 import java.util.function.Function;
 
-public interface ContentManager<K, V> {
+public interface ContentManager<K, V> extends Manager {
 
 	DataResult<V> getAsResult(K key, Function<K, String> onError);
 

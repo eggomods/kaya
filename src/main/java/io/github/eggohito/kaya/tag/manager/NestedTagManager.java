@@ -1,17 +1,15 @@
 package io.github.eggohito.kaya.tag.manager;
 
+import io.github.eggohito.kaya.manager.Manager;
+import io.github.eggohito.kaya.registry.manager.KayaManagerKeys;
 import io.github.eggohito.kaya.tag.NestedTag;
-import io.github.eggohito.kaya.util.manager.KayaManagers;
+import io.github.eggohito.kaya.util.services.KayaServices;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import org.jetbrains.annotations.ApiStatus;
 
-import java.util.function.Supplier;
-
 @ApiStatus.NonExtendable
-public interface NestedTagManager {
-
-	Supplier<NestedTagManager> DEFERRED_INSTANCE = KayaManagers.deferredPhysicalSideSpecific(NestedTagManager.class, ServerNestedTagManager::new);
+public interface NestedTagManager extends Manager {
 
 	<T> NestedTag<T> getOrCreate(ResourceKey<? extends Registry<T>> registryKey);
 
@@ -19,7 +17,7 @@ public interface NestedTagManager {
 	void init();
 
 	static NestedTagManager getInstance() {
-		return DEFERRED_INSTANCE.get();
+		return KayaServices.MANAGERS.getOrThrow(KayaManagerKeys.NESTED_TAG);
 	}
 
 }

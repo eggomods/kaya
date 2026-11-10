@@ -2,18 +2,17 @@ package io.github.eggohito.kaya.power.manager;
 
 import com.mojang.serialization.DataResult;
 import io.github.eggohito.kaya.Kaya;
+import io.github.eggohito.kaya.manager.ContentAndTagManager;
 import io.github.eggohito.kaya.power.Power;
 import io.github.eggohito.kaya.power.PowerHolder;
 import io.github.eggohito.kaya.power.PowerIdentifier;
-import io.github.eggohito.kaya.power.custom.MultiplePower;
+import io.github.eggohito.kaya.registry.manager.KayaManagerKeys;
 import io.github.eggohito.kaya.resource.DependencyList;
-import io.github.eggohito.kaya.util.manager.ContentAndTagManager;
-import io.github.eggohito.kaya.util.manager.KayaManagers;
+import io.github.eggohito.kaya.util.services.KayaServices;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 @ApiStatus.NonExtendable
 public interface PowerManager extends ContentAndTagManager<PowerIdentifier, PowerHolder<?>> {
@@ -21,8 +20,6 @@ public interface PowerManager extends ContentAndTagManager<PowerIdentifier, Powe
 	ResourceLocation ID = Kaya.id("manager/power");
 
 	DependencyList DEPENDENCIES = new DependencyList(ID);
-
-	Supplier<PowerManager> DEFERRED_INSTANCE = KayaManagers.deferredPhysicalSideSpecific(PowerManager.class, ServerPowerManager::new);
 
 	@Override
 	default DataResult<PowerHolder<?>> getAsResult(PowerIdentifier key) {
@@ -61,7 +58,7 @@ public interface PowerManager extends ContentAndTagManager<PowerIdentifier, Powe
 	void init();
 
 	static PowerManager getInstance() {
-		return DEFERRED_INSTANCE.get();
+		return KayaServices.MANAGERS.getOrThrow(KayaManagerKeys.POWER);
 	}
 
 }

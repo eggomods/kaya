@@ -4,14 +4,14 @@ import com.mojang.serialization.DataResult;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.action.Action;
 import io.github.eggohito.kaya.action.ActionHolder;
+import io.github.eggohito.kaya.manager.ContentAndTagManager;
+import io.github.eggohito.kaya.registry.manager.KayaManagerKeys;
 import io.github.eggohito.kaya.resource.DependencyList;
-import io.github.eggohito.kaya.util.manager.ContentAndTagManager;
-import io.github.eggohito.kaya.util.manager.KayaManagers;
+import io.github.eggohito.kaya.util.services.KayaServices;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 @ApiStatus.NonExtendable
 public interface ActionManager extends ContentAndTagManager<ResourceLocation, ActionHolder<?>> {
@@ -19,8 +19,6 @@ public interface ActionManager extends ContentAndTagManager<ResourceLocation, Ac
 	ResourceLocation ID = Kaya.id("manager/action");
 
 	DependencyList DEPENDENCIES = new DependencyList(ID);
-
-	Supplier<ActionManager> DEFERRED_INSTANCE = KayaManagers.deferredPhysicalSideSpecific(ActionManager.class, ServerActionManager::new);
 
 	@Override
 	default DataResult<ActionHolder<?>> getAsResult(ResourceLocation key) {
@@ -59,7 +57,7 @@ public interface ActionManager extends ContentAndTagManager<ResourceLocation, Ac
 	void init();
 
 	static ActionManager getInstance() {
-		return DEFERRED_INSTANCE.get();
+		return KayaServices.MANAGERS.getOrThrow(KayaManagerKeys.ACTION);
 	}
 
 }
