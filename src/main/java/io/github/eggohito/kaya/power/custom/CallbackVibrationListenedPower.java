@@ -4,7 +4,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.action.Action;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.context.parameter.BlockContextParameter;
@@ -37,29 +36,29 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
-public record CallbackVibrationListenedPower(Optional<Condition> activeCondition, HudElement hudElement, IntProvider cooldown, Action onListenedAction, Optional<HolderSet<GameEvent>> vibration, IntProvider range) implements CooldownPower {
+public record CallbackVibrationListenedPower(HudElement hudElement, IntProvider cooldown, Action onListenedAction, Optional<HolderSet<GameEvent>> vibration, IntProvider range, Properties properties) implements CooldownPower {
 
 	public static final Vec3ContextParameter VIBRATION_POSITION = new Vec3ContextParameter(Kaya.id("vibration/position"));
 	public static final BlockContextParameter VIBRATION_AFFECTED_BLOCK = new BlockContextParameter(Kaya.id("vibration/affected_block"));
 	public static final EntityContextParameter VIBRATION_EMITTER = new EntityContextParameter(Kaya.id("vibration/emitter"));
 	public static final EntityContextParameter VIBRATION_PROJECTILE_OWNER = new EntityContextParameter(Kaya.id("vibration/projectile_owner"));
 
-	public static final MapCodec<CallbackVibrationListenedPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(CooldownPower.addFields(instance, HudElement.CODEC, IntProvider.clamped(1, Integer.MAX_VALUE)))
+	public static final MapCodec<CallbackVibrationListenedPower> CODEC = RecordCodecBuilder.mapCodec(instance -> CooldownPower
+		.addFields(instance, HudElement.CODEC, IntProvider.clamped(1, Integer.MAX_VALUE))
 		.and(Action.CODEC.fieldOf("on_listened_action").forGetter(CallbackVibrationListenedPower::onListenedAction))
 		.and(RegistryCodecs.homogeneousList(Registries.GAME_EVENT).optionalFieldOf("vibration").forGetter(CallbackVibrationListenedPower::vibration))
 		.and(IntProvider.clamped(1, Integer.MAX_VALUE).fieldOf("range").forGetter(CallbackVibrationListenedPower::cooldown))
+		.and(Power.propertiesCodecBuilder(true))
 		.apply(instance, CallbackVibrationListenedPower::new)
 	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackVibrationListenedPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), CallbackVibrationListenedPower::activeCondition,
 		HudElement.STREAM_CODEC, CallbackVibrationListenedPower::hudElement,
 		IntProvider.STREAM_CODEC, CallbackVibrationListenedPower::cooldown,
 		Action.STREAM_CODEC, CallbackVibrationListenedPower::onListenedAction,
 		ByteBufCodecs.optional(ByteBufCodecs.holderSet(Registries.GAME_EVENT)), CallbackVibrationListenedPower::vibration,
 		IntProvider.STREAM_CODEC, CallbackVibrationListenedPower::range,
+		Properties.STREAM_CODEC, CallbackVibrationListenedPower::properties,
 		CallbackVibrationListenedPower::new
 	);
 
