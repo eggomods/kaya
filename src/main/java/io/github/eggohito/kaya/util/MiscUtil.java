@@ -62,6 +62,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.EntityCollisionContext;
+import org.apache.commons.lang3.mutable.Mutable;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.Nullable;
 import org.quiltmc.parsers.json.JsonFormat;
 import org.quiltmc.parsers.json.JsonReader;
@@ -213,23 +215,6 @@ public class MiscUtil {
 
 	public static HolderLookup.Provider getRegistries(ReloadableServerResources resources) {
 		return ((ReloadableServerRegistriesAccessor.HolderAccessor) resources.fullRegistries()).getRegistries();
-	}
-
-	public static String mergeErrors(String firstError, String secondError) {
-		return padError(firstError) + firstError
-			+ padError(secondError) + secondError;
-	}
-
-	private static String padError(String error) {
-
-		if (error.startsWith(ERROR_PADDING)) {
-			return "";
-		}
-
-		else {
-			return ERROR_PADDING + " - ";
-		}
-
 	}
 
 	public static DataResult<CompoundTag> asCompoundTag(Tag tag) {
@@ -555,6 +540,32 @@ public class MiscUtil {
 	public static <T> Iterable<T> emptyIterable() {
 		//noinspection unchecked
 		return (Iterable<T>) EMPTY_ITERABLE;
+	}
+
+	public static String joinFields(List<String> strings) {
+
+        StringBuilder builder = new StringBuilder();
+		Mutable<String> separator = new MutableObject<>("");
+
+		iterateList(
+			strings,
+			(index, string) -> {
+
+				if (strings.size() > 1 && index >= strings.size() - 1) {
+					separator.setValue(" and ");
+				}
+
+				builder
+					.append(separator)
+					.append("'").append(string).append("'");
+
+				separator.setValue(", ");
+
+			}
+		);
+
+		return builder.toString();
+
 	}
 
 }

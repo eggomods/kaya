@@ -4,7 +4,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.action.Action;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.context.visitor.ClearableVisitor;
@@ -19,24 +18,21 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
 
-
-public record CallbackDamageDealtPower(Optional<Condition> activeCondition, Action onHitAction, int priority) implements PrioritizedPower<CallbackDamageDealtPower> {
+public record CallbackDamageDealtPower(Action onHitAction, int priority, Properties properties) implements PrioritizedPower<CallbackDamageDealtPower> {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<CallbackDamageDealtPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(Action.CODEC.fieldOf("on_hit_action").forGetter(CallbackDamageDealtPower::onHitAction))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackDamageDealtPower::priority))
-		.apply(instance, CallbackDamageDealtPower::new)
-	);
+	public static final MapCodec<CallbackDamageDealtPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Action.CODEC.fieldOf("on_hit_action").forGetter(CallbackDamageDealtPower::onHitAction),
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackDamageDealtPower::priority),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, CallbackDamageDealtPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackDamageDealtPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		Action.STREAM_CODEC, CallbackDamageDealtPower::onHitAction,
 		ByteBufCodecs.INT, CallbackDamageDealtPower::priority,
+		Properties.STREAM_CODEC, CallbackDamageDealtPower::properties,
 		CallbackDamageDealtPower::new
 	);
 

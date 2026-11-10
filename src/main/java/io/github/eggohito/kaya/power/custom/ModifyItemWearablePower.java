@@ -30,7 +30,7 @@ import java.util.Objects;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
-public record ModifyItemWearablePower(EnumMap<EquipmentSlot, Condition> slots) implements Power {
+public record ModifyItemWearablePower(EnumMap<EquipmentSlot, Condition> slots, Properties properties) implements Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 	public static final ItemContextParameter WORN_ITEM = new ItemContextParameter(Kaya.id("worn_item"));
@@ -45,13 +45,14 @@ public record ModifyItemWearablePower(EnumMap<EquipmentSlot, Condition> slots) i
 	private static final Codec<EnumMap<EquipmentSlot, Condition>> SLOTS_CODEC = ExtraCodecs.nonEmptyMap(Codec.unboundedMap(NO_MAINHAND_SLOT_CODEC, Condition.CODEC)).xmap(EnumMap::new, Function.identity());
 	private static final StreamCodec<RegistryFriendlyByteBuf, EnumMap<EquipmentSlot, Condition>> SLOTS_STREAM_CODEC = ByteBufCodecs.map(ignored -> new EnumMap<>(EquipmentSlot.class), EquipmentSlot.STREAM_CODEC, Condition.STREAM_CODEC);
 
-	public static final MapCodec<ModifyItemWearablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(SLOTS_CODEC.fieldOf("slots").forGetter(ModifyItemWearablePower::slots))
-		.apply(instance, ModifyItemWearablePower::new)
-	);
+	public static final MapCodec<ModifyItemWearablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		SLOTS_CODEC.fieldOf("slots").forGetter(ModifyItemWearablePower::slots),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyItemWearablePower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyItemWearablePower> STREAM_CODEC = StreamCodec.composite(
 		SLOTS_STREAM_CODEC, ModifyItemWearablePower::slots,
+		Properties.STREAM_CODEC, ModifyItemWearablePower::properties,
 		ModifyItemWearablePower::new
 	);
 

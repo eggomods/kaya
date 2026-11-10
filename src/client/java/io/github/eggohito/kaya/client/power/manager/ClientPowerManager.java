@@ -2,6 +2,8 @@ package io.github.eggohito.kaya.client.power.manager;
 
 import com.google.common.collect.ImmutableMap;
 import io.github.eggohito.kaya.network.packet.clientbound.ClientboundUpdatePowersPacket;
+import io.github.eggohito.kaya.power.PowerHolder;
+import io.github.eggohito.kaya.power.PowerIdentifier;
 import io.github.eggohito.kaya.power.manager.PowerManager;
 import io.github.eggohito.kaya.power.manager.ServerPowerManager;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -22,8 +24,13 @@ public final class ClientPowerManager extends ServerPowerManager {
 	}
 
 	private void receive(ClientboundUpdatePowersPacket payload) {
-		this.contents = ImmutableMap.copyOf(payload.powers());
+
+		ImmutableMap.Builder<PowerIdentifier, PowerHolder<?>> builder = ImmutableMap.builder();
+		payload.powers().values().forEach(powerHolder -> this.register(powerHolder, builder::put));
+
+		this.contents = builder.build();
 		this.tags = ImmutableMap.copyOf(payload.tags());
+
 	}
 
 	private void clear() {

@@ -11,16 +11,18 @@ import io.github.eggohito.kaya.registry.KayaPowerTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record CooldownStandalonePower(HudElement hudElement, IntProvider cooldown) implements CooldownPower {
+public record CooldownStandalonePower(HudElement hudElement, IntProvider cooldown, Properties properties) implements CooldownPower {
 
 	public static final MapCodec<CooldownStandalonePower> CODEC = RecordCodecBuilder.mapCodec(instance -> CooldownPower
 		.addFields(instance)
+		.and(Power.propertiesCodecBuilder(false))
 		.apply(instance, CooldownStandalonePower::new)
 	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, CooldownStandalonePower> STREAM_CODEC = StreamCodec.composite(
 		HudElement.STREAM_CODEC, CooldownStandalonePower::hudElement,
 		IntProvider.STREAM_CODEC, CooldownStandalonePower::cooldown,
+		Properties.STREAM_CODEC, CooldownStandalonePower::properties,
 		CooldownStandalonePower::new
 	);
 

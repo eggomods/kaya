@@ -6,7 +6,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.codec.KayaCodecs;
 import io.github.eggohito.kaya.codec.KayaStreamCodecs;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.parameter.BlockContextParameter;
 import io.github.eggohito.kaya.context.parameter.ItemContextParameter;
@@ -39,24 +38,23 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public record ReplaceLootTablePower(Optional<Condition> activeCondition, Map<Pattern, String> replacements, int priority) implements PrioritizedPower<ReplaceLootTablePower> {
+public record ReplaceLootTablePower(Map<Pattern, String> replacements, int priority, Properties properties) implements PrioritizedPower<ReplaceLootTablePower> {
 
 	public static final ResourceKey<LootTable> REPLACED_TABLE_KEY = ResourceKey.create(Registries.LOOT_TABLE, Kaya.id("replaced_loot_table"));
 
 	public static final BlockContextParameter BLOCK = new BlockContextParameter(Kaya.id("block"));
 	public static final ItemContextParameter TOOL_ITEM = new ItemContextParameter(Kaya.id("tool_item"));
 
-	public static final MapCodec<ReplaceLootTablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(KayaCodecs.REPLACEMENT_MAP.fieldOf("replacements").forGetter(ReplaceLootTablePower::replacements))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ReplaceLootTablePower::priority))
-		.apply(instance, ReplaceLootTablePower::new)
-	);
+	public static final MapCodec<ReplaceLootTablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		KayaCodecs.REPLACEMENT_MAP.fieldOf("replacements").forGetter(ReplaceLootTablePower::replacements),
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(ReplaceLootTablePower::priority),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ReplaceLootTablePower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReplaceLootTablePower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		KayaStreamCodecs.REPLACEMENT_MAP, ReplaceLootTablePower::replacements,
 		ByteBufCodecs.INT, ReplaceLootTablePower::priority,
+		Properties.STREAM_CODEC, ReplaceLootTablePower::properties,
 		ReplaceLootTablePower::new
 	);
 
@@ -101,7 +99,7 @@ public record ReplaceLootTablePower(Optional<Condition> activeCondition, Map<Pat
 		public Optional<ResourceKey<LootTable>> getReplacement(Context context, ResourceKey<LootTable> key) {
 
 			String tableId = key.location().toString();
-			ResourceLocationUtil.setCurrent(this.id.value());
+			ResourceLocationUtil.setCurrent(this.id.baseId());
 
 			for (Map.Entry<Pattern, String> entry : power.replacements().entrySet()) {
 

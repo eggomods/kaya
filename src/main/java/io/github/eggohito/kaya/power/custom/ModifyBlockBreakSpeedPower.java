@@ -2,7 +2,6 @@ package io.github.eggohito.kaya.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.visitor.ClearableVisitor;
 import io.github.eggohito.kaya.event.PowerModifyEvents;
@@ -27,21 +26,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 
-public record ModifyBlockBreakSpeedPower(Optional<Condition> activeCondition, List<Modifier> modifiers) implements Power {
+public record ModifyBlockBreakSpeedPower(List<Modifier> modifiers, Properties properties) implements Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyBlockBreakSpeedPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyBlockBreakSpeedPower::modifiers))
-		.apply(instance, ModifyBlockBreakSpeedPower::new)
-	);
+	public static final MapCodec<ModifyBlockBreakSpeedPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyBlockBreakSpeedPower::modifiers),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyBlockBreakSpeedPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyBlockBreakSpeedPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		Modifier.STREAM_CODEC.apply(ByteBufCodecs.list()), ModifyBlockBreakSpeedPower::modifiers,
+		Properties.STREAM_CODEC, ModifyBlockBreakSpeedPower::properties,
 		ModifyBlockBreakSpeedPower::new
 	);
 

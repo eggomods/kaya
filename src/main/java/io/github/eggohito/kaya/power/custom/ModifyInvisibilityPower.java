@@ -14,36 +14,33 @@ import io.github.eggohito.kaya.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.kaya.registry.KayaPowerTypes;
 import io.github.eggohito.kaya.registry.context.KayaContextParameters;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.function.BooleanSupplier;
 
-public record ModifyInvisibilityPower(Optional<Condition> activeCondition, Condition invisibleToCondition, BooleanProvider renderArmor, BooleanProvider renderOutline) implements Power {
+public record ModifyInvisibilityPower(Condition invisibleToCondition, BooleanProvider renderArmor, BooleanProvider renderOutline, Properties properties) implements Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
 	public static final BiPredicate<ModifyInvisibilityPower.Instance, Context> RENDER_OUTLINE = ModifyInvisibilityPower.Instance::isActiveAndShouldRenderOutline;
 	public static final BiPredicate<ModifyInvisibilityPower.Instance, Context> RENDER_ARMOR = ModifyInvisibilityPower.Instance::isActiveAndShouldRenderArmor;
 
-	public static final MapCodec<ModifyInvisibilityPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(Condition.CODEC.optionalFieldOf("invisible_to_condition", new ConstantCondition(true)).forGetter(ModifyInvisibilityPower::invisibleToCondition))
-		.and(BooleanProvider.CODEC.optionalFieldOf("render_armor", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::renderArmor))
-		.and(BooleanProvider.CODEC.optionalFieldOf("render_outline", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::renderOutline))
-		.apply(instance, ModifyInvisibilityPower::new)
-	);
+	public static final MapCodec<ModifyInvisibilityPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Condition.CODEC.optionalFieldOf("invisible_to_condition", new ConstantCondition(true)).forGetter(ModifyInvisibilityPower::invisibleToCondition),
+		BooleanProvider.CODEC.optionalFieldOf("render_armor", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::renderArmor),
+		BooleanProvider.CODEC.optionalFieldOf("render_outline", new ConstantBooleanProvider(true)).forGetter(ModifyInvisibilityPower::renderOutline),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyInvisibilityPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyInvisibilityPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		Condition.STREAM_CODEC, ModifyInvisibilityPower::invisibleToCondition,
 		BooleanProvider.STREAM_CODEC, ModifyInvisibilityPower::renderArmor,
 		BooleanProvider.STREAM_CODEC, ModifyInvisibilityPower::renderOutline,
+		Properties.STREAM_CODEC, ModifyInvisibilityPower::properties,
 		ModifyInvisibilityPower::new
 	);
 

@@ -2,7 +2,6 @@ package io.github.eggohito.kaya.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.duck.internal.EntityCache;
 import io.github.eggohito.kaya.event.PowerModifyEvents;
@@ -27,22 +26,20 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 
-public record ModifyAttributePower(Optional<Condition> activeCondition, Holder<Attribute> attribute, List<Modifier> modifiers) implements Power {
+public record ModifyAttributePower(Holder<Attribute> attribute, List<Modifier> modifiers, Properties properties) implements Power {
 
-	public static final MapCodec<ModifyAttributePower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(Attribute.CODEC.fieldOf("attribute").forGetter(ModifyAttributePower::attribute))
-		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyAttributePower::modifiers))
-		.apply(instance, ModifyAttributePower::new)
-	);
+	public static final MapCodec<ModifyAttributePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Attribute.CODEC.fieldOf("attribute").forGetter(ModifyAttributePower::attribute),
+		ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyAttributePower::modifiers),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyAttributePower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyAttributePower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), ModifyAttributePower::activeCondition,
 		Attribute.STREAM_CODEC, ModifyAttributePower::attribute,
 		Modifier.STREAM_CODEC.apply(ByteBufCodecs.list()), ModifyAttributePower::modifiers,
+		Properties.STREAM_CODEC, ModifyAttributePower::properties,
 		ModifyAttributePower::new
 	);
 

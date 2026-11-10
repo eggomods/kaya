@@ -3,7 +3,6 @@ package io.github.eggohito.kaya.power.custom;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.context.visitor.ClearableVisitor;
@@ -17,24 +16,22 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
 import java.util.function.BooleanSupplier;
 
-public record ModifyElytraFlightPower(Optional<Condition> activeCondition, BooleanProvider allow, int priority) implements PrioritizedPower<ModifyElytraFlightPower> {
+public record ModifyElytraFlightPower(BooleanProvider allow, int priority, Properties properties) implements PrioritizedPower<ModifyElytraFlightPower> {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyElytraFlightPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyElytraFlightPower::allow))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyElytraFlightPower::priority))
-		.apply(instance, ModifyElytraFlightPower::new)
-	);
+	public static final MapCodec<ModifyElytraFlightPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyElytraFlightPower::allow),
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyElytraFlightPower::priority),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyElytraFlightPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyElytraFlightPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		BooleanProvider.STREAM_CODEC, ModifyElytraFlightPower::allow,
 		ByteBufCodecs.INT, ModifyElytraFlightPower::priority,
+		Properties.STREAM_CODEC, ModifyElytraFlightPower::properties,
 		ModifyElytraFlightPower::new
 	);
 

@@ -46,9 +46,12 @@ public abstract class RecipeManagerMixin implements PowerRecipeDisplayHolder {
 
 		for (PowerHolder<?> powerHolder : PowerManager.getInstance().values()) {
 
-			if (!(powerHolder.value() instanceof CraftingRecipePower(RecipeHolder<CraftingRecipe> recipeHolder, int priority))) {
+			if (!(powerHolder.value() instanceof CraftingRecipePower craftingRecipePower)) {
 				continue;
 			}
+
+			RecipeHolder<CraftingRecipe> recipeHolder = craftingRecipePower.recipe();
+			int priority = craftingRecipePower.priority();
 
 			ResourceKey<Recipe<?>> recipeKey = recipeHolder.id();
 			CraftingRecipe recipe = recipeHolder.value();

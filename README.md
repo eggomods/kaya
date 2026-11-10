@@ -95,4 +95,4 @@ dependencies {
 
 ##  Contributing
 
-This project uses JDK 25 and Fabric Loom 0.18-SNAPSHOT. You can generate artifacts using `./gradlew build` and run the client or server with `./gradlew runClient` or `./gradlew runServer` for testing. The client and server will use the `run/client` and `run/server` directories respectively.
+This project uses JDK 21 and Fabric Loom 1.19-SNAPSHOT. You can generate artifacts using `./gradlew build` and run the client or server with `./gradlew runClient` or `./gradlew runServer` for testing. The client and server will use the `run/client` and `run/server` directories respectively.

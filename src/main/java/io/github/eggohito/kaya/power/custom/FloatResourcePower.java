@@ -2,17 +2,14 @@ package io.github.eggohito.kaya.power.custom;
 
 import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.*;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.action.Action;
-import io.github.eggohito.kaya.action.custom.NothingAction;
 import io.github.eggohito.kaya.context.Context;
-import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.power.Power;
+import io.github.eggohito.kaya.power.custom.misc.ResourcePower;
 import io.github.eggohito.kaya.provider.custom.number.FloatProvider;
 import io.github.eggohito.kaya.registry.KayaPowerTypes;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -20,26 +17,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record FloatResourcePower(FloatProvider min, FloatProvider max, Optional<FloatProvider> startValue, Action onChangedAction, Action minAction, Action maxAction) implements Power {
+public record FloatResourcePower(FloatProvider min, FloatProvider max, Optional<FloatProvider> startValue, Action onChangedAction, Action minAction, Action maxAction, Properties properties) implements ResourcePower<Float, FloatProvider> {
 
-	public static final MapCodec<FloatResourcePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		FloatProvider.CODEC.fieldOf("min").forGetter(FloatResourcePower::min),
-		FloatProvider.CODEC.fieldOf("max").forGetter(FloatResourcePower::max),
-		FloatProvider.CODEC.optionalFieldOf("start_value").forGetter(FloatResourcePower::startValue),
-		Action.CODEC.optionalFieldOf("on_changed_action", NothingAction.INSTANCE).forGetter(FloatResourcePower::onChangedAction),
-		Action.CODEC.optionalFieldOf("min_action", NothingAction.INSTANCE).forGetter(FloatResourcePower::minAction),
-		Action.CODEC.optionalFieldOf("max_action", NothingAction.INSTANCE).forGetter(FloatResourcePower::maxAction)
-	).apply(instance, FloatResourcePower::new));
-
-	public static final StreamCodec<RegistryFriendlyByteBuf, FloatResourcePower> STREAM_CODEC = StreamCodec.composite(
-		FloatProvider.STREAM_CODEC, FloatResourcePower::min,
-		FloatProvider.STREAM_CODEC, FloatResourcePower::max,
-		ByteBufCodecs.optional(FloatProvider.STREAM_CODEC), FloatResourcePower::startValue,
-		Action.STREAM_CODEC, FloatResourcePower::onChangedAction,
-		Action.STREAM_CODEC, FloatResourcePower::minAction,
-		Action.STREAM_CODEC, FloatResourcePower::maxAction,
-		FloatResourcePower::new
-	);
+	public static final MapCodec<FloatResourcePower> CODEC = ResourcePower.mapCodec(FloatProvider.CODEC, FloatResourcePower::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, FloatResourcePower> STREAM_CODEC = ResourcePower.streamCodec(FloatProvider.STREAM_CODEC, FloatResourcePower::new);
 
 	@Override
 	public Type<?> getType() {
@@ -49,17 +30,6 @@ public record FloatResourcePower(FloatProvider min, FloatProvider max, Optional<
 	@Override
 	public Power.Instance<?> createInstance() {
 		return new Instance(this);
-	}
-
-	@Override
-	public void validate(ContextValidator validator) {
-		Power.super.validate(validator);
-		min().validate(validator.forChild(".min"));
-		max().validate(validator.forChild(".max"));
-		startValue().ifPresent(start -> start.validate(validator.forChild(".start_value")));
-		onChangedAction().validate(validator.forChild(".on_changed_action"));
-		minAction().validate(validator.forChild(".min_action"));
-		maxAction().validate(validator.forChild(".max_action"));
 	}
 
 	@Getter
