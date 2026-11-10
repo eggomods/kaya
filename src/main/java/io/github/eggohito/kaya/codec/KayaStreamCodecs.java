@@ -42,6 +42,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.level.levelgen.structure.Structure;
 
 import java.math.RoundingMode;
@@ -151,5 +152,7 @@ public class KayaStreamCodecs {
 	public static final StreamCodec<ByteBuf, Either<ResourceKey<Structure>, TagKey<Structure>>> STRUCTURE_KEY_OR_TAG = ByteBufCodecs.either(STRUCTURE_KEY, STRUCTURE_TAG);
 
 	public static final StreamCodec<ByteBuf, Character> CHARACTER = ByteBufCodecs.STRING_UTF8.map(MiscUtil::unsafelyAssumeStringAsCharacter, String::valueOf);
+
+	public static final StreamCodec<ByteBuf, GameEventListener.DeliveryMode> DELIVERY_MODE = StreamCodecUtil.enumType(GameEventListener.DeliveryMode.class);
 
 }

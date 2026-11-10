@@ -42,6 +42,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.phys.Vec3;
 
@@ -210,5 +211,7 @@ public class KayaCodecs {
 		dynamic -> dynamic.convert(JsonOps.INSTANCE).getValue(),
 		jsonElement -> new Dynamic<>(JsonOps.INSTANCE, jsonElement)
 	);
+
+	public static final Codec<GameEventListener.DeliveryMode> DELIVERY_MODE = CodecUtil.enumType(GameEventListener.DeliveryMode.class);
 
 }

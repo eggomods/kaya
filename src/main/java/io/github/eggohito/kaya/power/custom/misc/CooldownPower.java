@@ -14,6 +14,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Function;
+
 public interface CooldownPower extends Power {
 
 	HudElement hudElement();
@@ -27,15 +29,27 @@ public interface CooldownPower extends Power {
 		cooldown().validate(validator.forChild(".cooldown"));
 	}
 
-	static <P extends CooldownPower> Products.P2<RecordCodecBuilder.Mu<P>, HudElement, IntProvider> addFields(RecordCodecBuilder.Instance<P> instance, Codec<HudElement> hudElementCodec, Codec<IntProvider> cooldownCodec) {
-		return instance.group(
-			hudElementCodec.fieldOf("hud_element").forGetter(CooldownPower::hudElement),
-			cooldownCodec.fieldOf("cooldown").forGetter(CooldownPower::cooldown)
-		);
+	static <P extends CooldownPower> RecordCodecBuilder<P, HudElement> hudElementCodecBuilder(Function<String, MapCodec<HudElement>> mapper) {
+		return mapper.apply("hud_element").forGetter(CooldownPower::hudElement);
+	}
+
+	static <P extends CooldownPower> RecordCodecBuilder<P, HudElement> hudElementCodecBuilder() {
+		return hudElementCodecBuilder(HudElement.CODEC::fieldOf);
+	}
+
+	static <P extends CooldownPower> RecordCodecBuilder<P, IntProvider> cooldownCodecBuilder(Function<String, MapCodec<IntProvider>> mapper) {
+		return mapper.apply("cooldown").forGetter(CooldownPower::cooldown);
+	}
+
+	static <P extends CooldownPower> RecordCodecBuilder<P, IntProvider> cooldownCodecBuilder() {
+		return cooldownCodecBuilder(IntProvider.CODEC::fieldOf);
 	}
 
 	static <P extends CooldownPower> Products.P2<RecordCodecBuilder.Mu<P>, HudElement, IntProvider> addFields(RecordCodecBuilder.Instance<P> instance) {
-		return addFields(instance, HudElement.CODEC, IntProvider.CODEC);
+		return instance.group(
+			hudElementCodecBuilder(),
+			cooldownCodecBuilder()
+		);
 	}
 
 	class Instance<P extends CooldownPower> extends Power.Instance<P> {
