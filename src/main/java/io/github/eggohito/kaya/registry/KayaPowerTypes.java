@@ -128,6 +128,20 @@ public final class KayaPowerTypes {
 			.optional(KayaContextParameters.TARGET_ENTITY)
 	);
 
+	public static final Power.Type<CallbackVibrationListenedPower> CALLBACK_VIBRATION_LISTENED = registerInternal(
+		"callback/vibration/listened",
+		CallbackVibrationListenedPower.CODEC,
+		CallbackVibrationListenedPower.STREAM_CODEC,
+		params -> params
+			.required(NumberBoundHudElement.CURRENT_VALUE)
+			.required(NumberBoundHudElement.MAX_VALUE)
+			.required(NumberBoundHudElement.MIN_VALUE)
+			.required(CallbackVibrationListenedPower.VIBRATION_POSITION)
+			.optional(CallbackVibrationListenedPower.VIBRATION_AFFECTED_BLOCK)
+			.optional(CallbackVibrationListenedPower.VIBRATION_EMITTER)
+			.optional(CallbackVibrationListenedPower.VIBRATION_PROJECTILE_OWNER)
+	);
+
 	public static final Power.Type<CooldownStandalonePower> COOLDOWN = registerInternal(
 		"cooldown",
 		CooldownStandalonePower.CODEC,

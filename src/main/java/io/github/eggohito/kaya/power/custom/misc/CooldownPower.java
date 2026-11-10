@@ -14,6 +14,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Function;
+
 public interface CooldownPower extends Power {
 
 	HudElement hudElement();
@@ -27,10 +29,26 @@ public interface CooldownPower extends Power {
 		cooldown().validate(validator.forChild(".cooldown"));
 	}
 
+	static <P extends CooldownPower> RecordCodecBuilder<P, HudElement> hudElementCodecBuilder(Function<String, MapCodec<HudElement>> mapper) {
+		return mapper.apply("hud_element").forGetter(CooldownPower::hudElement);
+	}
+
+	static <P extends CooldownPower> RecordCodecBuilder<P, HudElement> hudElementCodecBuilder() {
+		return hudElementCodecBuilder(HudElement.CODEC::fieldOf);
+	}
+
+	static <P extends CooldownPower> RecordCodecBuilder<P, IntProvider> cooldownCodecBuilder(Function<String, MapCodec<IntProvider>> mapper) {
+		return mapper.apply("cooldown").forGetter(CooldownPower::cooldown);
+	}
+
+	static <P extends CooldownPower> RecordCodecBuilder<P, IntProvider> cooldownCodecBuilder() {
+		return cooldownCodecBuilder(IntProvider.CODEC::fieldOf);
+	}
+
 	static <P extends CooldownPower> Products.P2<RecordCodecBuilder.Mu<P>, HudElement, IntProvider> addFields(RecordCodecBuilder.Instance<P> instance) {
 		return instance.group(
-			HudElement.CODEC.fieldOf("hud_element").forGetter(CooldownPower::hudElement),
-			IntProvider.CODEC.fieldOf("cooldown").forGetter(CooldownPower::cooldown)
+			hudElementCodecBuilder(),
+			cooldownCodecBuilder()
 		);
 	}
 
@@ -83,6 +101,10 @@ public interface CooldownPower extends Power {
 			return timePassed <= cooldown
 				&& hudElement().shouldRender(context, renderPhase);
 
+		}
+
+		public boolean canUse(Context context) {
+			return this.getRemainingTicks(context) <= 0;
 		}
 
 		public double getProgress(Context context) {
