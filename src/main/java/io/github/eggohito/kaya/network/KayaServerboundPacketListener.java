@@ -10,8 +10,6 @@ import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
 
 import java.util.NoSuchElementException;
 
@@ -20,22 +18,23 @@ public final class KayaServerboundPacketListener {
 	public static void init() {
 
 		if (Kaya.performStandaloneHandshake()) {
-			ServerConfigurationConnectionEvents.BEFORE_CONFIGURE.addPhaseOrdering(Kaya.HANDSHAKE_PHASE, Event.DEFAULT_PHASE);
-			ServerConfigurationConnectionEvents.BEFORE_CONFIGURE.register(Kaya.HANDSHAKE_PHASE, KayaServerboundPacketListener::requestHandshake);
+			HandshakeTask.enableFor(Kaya.MOD_NAMESPACE);
 		}
 
+		ServerConfigurationConnectionEvents.BEFORE_CONFIGURE.addPhaseOrdering(HandshakeTask.PHASE, Event.DEFAULT_PHASE);
 		ServerConfigurationNetworking.registerGlobalReceiver(HandshakePacket.TYPE, KayaServerboundPacketListener::handleHandshakeReply);
 
 	}
 
+	//  TODO:   either avoid using Fabric's version class and use own protocol logic or wait for
+	//          https://github.com/FabricMC/fabric-api/pull/4011 to be merged to Fabric API
 	private static void handleHandshakeReply(HandshakePacket payload, ServerConfigurationNetworking.Context context) {
 
 		String modId = payload.modId();
-		ModContainer mod;
 
 		try {
 
-			mod = FabricLoader.getInstance()
+			ModContainer mod = FabricLoader.getInstance()
 				.getModContainer(modId)
 				.orElseThrow();
 
@@ -58,20 +57,6 @@ public final class KayaServerboundPacketListener {
 
 		catch (NoSuchElementException ignored) {
 			context.networkHandler().disconnect(payload.createMissingModComponent());
-		}
-
-	}
-
-	private static void requestHandshake(ServerConfigurationPacketListenerImpl handler, MinecraftServer server) {
-
-		HandshakeTask task = new HandshakeTask(Kaya.MOD_NAMESPACE, Kaya.getVersion().getFriendlyString());
-
-		if (ServerConfigurationNetworking.canSend(handler, HandshakePacket.TYPE)) {
-			handler.addTask(task);
-		}
-
-		else {
-			handler.disconnect(task.createMissingModComponent());
 		}
 
 	}

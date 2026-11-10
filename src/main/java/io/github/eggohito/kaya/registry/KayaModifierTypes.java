@@ -27,7 +27,7 @@ public final class KayaModifierTypes {
 		Modifier.Type.ALIASES.addPathAlias("division", DIVIDE);
 		Modifier.Type.ALIASES.addPathAlias("addition", ADD);
 
-		ModifierOrderCallback.EVENT.register(Kaya.MODIFIER_ORDER_PHASE, orderer -> orderer
+		ModifierOrderCallback.EVENT.register(ModifierOrderCallback.PHASE, orderer -> orderer
 			.addLast(ADD)
 			.addLast(MULTIPLY)
 			.addLast(MULTIPLY_ADDITIVE)

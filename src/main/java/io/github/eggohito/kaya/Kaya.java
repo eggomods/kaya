@@ -51,9 +51,6 @@ public final class Kaya implements ModInitializer {
 	public static final String MOD_NAMESPACE = "kaya";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAMESPACE);
 
-	public static final ResourceLocation HANDSHAKE_PHASE = id("handshake");
-	public static final ResourceLocation MODIFIER_ORDER_PHASE = id("modifier_order");
-
 	static final IntSet CACHED_LOGS = new IntOpenHashSet();
 
 	static MinecraftServer server;
