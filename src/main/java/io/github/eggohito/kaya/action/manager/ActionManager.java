@@ -4,6 +4,7 @@ import com.mojang.serialization.DataResult;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.action.Action;
 import io.github.eggohito.kaya.action.ActionHolder;
+import io.github.eggohito.kaya.resource.DependencyList;
 import io.github.eggohito.kaya.util.manager.ContentAndTagManager;
 import io.github.eggohito.kaya.util.manager.KayaManagers;
 import net.minecraft.resources.ResourceLocation;
@@ -16,6 +17,8 @@ import java.util.function.Supplier;
 public interface ActionManager extends ContentAndTagManager<ResourceLocation, ActionHolder<?>> {
 
 	ResourceLocation ID = Kaya.id("manager/action");
+
+	DependencyList DEPENDENCIES = new DependencyList(ID);
 
 	Supplier<ActionManager> DEFERRED_INSTANCE = KayaManagers.deferredPhysicalSideSpecific(ActionManager.class, ServerActionManager::new);
 

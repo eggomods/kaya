@@ -1,15 +1,11 @@
 package io.github.eggohito.kaya.condition.manager;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.kaya.condition.Condition;
-import io.github.eggohito.kaya.event.DependencyManager;
 import io.github.eggohito.kaya.network.packet.clientbound.ClientboundUpdateConditionsPacket;
 import io.github.eggohito.kaya.registry.KayaRegistryKeys;
 import io.github.eggohito.kaya.resource.json.JsonFileToIdConverter;
@@ -22,7 +18,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -44,7 +39,6 @@ import java.util.concurrent.Executor;
 public class ServerConditionManager extends AbstractContentManager<ResourceLocation, Condition> implements ConditionManager, IdentifiableResourceReloadListener {
 
 	private static final Logger LOGGER = LogUtils.getLogger();
-	private static final Supplier<ImmutableSet<ResourceLocation>> DEPENDENCIES = Suppliers.memoize(() -> Util.make(ImmutableSet.builder(), DependencyManager.CONDITIONS.invoker()::add).build());
 
 	private final JsonFileToIdConverter loader = JsonFileToIdConverter.registry(KayaRegistryKeys.CONDITION);
 	private volatile DynamicOps<JsonElement> ops = JsonOps.INSTANCE;
@@ -56,7 +50,7 @@ public class ServerConditionManager extends AbstractContentManager<ResourceLocat
 
 	@Override
 	public Collection<ResourceLocation> getFabricDependencies() {
-		return DEPENDENCIES.get();
+		return DEPENDENCIES.freezeAndGet();
 	}
 
 	@Override
