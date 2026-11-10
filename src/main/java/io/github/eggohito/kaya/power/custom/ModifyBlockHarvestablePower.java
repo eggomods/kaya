@@ -3,7 +3,6 @@ package io.github.eggohito.kaya.power.custom;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.context.visitor.ClearableVisitor;
@@ -24,24 +23,22 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
 import java.util.function.BooleanSupplier;
 
-public record ModifyBlockHarvestablePower(Optional<Condition> activeCondition, BooleanProvider allow, int priority) implements PrioritizedPower<ModifyBlockHarvestablePower> {
+public record ModifyBlockHarvestablePower(BooleanProvider allow, int priority, Properties properties) implements PrioritizedPower<ModifyBlockHarvestablePower> {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyBlockHarvestablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyBlockHarvestablePower::allow))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockHarvestablePower::priority))
-		.apply(instance, ModifyBlockHarvestablePower::new)
-	);
+	public static final MapCodec<ModifyBlockHarvestablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyBlockHarvestablePower::allow),
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockHarvestablePower::priority),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyBlockHarvestablePower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyBlockHarvestablePower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		BooleanProvider.STREAM_CODEC, ModifyBlockHarvestablePower::allow,
 		ByteBufCodecs.INT, ModifyBlockHarvestablePower::priority,
+		Properties.STREAM_CODEC, ModifyBlockHarvestablePower::properties,
 		ModifyBlockHarvestablePower::new
 	);
 

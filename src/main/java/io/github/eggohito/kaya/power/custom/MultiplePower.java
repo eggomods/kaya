@@ -4,8 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.*;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.isxander.yacl3.config.v3.ConfigEntry;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.config.AbstractJsonCodecConfig;
@@ -14,8 +14,10 @@ import io.github.eggohito.kaya.power.PowerHolder;
 import io.github.eggohito.kaya.power.PowerIdentifier;
 import io.github.eggohito.kaya.registry.KayaPowerTypes;
 import io.github.eggohito.kaya.resource.json.JsonWithSource;
+import io.github.eggohito.kaya.util.CodecUtil;
 import io.github.eggohito.kaya.util.MiscUtil;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import io.github.eggohito.kaya.util.StreamCodecUtil;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -23,142 +25,64 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 import org.quiltmc.parsers.json.JsonFormat;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 @SuppressWarnings("UnstableApiUsage")
-public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements Power {
+public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers, Properties properties) implements Power {
 
 	public static final ResourceLocation ID = Kaya.id("multiple");
 
-	private static final MapCodec<Power> DISALLOWED_MULTIPLE_DISPATCH_CODEC = Type.CODEC.validate(MultiplePower::disallowRecursiveMultiple).dispatchMap(TYPE_KEY, Power::getType, Type::mapCodec);
-	private static final MapCodec<PowerHolder<?>> DISALLOWED_MULTIPLE_MAP_CODEC = PowerHolder.mapCodec(DISALLOWED_MULTIPLE_DISPATCH_CODEC);
+	private static final MapCodec<Power> DISALLOWED_MULTIPLE_CODEC = Type.CODEC.validate(MultiplePower::validateSubPowerType).dispatchMap(TYPE_KEY, Power::getType, Type::mapCodec);
+	private static final MapCodec<PowerHolder<?>> DISALLOWED_MULTIPLE_HOLDER_CODEC = PowerHolder.mapCodec(DISALLOWED_MULTIPLE_CODEC);
 
-	private static final MapCodec<ImmutableSet<PowerHolder<?>>> SUB_POWERS_CODEC = new MapCodec<>() {
+	private static final MapCodec<Map<String, PowerHolder<?>>> MAP_SUB_POWERS_CODEC = MapCodec.assumeMapUnsafe(CodecUtil.filteredUnboundedMapCodec(Codec.STRING.validate(MultiplePower::validateSubPowerName), DISALLOWED_MULTIPLE_HOLDER_CODEC.codec(), Predicate.not(MultiplePower::isFieldIgnored)));
+	private static final MapCodec<ImmutableSet<PowerHolder<?>>> SUB_POWERS_CODEC = MAP_SUB_POWERS_CODEC.xmap(
+		map -> {
 
-		@Override
-		public <T> Stream<T> keys(DynamicOps<T> ops) {
-			return Stream.empty();
-		}
+			ImmutableSet.Builder<PowerHolder<?>> builder = ImmutableSet.builder();
+			map.values().forEach(builder::add);
 
-		@Override
-		public <I> DataResult<ImmutableSet<PowerHolder<?>>> decode(DynamicOps<I> ops, MapLike<I> mapInput) {
+			return builder.build();
 
-			Set<PowerHolder<?>> succeeded = new ObjectOpenHashSet<>();
-			DataResult<Unit> result = mapInput.entries().reduce(
-				DataResult.success(Unit.INSTANCE, Lifecycle.stable()),
-				(identity, keyAndValue) -> {
+		},
+		set -> {
 
-					DataResult<String> keyResult = Codec.STRING.parse(ops, keyAndValue.getFirst());
-					DataResult<String> subPowerNameResult = keyResult.flatMap(MultiplePower::validateSubPowerName);
+			Map<String, PowerHolder<?>> map = new Object2ObjectLinkedOpenHashMap<>();
 
-					if (keyResult.mapOrElse(MultiplePower::isFieldIgnored, error -> false)) {
-						return identity;
-					}
+			for (var holder : set) {
 
-					if (subPowerNameResult.isError()) {
-						return identity.apply2stable((unit, o) -> unit, subPowerNameResult);
-					}
-
-					String subPowerName = subPowerNameResult.getOrThrow();
-					DataResult<MapLike<I>> valueResult = ops.getMap(keyAndValue.getSecond()).mapError(error -> "Sub-power \"" + subPowerName + "\" errored: " + error);
-
-					if (valueResult.isError()) {
-						return identity.apply2stable((unit, o) -> unit, valueResult);
-					}
-
-					MapLike<I> value = valueResult.getOrThrow();
-					DataResult<PowerHolder<?>> subPowerResult = DISALLOWED_MULTIPLE_MAP_CODEC.decode(ops, value).mapError(error -> "Sub-power \"" + subPowerName + "\" errored: " + error);
-
-					if (subPowerResult.isSuccess() && !succeeded.add(subPowerResult.getOrThrow())) {
-						return identity.apply2stable((unit, o) -> unit, DataResult.error(() -> "Duplicate key: \"" + subPowerName + "\""));
-					}
-
-					return identity.apply2stable((unit, o) -> unit, subPowerResult);
-
-				},
-				(r1, r2) ->
-					r1.apply2stable((u1, u2) -> u1, r2)
-			);
-
-			ImmutableSet<PowerHolder<?>> elements = ImmutableSet.copyOf(succeeded);
-			return result.map(u -> elements).setPartial(elements);
-
-		}
-
-		@Override
-		public <O> RecordBuilder<O> encode(ImmutableSet<PowerHolder<?>> entries, DynamicOps<O> ops, RecordBuilder<O> prefix) {
-
-			for (var entry : entries) {
-				prefix.add(entry.id().toString(), PowerHolder.CODEC.encodeStart(ops, entry));
-			}
-
-			return prefix;
-
-		}
-
-	};
-
-	private static final StreamCodec<RegistryFriendlyByteBuf, ImmutableSet<PowerHolder<?>>> SUB_POWERS_STREAM_CODEC = new StreamCodec<>() {
-
-		@Override
-		public @NotNull ImmutableSet<PowerHolder<?>> decode(RegistryFriendlyByteBuf buf) {
-
-			ImmutableSet.Builder<PowerHolder<?>> holders = ImmutableSet.builder();
-			int size = buf.readInt();
-
-			for (int i = 0; i < size; i++) {
-
-				PowerHolder<?> powerHolder = PowerHolder.STREAM_CODEC.decode(buf);
-
-				if (powerHolder.isSubPower()) {
-					holders.add(powerHolder);
-				}
-
-				else {
-					throw new IllegalArgumentException("Expected a sub-power, but got " + powerHolder.id().asDisplayString(false) + "!");
+				if (holder.id() instanceof PowerIdentifier.SubImpl subId) {
+					map.put(subId.name(), holder);
 				}
 
 			}
 
-			return holders.build();
+			return map;
 
 		}
-
-		@Override
-		public void encode(RegistryFriendlyByteBuf buf, ImmutableSet<PowerHolder<?>> holders) {
-
-			buf.writeInt(holders.size());
-
-			for (var holder : holders) {
-				PowerHolder.STREAM_CODEC.encode(buf, holder);
-			}
-
-		}
-
-	};
-
-	public static final MapCodec<MultiplePower> CODEC = SUB_POWERS_CODEC.xmap(
-		MultiplePower::new,
-		MultiplePower::subPowers
 	);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplePower> STREAM_CODEC = SUB_POWERS_STREAM_CODEC.map(
-		MultiplePower::new,
-		MultiplePower::subPowers
+	public static final MapCodec<MultiplePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		SUB_POWERS_CODEC.forGetter(MultiplePower::subPowers),
+		Power.propertiesCodecBuilder(false)
+	).apply(instance, MultiplePower::new));
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, MultiplePower> STREAM_CODEC = StreamCodec.composite(
+		PowerHolder.STREAM_CODEC.apply(StreamCodecUtil.set()).map(ImmutableSet::copyOf, Function.identity()), MultiplePower::subPowers,
+		Properties.STREAM_CODEC, MultiplePower::properties,
+		MultiplePower::new
 	);
 
 	public MultiplePower {
 
 		for (var subPower : subPowers) {
-			validateNonRecursiveMultiple(subPower);
+			validateSubPower(subPower.value()).getOrThrow();
 		}
 
 	}
@@ -238,7 +162,7 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 
 	}
 
-	public static DataResult<Type<?>> disallowRecursiveMultiple(Power.Type<?> type) {
+	public static DataResult<Type<?>> validateSubPowerType(Power.Type<?> type) {
 
 		if (type == KayaPowerTypes.MULTIPLE) {
 			return DataResult.error(() -> "The '" + ID + "' power type is not allowed in sub-powers!");
@@ -250,9 +174,8 @@ public record MultiplePower(ImmutableSet<PowerHolder<?>> subPowers) implements P
 
 	}
 
-	public static PowerHolder<?> validateNonRecursiveMultiple(PowerHolder<?> holder) {
-		disallowRecursiveMultiple(holder.value().getType()).getOrThrow();
-		return holder;
+	public static DataResult<Power> validateSubPower(Power power) {
+		return validateSubPowerType(power.getType()).map(ignored -> power);
 	}
 
 	public static final class Config extends AbstractJsonCodecConfig<Config> {

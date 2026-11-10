@@ -13,127 +13,69 @@ import io.github.eggohito.kaya.util.MiscUtil;
 import io.github.eggohito.kaya.util.ResourceLocationUtil;
 import io.github.eggohito.kaya.util.StringDisplayable;
 import io.netty.buffer.ByteBuf;
-import lombok.Getter;
-import lombok.experimental.Accessors;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.Util;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.function.Supplier;
 
-@Accessors(fluent = true)
-@Getter
-public final class PowerIdentifier implements StringDisplayable, ContextValidatable {
+public sealed interface PowerIdentifier extends StringDisplayable, ContextValidatable {
 
-	public static final Codec<PowerIdentifier> CODEC = PrimitiveCodec.STRING.comapFlatMap(PowerIdentifier::parseAsResult, PowerIdentifier::toString);
-	public static final StreamCodec<ByteBuf, PowerIdentifier> STREAM_CODEC = ByteBufCodecs.STRING_UTF8.map(PowerIdentifier::parse, PowerIdentifier::toString);
+	Codec<PowerIdentifier> CODEC = PrimitiveCodec.STRING.comapFlatMap(PowerIdentifier::parseAsResult, PowerIdentifier::toString);
 
-	public static final char SEPARATOR = '@';
+	StreamCodec<ByteBuf, PowerIdentifier> STREAM_CODEC = ByteBufCodecs.STRING_UTF8.map(PowerIdentifier::parse, PowerIdentifier::toString);
 
-	private final ResourceLocation value;
-	private final @Nullable String subName;
+	char SEPARATOR = '@';
 
-	PowerIdentifier(ResourceLocation value, @Nullable String subName) {
-		this.value = ResourceLocationUtil.validateNonEmpty(value).getOrThrow();
-		this.subName = subName != null
-			? MultiplePower.validateSubPowerName(subName).getOrThrow()
-			: null;
-	}
+	ResourceLocation baseId();
 
-	@Override
-	public String asDisplayString() {
-		return isSubPower()
-			? "Sub-power \"" + subName() + "\" of power \"" + value() + "\""
-			: "Power \"" + value() + "\"";
-	}
+	String createTranslationKey();
 
-	@Override
-	public void validate(ContextValidator validator) {
-		PowerManager.getInstance().getAsResult(this).resultOrPartial(validator::reportProblem);
-	}
+	boolean isSubPower();
 
-	@Override
-	public @NotNull String toString() {
-		return value() + (isSubPower() ? SEPARATOR + subName() : "");
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-
-		if (this == obj) {
-			return true;
-		}
-
-		else if (obj instanceof PowerIdentifier that) {
-			return Objects.equals(this.value(), that.value())
-				&& Objects.equals(this.subName(), that.subName());
-		}
-
-		else {
-			return false;
-		}
-
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(value(), subName());
-	}
-
-	public String createTranslationKey() {
-		return Util.makeDescriptionId("power", value()) + (isSubPower() ? SEPARATOR + subName() : "");
-	}
-
-	public boolean isSubPower() {
-		return subName() != null;
-	}
-
-	public void validate(ContextValidator validator, Class<? extends Power> powerClass, Supplier<String> errorSupplier) {
+	default void validate(ContextValidator validator, Class<? extends Power> powerClass, Supplier<String> errorSupplier) {
 		PowerManager.getInstance().getAsResult(this)
 			.map(PowerHolder::value)
 			.flatMap(MiscUtil.validateType(powerClass, errorSupplier))
 			.resultOrPartial(validator::reportProblem);
 	}
 
-	public static PowerIdentifier of(@NotNull ResourceLocation id) {
-		return new PowerIdentifier(id, null);
+	@Override
+	default void validate(ContextValidator validator) {
+		PowerManager.getInstance().getAsResult(this).resultOrPartial(validator::reportProblem);
 	}
 
-	public static PowerIdentifier subPower(@NotNull ResourceLocation id, @NotNull String name) {
-		return new PowerIdentifier(id, name);
+	static PowerIdentifier of(@NotNull ResourceLocation id) {
+		return new Impl(id);
 	}
 
-	public static PowerIdentifier parse(String input) {
+	static PowerIdentifier subPowerOf(@NotNull ResourceLocation id, @NotNull String name) {
+		return new SubImpl(id, name);
+	}
 
+	static PowerIdentifier parse(String input) {
 		int separatorIndex = input.indexOf(SEPARATOR);
-		ResourceLocation id = separatorIndex >= 0
-			? ResourceLocation.parse(input.substring(0, separatorIndex))
-			: ResourceLocation.parse(input);
-
 		return separatorIndex >= 0
-			? subPower(id, input.substring(separatorIndex + 1))
-			: of(id);
-
+			? subPowerOf(ResourceLocation.parse(input.substring(0, separatorIndex)), input.substring(separatorIndex + 1))
+			: of(ResourceLocation.parse(input));
 	}
 
-	public static DataResult<PowerIdentifier> parseAsResult(String input) {
+	static DataResult<PowerIdentifier> parseAsResult(String input) {
 
 		try {
 			return DataResult.success(parse(input));
 		}
 
-		catch (ResourceLocationException e) {
+		catch (Exception e) {
 			return DataResult.error(e::getMessage);
 		}
 
 	}
 
-	public static PowerIdentifier read(StringReader reader) throws CommandSyntaxException {
+	static PowerIdentifier read(StringReader reader) throws CommandSyntaxException {
 
 		int cursor = reader.getCursor();
 		String input = readGreedily(reader);
@@ -149,7 +91,7 @@ public final class PowerIdentifier implements StringDisplayable, ContextValidata
 
 	}
 
-	public static boolean isAllowed(char ch) {
+	static boolean isCharAllowed(char ch) {
 		return ch == SEPARATOR
 			|| ResourceLocation.isAllowedInResourceLocation(ch)
 			|| ResourceLocationUtil.isEnabledAndPlaceholder(ch);
@@ -158,11 +100,70 @@ public final class PowerIdentifier implements StringDisplayable, ContextValidata
 	private static String readGreedily(StringReader reader) {
 
 		int cursor = reader.getCursor();
-		while (reader.canRead() && isAllowed(reader.peek())) {
+
+		while (reader.canRead() && isCharAllowed(reader.peek())) {
 			reader.skip();
 		}
 
 		return reader.getString().substring(cursor, reader.getCursor());
+
+	}
+
+	record Impl(ResourceLocation baseId) implements PowerIdentifier {
+
+
+		public Impl {
+			ResourceLocationUtil.validateNonEmpty(baseId).getOrThrow();
+		}
+
+		@Override
+		public String createTranslationKey() {
+			return Util.makeDescriptionId("power", this.baseId());
+		}
+
+		@Override
+		public boolean isSubPower() {
+			return false;
+		}
+
+		@Override
+		public String asDisplayString() {
+			return "Power \"" + this.baseId() + "\"";
+		}
+
+		@Override
+		public @NotNull String toString() {
+			return this.baseId().toString();
+		}
+
+	}
+
+	record SubImpl(ResourceLocation baseId, String name) implements PowerIdentifier {
+
+		public SubImpl {
+			ResourceLocationUtil.validateNonEmpty(baseId).getOrThrow();
+			MultiplePower.validateSubPowerName(name).getOrThrow();
+		}
+
+		@Override
+		public String createTranslationKey() {
+			return Util.makeDescriptionId("power", this.baseId()) + SEPARATOR + this.name();
+		}
+
+		@Override
+		public boolean isSubPower() {
+			return true;
+		}
+
+		@Override
+		public String asDisplayString() {
+			return "Sub-power" + this.name() + " of power \"" + this.baseId() + "\"";
+		}
+
+		@Override
+		public @NotNull String toString() {
+			return this.baseId() + Character.toString(SEPARATOR) + this.name();
+		}
 
 	}
 

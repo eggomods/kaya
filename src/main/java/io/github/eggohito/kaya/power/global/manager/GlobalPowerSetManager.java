@@ -54,7 +54,7 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 	private static final JsonFileToIdConverter LOADER = JsonFileToIdConverter.registry(KayaRegistryKeys.GLOBAL_POWER_SET);
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalPowerSetManager.class);
 
-	private volatile ImmutableMap<ResourceLocation, GlobalPowerSet.SourcedFile> merged = ImmutableMap.of();
+	private volatile ImmutableMap<ResourceLocation, List<GlobalPowerSet.File>> pendingContents = ImmutableMap.of();
 	private volatile DynamicOps<JsonElement> ops = JsonOps.INSTANCE;
 
 	private GlobalPowerSetManager() {
@@ -126,36 +126,24 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 
 	private void apply(Map<ResourceLocation, List<JsonWithSource>> pending) {
 
-		if (ops == null) {
-			return;
-		}
-
+		Map<ResourceLocation, List<GlobalPowerSet.File>> builder = new Object2ObjectLinkedOpenHashMap<>();
 		LOGGER.info("Parsing global power sets from data packs...");
-		Map<ResourceLocation, List<GlobalPowerSet.SourcedFile>> toMerge = new Object2ObjectLinkedOpenHashMap<>();
 
-		pending.forEach((id, elementWithSources) -> {
+		pending.forEach((id, jsonWithSources) -> {
 
 			ResourceLocationUtil.setCurrent(id);
-			elementWithSources.forEach(jsonWithSource -> GlobalPowerSet.File.CODEC.compressedDecode(ops, jsonWithSource.json())
+			jsonWithSources.forEach(jsonWithSource -> GlobalPowerSet.Template.CODEC.parse(ops, jsonWithSource.json())
 				.ifError(error -> LOGGER.error("Error trying to parse global power set \"{}\" from data pack [{}] (skipping): {}", id, jsonWithSource.source(), error.message()))
-				.ifSuccess(file -> toMerge
+				.ifSuccess(template -> builder
 					.computeIfAbsent(id, ignored -> new ObjectArrayList<>())
-					.add(new GlobalPowerSet.SourcedFile(file, jsonWithSource.source()))));
+					.add(new GlobalPowerSet.File(id, jsonWithSource.source(), template))));
 
 			ResourceLocationUtil.setCurrent(null);
 
 		});
 
-		LOGGER.info("Finished parsing global power sets. Merging {} similar global power sets...", toMerge.values().stream().mapToInt(Collection::size).sum());
-
-		ImmutableMap.Builder<ResourceLocation, GlobalPowerSet.SourcedFile> builder = ImmutableMap.builder();
-		toMerge.forEach((id, sourcedFiles) -> sourcedFiles
-			.stream()
-			.reduce((first, second) -> first.merge(second, () -> LOGGER.warn("Global power set \"{}\" from data pack [{}] has been replaced with a similar one from data pack [{}]!", id, first.source(), second.source())))
-			.ifPresent(sourcedFile -> builder.put(id, sourcedFile)));
-
-		this.merged = builder.build();
-		LOGGER.info("Finished merging global power sets.");
+		this.pendingContents = ImmutableMap.copyOf(builder);
+		LOGGER.info("Finished parsing global power sets. Parsed {} global power set(s)", this.pendingContents.size());
 
 	}
 
@@ -187,37 +175,57 @@ public final class GlobalPowerSetManager extends AbstractContentManager<Resource
 
 	private void finalize(ReloadableServerResources resources) {
 
-		if (merged.isEmpty()) {
-			return;
-		}
-
 		ImmutableMap.Builder<ResourceLocation, GlobalPowerSet> builder = ImmutableMap.builder();
-		int size = merged.size();
 
-		LOGGER.info("Validating {} global power set(s)...", size);
-
-		for (var entry : merged.entrySet()) {
+		for (var entry : pendingContents.entrySet()) {
 
 			ResourceLocation id = entry.getKey();
-			GlobalPowerSet set = entry.getValue().asSet();
+			List<GlobalPowerSet.File> files = entry.getValue();
 
-			try (Reporter.Scoped reporter = new Reporter.Scoped("{\"" + id + "\"}", problems -> LOGGER.error("Found problems while validating global power set \"{}\":\n{}", id, problems))) {
+			List<GlobalPowerSet.File> pendingMerge = new ObjectArrayList<>();
+			LOGGER.info("Validating {} file(s) for global power set \"{}\"...", files.size(), id);
 
-				ContextValidator validator = new ContextValidator(ContextValidator.Parameters.EMPTY, reporter, MiscUtil.getRegistries(resources));
-				set.validate(validator);
+			//  validate the global power sets before merging
+			for (var file : files) {
 
-				if (!reporter.hasProblems()) {
-					builder.put(id, set);
+				try (Reporter.Scoped reporter = new Reporter.Scoped("{\"" + id + "\"}", problems -> LOGGER.error("Found problems while validating global power set file \"{}\" from data pack [{}]:\n{}", id, file.source(), problems))) {
+
+					ContextValidator validator = new ContextValidator(ContextValidator.Parameters.EMPTY, reporter, MiscUtil.getRegistries(resources));
+					file.validate(validator);
+
+					if (!reporter.hasProblems()) {
+						pendingMerge.add(file);
+					}
+
 				}
 
 			}
 
+			StringBuilder info = new StringBuilder();
+			info.append("Finished validating files for global power set \"").append(id).append("\"");
+
+			if (pendingMerge.size() > 1) {
+				info.append(". Merging all ").append(pendingMerge.size()).append(" files into one...");
+			}
+
+			LOGGER.info(info.toString());
+
+			//  merge similar global power sets
+			pendingMerge
+				.stream()
+				.reduce(GlobalPowerSet.File::merge)
+				.ifPresent(file -> builder.put(id, file.template().toSet()));
+
+			if (pendingMerge.size() > 1) {
+				LOGGER.info("Finished merging {} files for global power set \"{}\"", pendingMerge.size(), id);
+			}
+
 		}
 
-		this.merged = ImmutableMap.of();
+		this.pendingContents = ImmutableMap.of();
 		this.contents = builder.build();
 
-		LOGGER.info("Finished validating {} global power set(s). Global power set manager contains {} global power set(s)", size, this.size());
+		LOGGER.info("Global power set manager contains {} global power set(s)", this.size());
 
 	}
 

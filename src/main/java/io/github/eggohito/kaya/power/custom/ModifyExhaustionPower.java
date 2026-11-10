@@ -2,7 +2,6 @@ package io.github.eggohito.kaya.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidatable;
 import io.github.eggohito.kaya.context.ContextValidator;
@@ -21,19 +20,17 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Optional;
 
-public record ModifyExhaustionPower(Optional<Condition> activeCondition, List<Modifier> modifiers) implements Power {
+public record ModifyExhaustionPower(List<Modifier> modifiers, Properties properties) implements Power {
 
-	public static final MapCodec<ModifyExhaustionPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyExhaustionPower::modifiers))
-		.apply(instance, ModifyExhaustionPower::new)
-	);
+	public static final MapCodec<ModifyExhaustionPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyExhaustionPower::modifiers),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyExhaustionPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyExhaustionPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		Modifier.STREAM_CODEC.apply(ByteBufCodecs.list()), ModifyExhaustionPower::modifiers,
+		Properties.STREAM_CODEC, ModifyExhaustionPower::properties,
 		ModifyExhaustionPower::new
 	);
 

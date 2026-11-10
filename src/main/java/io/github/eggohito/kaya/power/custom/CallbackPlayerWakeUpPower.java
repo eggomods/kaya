@@ -3,7 +3,6 @@ package io.github.eggohito.kaya.power.custom;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.action.Action;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.parameter.BlockContextParameter;
 import io.github.eggohito.kaya.exception.PosOutOfBoundsException;
@@ -21,9 +20,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
-
-public record CallbackPlayerWakeUpPower(Optional<Condition> activeCondition, Action action) implements CallbackPower {
+public record CallbackPlayerWakeUpPower(Action action, Properties properties) implements CallbackPower {
 
 	public static final BlockContextParameter SLEPT_ON_BLOCK = new BlockContextParameter(Kaya.id("slept_on_block"));
 

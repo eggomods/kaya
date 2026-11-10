@@ -3,7 +3,6 @@ package io.github.eggohito.kaya.power.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.color.Color;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.power.Power;
@@ -11,26 +10,23 @@ import io.github.eggohito.kaya.power.entity.Powers;
 import io.github.eggohito.kaya.registry.KayaPowerTypes;
 import io.github.eggohito.kaya.registry.context.KayaContextParameters;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
-import java.util.Optional;
 
-public record ModifyModelColorSelfPower(Optional<Condition> activeCondition, Color color) implements Power {
+public record ModifyModelColorSelfPower(Color color, Properties properties) implements Power {
 
-	public static final MapCodec<ModifyModelColorSelfPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(Color.CODEC.fieldOf("color").forGetter(ModifyModelColorSelfPower::color))
-		.apply(instance, ModifyModelColorSelfPower::new)
-	);
+	public static final MapCodec<ModifyModelColorSelfPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Color.CODEC.fieldOf("color").forGetter(ModifyModelColorSelfPower::color),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyModelColorSelfPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyModelColorSelfPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		Color.STREAM_CODEC, ModifyModelColorSelfPower::color,
+		Properties.STREAM_CODEC, ModifyModelColorSelfPower::properties,
 		ModifyModelColorSelfPower::new
 	);
 

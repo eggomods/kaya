@@ -5,7 +5,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.action.Action;
 import io.github.eggohito.kaya.action.custom.NothingAction;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidatable;
 import io.github.eggohito.kaya.context.ContextValidator;
@@ -19,12 +18,12 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface DamageModifyingPower extends Power {
 
@@ -44,19 +43,19 @@ public interface DamageModifyingPower extends Power {
 
 	}
 
-	static <P extends DamageModifyingPower> MapCodec<P> codec(Function3<Optional<Condition>, List<Modifier>, Action, P> constructor) {
-		return RecordCodecBuilder.mapCodec(instance -> Power.addActiveConditionField(instance)
-			.and(Modifier.CODEC.listOf().fieldOf("modifiers").forGetter(DamageModifyingPower::modifiers))
-			.and(Action.CODEC.optionalFieldOf("on_modify_action", NothingAction.INSTANCE).forGetter(DamageModifyingPower::onModifyAction))
-			.apply(instance, constructor)
-		);
+	static <P extends DamageModifyingPower> MapCodec<P> codec(Function3<List<Modifier>, Action, Properties, P> constructor) {
+		return RecordCodecBuilder.mapCodec(instance -> instance.group(
+			ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(DamageModifyingPower::modifiers),
+			Action.CODEC.optionalFieldOf("on_modify_action", NothingAction.INSTANCE).forGetter(DamageModifyingPower::onModifyAction),
+			Power.propertiesCodecBuilder(true)
+		).apply(instance, constructor));
 	}
 
-	static <P extends DamageModifyingPower> StreamCodec<RegistryFriendlyByteBuf, P> streamCodec(Function3<Optional<Condition>, List<Modifier>, Action, P> constructor) {
+	static <P extends DamageModifyingPower> StreamCodec<RegistryFriendlyByteBuf, P> streamCodec(Function3<List<Modifier>, Action, Properties, P> constructor) {
 		return StreamCodec.composite(
-			ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 			ByteBufCodecs.collection(ObjectArrayList::new, Modifier.STREAM_CODEC), DamageModifyingPower::modifiers,
 			Action.STREAM_CODEC, DamageModifyingPower::onModifyAction,
+			Properties.STREAM_CODEC, DamageModifyingPower::properties,
 			constructor
 		);
 	}

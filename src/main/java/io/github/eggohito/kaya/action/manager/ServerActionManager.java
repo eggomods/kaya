@@ -148,4 +148,9 @@ public class ServerActionManager extends AbstractContentAndTagManager<ResourceLo
 
 	}
 
+	@Override
+	public String toString() {
+		return "Action manager";
+	}
+
 }

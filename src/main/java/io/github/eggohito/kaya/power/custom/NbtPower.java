@@ -2,6 +2,7 @@ package io.github.eggohito.kaya.power.custom;
 
 import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.*;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.codec.KayaMapCodecs;
 import io.github.eggohito.kaya.power.Power;
 import io.github.eggohito.kaya.registry.KayaPowerTypes;
@@ -11,12 +12,17 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-public enum NbtPower implements Power {
+public record NbtPower(Properties properties) implements Power {
 
-	INSTANCE;
+	public static final MapCodec<NbtPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(Power.propertiesCodecBuilder(false))
+		.apply(instance, NbtPower::new)
+	);
 
-	public static final MapCodec<NbtPower> CODEC = MapCodec.unit(INSTANCE);
-	public static final StreamCodec<RegistryFriendlyByteBuf, NbtPower> STREAM_CODEC = StreamCodec.unit(INSTANCE);
+	public static final StreamCodec<RegistryFriendlyByteBuf, NbtPower> STREAM_CODEC = StreamCodec.composite(
+		Properties.STREAM_CODEC, NbtPower::properties,
+		NbtPower::new
+	);
 
 	@Override
 	public Type<?> getType() {

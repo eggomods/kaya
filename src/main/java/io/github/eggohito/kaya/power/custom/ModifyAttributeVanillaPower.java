@@ -3,7 +3,6 @@ package io.github.eggohito.kaya.power.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.codec.KayaStreamCodecs;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.power.Power;
 import io.github.eggohito.kaya.power.custom.misc.AttributeModifyingPower;
@@ -13,28 +12,26 @@ import io.github.eggohito.kaya.provider.custom.number.ints.ConstantIntProvider;
 import io.github.eggohito.kaya.registry.KayaPowerTypes;
 import io.github.eggohito.kaya.util.AttributedModifier;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Optional;
 
-public record ModifyAttributeVanillaPower(Optional<Condition> activeCondition, List<AttributedModifier> modifiers, BooleanProvider sendUpdate, IntProvider tickRate) implements AttributeModifyingPower {
+public record ModifyAttributeVanillaPower(List<AttributedModifier> modifiers, BooleanProvider sendUpdate, IntProvider tickRate, Properties properties) implements AttributeModifyingPower {
 
-	public static final MapCodec<ModifyAttributeVanillaPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(AttributeModifyingPower.addFields(instance))
+	public static final MapCodec<ModifyAttributeVanillaPower> CODEC = RecordCodecBuilder.mapCodec(instance -> AttributeModifyingPower
+		.addFields(instance)
 		.and(IntProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("tick_rate", new ConstantIntProvider(20)).forGetter(ModifyAttributeVanillaPower::tickRate))
+		.and(Power.propertiesCodecBuilder(true))
 		.apply(instance, ModifyAttributeVanillaPower::new)
 	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyAttributeVanillaPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		KayaStreamCodecs.ATTRIBUTE_MODIFIERS, AttributeModifyingPower::modifiers,
 		BooleanProvider.STREAM_CODEC, AttributeModifyingPower::sendUpdate,
 		IntProvider.STREAM_CODEC, ModifyAttributeVanillaPower::tickRate,
+		Properties.STREAM_CODEC, ModifyAttributeVanillaPower::properties,
 		ModifyAttributeVanillaPower::new
 	);
 

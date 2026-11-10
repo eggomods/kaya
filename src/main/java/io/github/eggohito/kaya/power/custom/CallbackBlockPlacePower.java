@@ -7,7 +7,6 @@ import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.action.Action;
 import io.github.eggohito.kaya.codec.KayaCodecs;
 import io.github.eggohito.kaya.codec.KayaStreamCodecs;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.context.parameter.BlockContextParameter;
@@ -31,28 +30,27 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
-import java.util.Optional;
 
-public record CallbackBlockPlacePower(Optional<Condition> activeCondition, Action onPlaceAction, EnumSet<Direction> directions, EnumSet<InteractionHand> hands, int priority) implements PrioritizedPower<CallbackBlockBreakPower> {
+public record CallbackBlockPlacePower(Action onPlaceAction, EnumSet<Direction> directions, EnumSet<InteractionHand> hands, int priority, Properties properties) implements PrioritizedPower<CallbackBlockBreakPower> {
 	
 	public static final BlockContextParameter PLACED_ON_BLOCK = new BlockContextParameter(Kaya.id("placed_on_block"));
 	public static final BlockContextParameter PLACED_TO_BLOCK = new BlockContextParameter(Kaya.id("placed_to_block"));
 	public static final DirectionContextParameter PLACED_SIDE = new DirectionContextParameter(Kaya.id("placed_side"));
-	
-	public static final MapCodec<CallbackBlockPlacePower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power.addActiveConditionField(instance)
-		.and(Action.CODEC.fieldOf("on_place_action").forGetter(CallbackBlockPlacePower::onPlaceAction))
-		.and(KayaCodecs.DIRECTION_SET.optionalFieldOf("directions", EnumSet.allOf(Direction.class)).forGetter(CallbackBlockPlacePower::directions))
-		.and(KayaCodecs.HAND_SET.optionalFieldOf("hands", EnumSet.allOf(InteractionHand.class)).forGetter(CallbackBlockPlacePower::hands))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackBlockPlacePower::priority))
-		.apply(instance, CallbackBlockPlacePower::new)
-	);
+
+	public static final MapCodec<CallbackBlockPlacePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Action.CODEC.fieldOf("on_place_action").forGetter(CallbackBlockPlacePower::onPlaceAction),
+		KayaCodecs.DIRECTION_SET.optionalFieldOf("directions", EnumSet.allOf(Direction.class)).forGetter(CallbackBlockPlacePower::directions),
+		KayaCodecs.HAND_SET.optionalFieldOf("hands", EnumSet.allOf(InteractionHand.class)).forGetter(CallbackBlockPlacePower::hands),
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackBlockPlacePower::priority),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, CallbackBlockPlacePower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackBlockPlacePower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), CallbackBlockPlacePower::activeCondition,
 		Action.STREAM_CODEC, CallbackBlockPlacePower::onPlaceAction,
 		KayaStreamCodecs.DIRECTION_SET, CallbackBlockPlacePower::directions,
 		KayaStreamCodecs.HAND_SET, CallbackBlockPlacePower::hands,
 		ByteBufCodecs.INT, CallbackBlockPlacePower::priority,
+		Properties.STREAM_CODEC, CallbackBlockPlacePower::properties,
 		CallbackBlockPlacePower::new
 	);
 

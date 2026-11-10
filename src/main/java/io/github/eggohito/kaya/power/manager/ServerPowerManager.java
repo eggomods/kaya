@@ -13,6 +13,7 @@ import io.github.eggohito.kaya.event.PowerPreparation;
 import io.github.eggohito.kaya.event.PowerReloadEvents;
 import io.github.eggohito.kaya.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.kaya.network.packet.clientbound.ClientboundUpdatePowersPacket;
+import io.github.eggohito.kaya.power.Power;
 import io.github.eggohito.kaya.power.PowerHolder;
 import io.github.eggohito.kaya.power.PowerIdentifier;
 import io.github.eggohito.kaya.power.custom.MultiplePower;
@@ -47,6 +48,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 @ApiStatus.Internal
 @ApiStatus.NonExtendable
@@ -118,6 +121,16 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 
 	}
 
+	protected void register(PowerHolder<?> holder, BiConsumer<PowerIdentifier, PowerHolder<?>> handler) {
+
+		handler.accept(holder.id(), holder);
+
+		if (holder.value() instanceof MultiplePower(ImmutableSet<PowerHolder<?>> subPowers, Power.Properties ignoredProperties)) {
+			subPowers.forEach(subPower -> this.register(subPower, handler));
+		}
+
+	}
+
 	private ServerPowerManager withOps(@NotNull HolderLookup.Provider provider) {
 		this.ops = provider.createSerializationContext(JsonOps.INSTANCE);
 		return this;
@@ -144,8 +157,8 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 
 			MiscUtil.handleResult(
 				PowerHolder.CODEC.parse(ops, jsonWithSource.json()),
-				holder -> PowerManager.handleSelfAndSubPowers(holder, builder::put),
-				PowerHolder::canBePartiallyParsed,
+				holder -> this.register(holder, builder::put),
+				holder -> holder.value().canBePartiallyParsed(),
 				warning -> LOGGER.warn("Found warning(s) while parsing {} from data pack [{}]: {}", powerId.asDisplayString(false), jsonWithSource.source(), warning),
 				error -> LOGGER.error("Error trying to parse {} from data pack [{}] (skipping): {}", powerId.asDisplayString(false), jsonWithSource.source(), error)
 			);
@@ -193,6 +206,11 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 		LOGGER.info("Finished parsing power tags from data packs. Power manager contains {} power tag(s)", tags.size());
 		this.pendingTags = Map.of();
 
+	}
+
+	@Override
+	public String toString() {
+		return "Power manager";
 	}
 
 }

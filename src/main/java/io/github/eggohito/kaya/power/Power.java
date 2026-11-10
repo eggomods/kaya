@@ -8,11 +8,14 @@ import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextUser;
+import io.github.eggohito.kaya.context.ContextValidatable;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.context.parameter.ContextParameter;
 import io.github.eggohito.kaya.network.packet.clientbound.ClientboundUpdatePowerDataPacket;
 import io.github.eggohito.kaya.power.entity.Powers;
 import io.github.eggohito.kaya.power.manager.PowerManager;
+import io.github.eggohito.kaya.provider.custom.bool.BooleanProvider;
+import io.github.eggohito.kaya.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.kaya.registry.KayaRegistries;
 import io.github.eggohito.kaya.registry.context.KayaContextParameters;
 import io.github.eggohito.kaya.util.MiscUtil;
@@ -20,9 +23,13 @@ import io.github.eggohito.kaya.util.Reporter;
 import io.github.eggohito.kaya.util.alias.FixedRegistryAlias;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import net.minecraft.Util;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.entity.Entity;
@@ -51,8 +58,18 @@ public interface Power extends ContextUser {
 
 	Instance<?> createInstance();
 
+	Properties properties();
+
+	default Component name() {
+		return properties().name();
+	}
+
+	default Component description() {
+		return properties().description();
+	}
+
 	default Optional<Condition> activeCondition() {
-		return Optional.empty();
+		return properties().activeCondition();
 	}
 
 	default boolean canBePartiallyParsed() {
@@ -61,11 +78,66 @@ public interface Power extends ContextUser {
 
 	@Override
 	default void validate(ContextValidator validator) {
-		this.activeCondition().ifPresent(activeCondition -> activeCondition.validate(validator.forChild(".active_condition")));
+		properties().validate(validator);
 	}
 
-	static <P extends Power> Products.P1<RecordCodecBuilder.Mu<P>, Optional<Condition>> addActiveConditionField(RecordCodecBuilder.Instance<P> instance) {
-		return instance.group(Condition.CODEC.optionalFieldOf("active_condition").forGetter(Power::activeCondition));
+	static <P extends Power> RecordCodecBuilder<P, Properties> propertiesCodecBuilder(boolean withCondition) {
+
+		MapCodec<Properties> mapCodec = withCondition
+			? Properties.MAP_CODEC
+			: Properties.NO_CONDITION_MAP_CODEC;
+
+		return mapCodec.forGetter(Power::properties);
+
+	}
+
+	static <P extends Power> Products.P1<RecordCodecBuilder.Mu<P>, Properties> addPropertiesField(RecordCodecBuilder.Instance<P> instance, boolean withCondition) {
+		return instance.group(propertiesCodecBuilder(withCondition));
+	}
+
+	record Properties(Component name, Component description, BooleanProvider hidden, Optional<Condition> activeCondition) implements ContextValidatable {
+
+		public static final MapCodec<Properties> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addFields(instance)
+			.and(Condition.CODEC.optionalFieldOf("active_condition").forGetter(Properties::activeCondition))
+			.apply(instance, Properties::new)
+		);
+
+		public static final MapCodec<Properties> NO_CONDITION_MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> addFields(instance)
+			.apply(instance, (name, description, hidden) -> new Properties(name, description, hidden, Optional.empty()))
+		);
+
+		public static final StreamCodec<RegistryFriendlyByteBuf, Properties> STREAM_CODEC = StreamCodec.composite(
+			ComponentSerialization.STREAM_CODEC, Properties::name,
+			ComponentSerialization.STREAM_CODEC, Properties::description,
+			BooleanProvider.STREAM_CODEC, Properties::hidden,
+			ByteBufCodecs.optional(Condition.STREAM_CODEC), Properties::activeCondition,
+			Properties::new
+		);
+
+		@Override
+		public void validate(ContextValidator validator) {
+			hidden().validate(validator.forChild(".hidden"));
+			activeCondition().ifPresent(activeCondition -> activeCondition.validate(validator.forChild(".active_condition")));
+		}
+
+		public boolean hidden(Context context) {
+			return hidden().getBoolean(context.forChild(".hidden"));
+		}
+
+		public boolean active(Context context) {
+			return activeCondition()
+				.map(activeCondition -> activeCondition.test(context.forChild(".active_condition")))
+				.orElse(true);
+		}
+
+		private static Products.P3<RecordCodecBuilder.Mu<Properties>, Component, Component, BooleanProvider> addFields(RecordCodecBuilder.Instance<Properties> instance) {
+			return instance.group(
+				ComponentSerialization.CODEC.optionalFieldOf("name", Component.empty()).forGetter(Properties::name),
+				ComponentSerialization.CODEC.optionalFieldOf("description", Component.empty()).forGetter(Properties::description),
+				BooleanProvider.CODEC.optionalFieldOf("hidden", ConstantBooleanProvider.FALSE).forGetter(Properties::hidden)
+			);
+		}
+
 	}
 
 	/**
@@ -183,9 +255,7 @@ public interface Power extends ContextUser {
 		}
 
 		public boolean isActive(Context context) {
-			return power.activeCondition()
-				.map(activeCondition -> activeCondition.test(context.forChild(".active_condition")))
-				.orElse(true);
+			return power.properties().active(context);
 		}
 
 	}
@@ -197,6 +267,11 @@ public interface Power extends ContextUser {
 		public static final Codec<Type<?>> CODEC = ALIASES.createCodec(Kaya.MOD_NAMESPACE);
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, Type<?>> STREAM_CODEC = ALIASES.createRegistryStreamCodec();
+
+		@Override
+		public @NotNull String toString() {
+			return Util.getRegisteredName(KayaRegistries.POWER_TYPE, this);
+		}
 
 	}
 

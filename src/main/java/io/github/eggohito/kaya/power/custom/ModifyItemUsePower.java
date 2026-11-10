@@ -6,7 +6,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.action.Action;
 import io.github.eggohito.kaya.codec.KayaCodecs;
 import io.github.eggohito.kaya.codec.KayaStreamCodecs;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.power.Power;
@@ -34,29 +33,27 @@ import org.jetbrains.annotations.Nullable;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public record ModifyItemUsePower(Optional<Condition> activeCondition, Action onUseAction, InteractionResult result, EnumSet<InteractionHand> hands, TriggerType triggerType, int priority) implements PrioritizedPower<ModifyItemUsePower> {
+public record ModifyItemUsePower(Action onUseAction, InteractionResult result, EnumSet<InteractionHand> hands, TriggerType triggerType, int priority, Properties properties) implements PrioritizedPower<ModifyItemUsePower> {
 
-	public static final MapCodec<ModifyItemUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(Action.CODEC.fieldOf("on_use_action").forGetter(ModifyItemUsePower::onUseAction))
-		.and(KayaCodecs.INTERACTION_RESULT.optionalFieldOf("result", InteractionResult.SUCCESS).forGetter(ModifyItemUsePower::result))
-		.and(KayaCodecs.HAND_SET.optionalFieldOf("hands", EnumSet.allOf(InteractionHand.class)).forGetter(ModifyItemUsePower::hands))
-		.and(TriggerType.CODEC.fieldOf("trigger_type").forGetter(ModifyItemUsePower::triggerType))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyItemUsePower::priority))
-		.apply(instance, ModifyItemUsePower::new)
-	);
+	public static final MapCodec<ModifyItemUsePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Action.CODEC.fieldOf("on_use_action").forGetter(ModifyItemUsePower::onUseAction),
+		KayaCodecs.INTERACTION_RESULT.optionalFieldOf("result", InteractionResult.SUCCESS).forGetter(ModifyItemUsePower::result),
+		KayaCodecs.HAND_SET.optionalFieldOf("hands", EnumSet.allOf(InteractionHand.class)).forGetter(ModifyItemUsePower::hands),
+		TriggerType.CODEC.fieldOf("trigger_type").forGetter(ModifyItemUsePower::triggerType),
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyItemUsePower::priority),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyItemUsePower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyItemUsePower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		Action.STREAM_CODEC, ModifyItemUsePower::onUseAction,
 		KayaStreamCodecs.INTERACTION_RESULT, ModifyItemUsePower::result,
 		KayaStreamCodecs.HAND_SET, ModifyItemUsePower::hands,
 		TriggerType.STREAM_CODEC, ModifyItemUsePower::triggerType,
 		ByteBufCodecs.INT, ModifyItemUsePower::priority,
+		Properties.STREAM_CODEC, ModifyItemUsePower::properties,
 		ModifyItemUsePower::new
 	);
 
@@ -111,13 +108,13 @@ public record ModifyItemUsePower(Optional<Condition> activeCondition, Action onU
 		InstanceCollection<Instance> instanceCollection = new InstanceCollection<>(user, Instance.class, instance -> instance.doesApply(priorityPhase, triggerType, hand));
 		return switch (priorityPhase) {
 			case BEFORE ->
-				executeBeforeUse(instanceCollection, world, user, hand, slotAccess, zeroPriorityResultSetter, defaultResultGetter);
+				executeBeforeUse(instanceCollection, user, hand, slotAccess, zeroPriorityResultSetter, defaultResultGetter);
 			case AFTER ->
 				executeAfterUse(instanceCollection, world, user, hand, slotAccess, zeroPriorityResultGetter, defaultResultGetter);
 		};
 	}
 
-	private static InteractionResult executeBeforeUse(InstanceCollection<Instance> instanceCollection, Level world, LivingEntity user, InteractionHand hand, SlotAccess slotAccess, Consumer<InteractionResult> zeroPriorityResultSetter, Supplier<InteractionResult> defaultResultGetter) {
+	private static InteractionResult executeBeforeUse(InstanceCollection<Instance> instanceCollection, LivingEntity user, InteractionHand hand, SlotAccess slotAccess, Consumer<InteractionResult> zeroPriorityResultSetter, Supplier<InteractionResult> defaultResultGetter) {
 
 		for (int priority = instanceCollection.getMaxPriority(); priority >= instanceCollection.getMinPriority() && instanceCollection.hasInstances(priority); priority--) {
 
