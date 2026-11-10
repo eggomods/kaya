@@ -5,6 +5,8 @@ import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.power.Power;
 import io.github.eggohito.kaya.power.PowerHolder;
 import io.github.eggohito.kaya.power.PowerIdentifier;
+import io.github.eggohito.kaya.power.custom.MultiplePower;
+import io.github.eggohito.kaya.resource.DependencyList;
 import io.github.eggohito.kaya.util.manager.ContentAndTagManager;
 import io.github.eggohito.kaya.util.manager.KayaManagers;
 import net.minecraft.resources.ResourceLocation;
@@ -17,6 +19,8 @@ import java.util.function.Supplier;
 public interface PowerManager extends ContentAndTagManager<PowerIdentifier, PowerHolder<?>> {
 
 	ResourceLocation ID = Kaya.id("manager/power");
+
+	DependencyList DEPENDENCIES = new DependencyList(ID);
 
 	Supplier<PowerManager> DEFERRED_INSTANCE = KayaManagers.deferredPhysicalSideSpecific(PowerManager.class, ServerPowerManager::new);
 

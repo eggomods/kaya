@@ -1,8 +1,6 @@
 package io.github.eggohito.kaya.action.manager;
 
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
@@ -11,7 +9,6 @@ import com.mojang.serialization.JsonOps;
 import io.github.eggohito.kaya.action.Action;
 import io.github.eggohito.kaya.action.ActionHolder;
 import io.github.eggohito.kaya.condition.manager.ConditionManager;
-import io.github.eggohito.kaya.event.DependencyManager;
 import io.github.eggohito.kaya.event.ReloadableServerResourcesEvents;
 import io.github.eggohito.kaya.network.packet.clientbound.ClientboundUpdateActionsPacket;
 import io.github.eggohito.kaya.registry.KayaRegistryKeys;
@@ -25,7 +22,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -45,14 +41,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.Supplier;
 
 @ApiStatus.Internal
 @ApiStatus.NonExtendable
 public class ServerActionManager extends AbstractContentAndTagManager<ResourceLocation, ActionHolder<?>> implements ActionManager, IdentifiableResourceReloadListener {
 
 	private static final Logger LOGGER = LogUtils.getLogger();
-	private static final Supplier<ImmutableSet<ResourceLocation>> DEPENDENCIES = Suppliers.memoize(() -> Util.make(ImmutableSet.builder(), DependencyManager.ACTIONS.invoker()::add).build());
 
 	private final JsonFileToIdConverter contentLoader = JsonFileToIdConverter.registry(KayaRegistryKeys.ACTION);
 	private final TagLoader<ActionHolder<?>> tagLoader = new TagLoader<>((id, required) -> this.getAsResult(id).result(), Registries.tagsDirPath(KayaRegistryKeys.ACTION));
@@ -67,7 +61,7 @@ public class ServerActionManager extends AbstractContentAndTagManager<ResourceLo
 
 	@Override
 	public Collection<ResourceLocation> getFabricDependencies() {
-		return DEPENDENCIES.get();
+		return DEPENDENCIES.freezeAndGet();
 	}
 
 	@Override
@@ -88,7 +82,7 @@ public class ServerActionManager extends AbstractContentAndTagManager<ResourceLo
 	public void init() {
 
 		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, this::withOps);
-		DependencyManager.ACTIONS.register(ID, dependencies -> dependencies.add(ConditionManager.ID));
+		DEPENDENCIES.add(ConditionManager.ID);
 
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ConditionManager.ID, ID);
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> {
