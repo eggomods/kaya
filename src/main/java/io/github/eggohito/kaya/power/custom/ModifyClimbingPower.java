@@ -20,31 +20,28 @@ import io.github.eggohito.kaya.registry.context.KayaContextParameters;
 import io.github.eggohito.kaya.util.CachedBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
 import java.util.function.BiPredicate;
 
-public record ModifyClimbingPower(Optional<Condition> activeCondition, Condition holdingCondition, BooleanProvider allowHolding) implements Power {
+public record ModifyClimbingPower(Condition holdingCondition, BooleanProvider allowHolding, Properties properties) implements Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 	public static final BlockContextParameter CLIMBED_BLOCK = new BlockContextParameter(Kaya.id("climbed_block"));
 
-	public static final MapCodec<ModifyClimbingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(Condition.CODEC.optionalFieldOf("holding_condition", new IsEntitySneakingCondition(KayaContextParameters.THIS_ENTITY)).forGetter(ModifyClimbingPower::holdingCondition))
-		.and(BooleanProvider.CODEC.optionalFieldOf("allow_holding", new ConstantBooleanProvider(true)).forGetter(ModifyClimbingPower::allowHolding))
-		.apply(instance, ModifyClimbingPower::new)
-	);
+	public static final MapCodec<ModifyClimbingPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Condition.CODEC.optionalFieldOf("holding_condition", new IsEntitySneakingCondition(KayaContextParameters.THIS_ENTITY)).forGetter(ModifyClimbingPower::holdingCondition),
+		BooleanProvider.CODEC.optionalFieldOf("allow_holding", new ConstantBooleanProvider(true)).forGetter(ModifyClimbingPower::allowHolding),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyClimbingPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyClimbingPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		Condition.STREAM_CODEC, ModifyClimbingPower::holdingCondition,
 		BooleanProvider.STREAM_CODEC, ModifyClimbingPower::allowHolding,
+		Properties.STREAM_CODEC, ModifyClimbingPower::properties,
 		ModifyClimbingPower::new
 	);
 

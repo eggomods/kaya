@@ -4,7 +4,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.color.Color;
 import io.github.eggohito.kaya.color.custom.Argb;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.context.visitor.ClearableVisitor;
@@ -15,29 +14,25 @@ import io.github.eggohito.kaya.provider.custom.bool.ConstantBooleanProvider;
 import io.github.eggohito.kaya.registry.KayaPowerTypes;
 import io.github.eggohito.kaya.registry.context.KayaContextParameters;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-
-public record ModifyGlowingSelfPower(Optional<Condition> activeCondition, BooleanProvider useTeamColors, Color color) implements Power {
+public record ModifyGlowingSelfPower(BooleanProvider useTeamColors, Color color, Properties properties) implements Power {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyGlowingSelfPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(BooleanProvider.CODEC.optionalFieldOf("use_team_color", new ConstantBooleanProvider(true)).forGetter(ModifyGlowingSelfPower::useTeamColors))
-		.and(Color.CODEC.optionalFieldOf("color", Argb.DEFAULT).forGetter(ModifyGlowingSelfPower::color))
-		.apply(instance, ModifyGlowingSelfPower::new)
-	);
+	public static final MapCodec<ModifyGlowingSelfPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		BooleanProvider.CODEC.optionalFieldOf("use_team_color", new ConstantBooleanProvider(true)).forGetter(ModifyGlowingSelfPower::useTeamColors),
+		Color.CODEC.optionalFieldOf("color", Argb.DEFAULT).forGetter(ModifyGlowingSelfPower::color),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyGlowingSelfPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyGlowingSelfPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		BooleanProvider.STREAM_CODEC, ModifyGlowingSelfPower::useTeamColors,
 		Color.STREAM_CODEC, ModifyGlowingSelfPower::color,
+		Properties.STREAM_CODEC, ModifyGlowingSelfPower::properties,
 		ModifyGlowingSelfPower::new
 	);
 

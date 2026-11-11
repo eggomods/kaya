@@ -1,6 +1,5 @@
 package io.github.eggohito.kaya.power.manager;
 
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
@@ -11,11 +10,12 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import io.github.eggohito.kaya.action.manager.ActionManager;
 import io.github.eggohito.kaya.context.ContextValidator;
-import io.github.eggohito.kaya.event.DependencyManager;
 import io.github.eggohito.kaya.event.PowerPreparation;
 import io.github.eggohito.kaya.event.PowerReloadEvents;
 import io.github.eggohito.kaya.event.ReloadableServerResourcesEvents;
+import io.github.eggohito.kaya.manager.AbstractContentAndTagManager;
 import io.github.eggohito.kaya.network.packet.clientbound.ClientboundUpdatePowersPacket;
+import io.github.eggohito.kaya.power.Power;
 import io.github.eggohito.kaya.power.PowerHolder;
 import io.github.eggohito.kaya.power.PowerIdentifier;
 import io.github.eggohito.kaya.power.custom.MultiplePower;
@@ -25,13 +25,11 @@ import io.github.eggohito.kaya.resource.json.JsonWithSource;
 import io.github.eggohito.kaya.util.MiscUtil;
 import io.github.eggohito.kaya.util.Reporter;
 import io.github.eggohito.kaya.util.ResourceLocationUtil;
-import io.github.eggohito.kaya.util.manager.AbstractContentAndTagManager;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -51,14 +49,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.Supplier;
+import java.util.function.BiConsumer;
 
 @ApiStatus.Internal
 @ApiStatus.NonExtendable
 public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdentifier, PowerHolder<?>> implements PowerManager, IdentifiableResourceReloadListener {
 
 	private static final Logger LOGGER = LogUtils.getLogger();
-	private static final Supplier<ImmutableSet<ResourceLocation>> DEPENDENCIES = Suppliers.memoize(() -> Util.make(ImmutableSet.builder(), DependencyManager.POWERS.invoker()::add).build());
 
 	private final JsonFileToIdConverter contentLoader = JsonFileToIdConverter.registry(KayaRegistryKeys.POWER);
 	private final TagLoader<PowerHolder<?>> tagLoader = new TagLoader<>((id, required) -> this.getAsResult(PowerIdentifier.of(id)).result(), Registries.tagsDirPath(KayaRegistryKeys.POWER));
@@ -73,7 +70,7 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 
 	@Override
 	public Collection<ResourceLocation> getFabricDependencies() {
-		return DEPENDENCIES.get();
+		return DEPENDENCIES.freezeAndGet();
 	}
 
 	@Override
@@ -94,7 +91,7 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 	public void init() {
 
 		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ID, this::withOps);
-		DependencyManager.POWERS.register(ID, dependencies -> dependencies.add(ActionManager.ID));
+		DEPENDENCIES.add(ActionManager.ID);
 
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(ActionManager.ID, ID);
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(ID, (player, joined) -> {
@@ -124,6 +121,16 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 
 	}
 
+	protected void register(PowerHolder<?> holder, BiConsumer<PowerIdentifier, PowerHolder<?>> handler) {
+
+		handler.accept(holder.id(), holder);
+
+		if (holder.value() instanceof MultiplePower(ImmutableSet<PowerHolder<?>> subPowers, Power.Properties ignoredProperties)) {
+			subPowers.forEach(subPower -> this.register(subPower, handler));
+		}
+
+	}
+
 	private ServerPowerManager withOps(@NotNull HolderLookup.Provider provider) {
 		this.ops = provider.createSerializationContext(JsonOps.INSTANCE);
 		return this;
@@ -150,8 +157,8 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 
 			MiscUtil.handleResult(
 				PowerHolder.CODEC.parse(ops, jsonWithSource.json()),
-				holder -> PowerManager.handleSelfAndSubPowers(holder, builder::put),
-				PowerHolder::canBePartiallyParsed,
+				holder -> this.register(holder, builder::put),
+				holder -> holder.value().canBePartiallyParsed(),
 				warning -> LOGGER.warn("Found warning(s) while parsing {} from data pack [{}]: {}", powerId.asDisplayString(false), jsonWithSource.source(), warning),
 				error -> LOGGER.error("Error trying to parse {} from data pack [{}] (skipping): {}", powerId.asDisplayString(false), jsonWithSource.source(), error)
 			);
@@ -199,6 +206,11 @@ public class ServerPowerManager extends AbstractContentAndTagManager<PowerIdenti
 		LOGGER.info("Finished parsing power tags from data packs. Power manager contains {} power tag(s)", tags.size());
 		this.pendingTags = Map.of();
 
+	}
+
+	@Override
+	public String toString() {
+		return "Power manager";
 	}
 
 }

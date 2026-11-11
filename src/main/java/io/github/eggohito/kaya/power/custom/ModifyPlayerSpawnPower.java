@@ -8,7 +8,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.isxander.yacl3.config.v3.ConfigEntry;
 import io.github.eggohito.kaya.codec.KayaCodecs;
 import io.github.eggohito.kaya.codec.KayaStreamCodecs;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.config.AbstractJsonCodecConfig;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.power.Power;
@@ -44,23 +43,22 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("UnstableApiUsage")
-public record ModifyPlayerSpawnPower(Optional<Condition> activeCondition, ResourceKey<Level> dimension, Optional<Either<ResourceKey<Biome>, TagKey<Biome>>> biome, Optional<Either<ResourceKey<Structure>, TagKey<Structure>>> structure, int priority) implements PrioritizedPower<ModifyPlayerSpawnPower> {
+public record ModifyPlayerSpawnPower(ResourceKey<Level> dimension, Optional<Either<ResourceKey<Biome>, TagKey<Biome>>> biome, Optional<Either<ResourceKey<Structure>, TagKey<Structure>>> structure, int priority, Properties properties) implements PrioritizedPower<ModifyPlayerSpawnPower> {
 
-	public static final MapCodec<ModifyPlayerSpawnPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(Level.RESOURCE_KEY_CODEC.fieldOf("dimension").forGetter(ModifyPlayerSpawnPower::dimension))
-		.and(KayaCodecs.BIOME_KEY_OR_TAG.optionalFieldOf("biome").forGetter(ModifyPlayerSpawnPower::biome))
-		.and(KayaCodecs.STRUCTURE_KEY_OR_TAG.optionalFieldOf("structure").forGetter(ModifyPlayerSpawnPower::structure))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyPlayerSpawnPower::priority))
-		.apply(instance, ModifyPlayerSpawnPower::new)
-	);
+	public static final MapCodec<ModifyPlayerSpawnPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Level.RESOURCE_KEY_CODEC.fieldOf("dimension").forGetter(ModifyPlayerSpawnPower::dimension),
+		KayaCodecs.BIOME_KEY_OR_TAG.optionalFieldOf("biome").forGetter(ModifyPlayerSpawnPower::biome),
+		KayaCodecs.STRUCTURE_KEY_OR_TAG.optionalFieldOf("structure").forGetter(ModifyPlayerSpawnPower::structure),
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyPlayerSpawnPower::priority),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyPlayerSpawnPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyPlayerSpawnPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), ModifyPlayerSpawnPower::activeCondition,
 		ResourceKey.streamCodec(Registries.DIMENSION), ModifyPlayerSpawnPower::dimension,
 		ByteBufCodecs.optional(KayaStreamCodecs.BIOME_KEY_OR_TAG), ModifyPlayerSpawnPower::biome,
 		ByteBufCodecs.optional(KayaStreamCodecs.STRUCTURE_KEY_OR_TAG), ModifyPlayerSpawnPower::structure,
 		ByteBufCodecs.INT, ModifyPlayerSpawnPower::priority,
+		Properties.STREAM_CODEC, ModifyPlayerSpawnPower::properties,
 		ModifyPlayerSpawnPower::new
 	);
 

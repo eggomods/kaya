@@ -6,6 +6,8 @@ import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JavaOps;
+import com.mojang.serialization.codecs.UnboundedMapCodec;
+import io.github.eggohito.kaya.duck.FilteredCodec;
 import io.github.eggohito.kaya.mixin.access.RegistryOpsAccessor;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.HolderLookup;
@@ -22,10 +24,7 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Supplier;
-import java.util.function.ToIntFunction;
+import java.util.function.*;
 
 public class CodecUtil {
 
@@ -174,6 +173,16 @@ public class CodecUtil {
 		else {
 			return Optional.empty();
 		}
+
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <K, V> UnboundedMapCodec<K, V> filteredUnboundedMapCodec(Codec<K> keyCodec, Codec<V> valueCodec, Predicate<K> filter) {
+
+		UnboundedMapCodec<K, V> codec = Codec.unboundedMap(keyCodec, valueCodec);
+		((FilteredCodec<K>) (Object) codec).kaya$setFilter(filter);
+
+		return codec;
 
 	}
 

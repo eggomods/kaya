@@ -26,6 +26,47 @@ public record ClientboundUpdatePowersPacket(Map<PowerIdentifier, PowerHolder<?>>
 		return TYPE;
 	}
 
+	private void send(RegistryFriendlyByteBuf buf) {
+
+		Map<PowerIdentifier, PowerHolder<?>> filtered = new Object2ObjectLinkedOpenHashMap<>(powers());
+		filtered.keySet().removeIf(PowerIdentifier::isSubPower);
+
+		buf.writeInt(filtered.size());
+
+		for (var powerEntry : filtered.entrySet()) {
+
+			PowerIdentifier id = powerEntry.getKey();
+			PowerIdentifier.STREAM_CODEC.encode(buf, id);
+
+			try {
+				PowerHolder.STREAM_CODEC.encode(buf, powerEntry.getValue());
+			}
+
+			catch (Exception e) {
+				Kaya.LOGGER.error("Couldn't encode {} during the syncing process", id.asDisplayString(false), e);
+				throw e;
+			}
+
+		}
+
+		buf.writeInt(tags().size());
+
+		for (var tagEntry : tags().entrySet()) {
+
+			ResourceLocation id = tagEntry.getKey();
+			ResourceLocation.STREAM_CODEC.encode(buf, id);
+
+			List<PowerHolder<?>> holders = tagEntry.getValue();
+			buf.writeInt(holders.size());
+
+			for (var holder : holders) {
+				PowerIdentifier.STREAM_CODEC.encode(buf, holder.id());
+			}
+
+		}
+
+	}
+
 	private static ClientboundUpdatePowersPacket receive(RegistryFriendlyByteBuf buf) {
 
 		Map<PowerIdentifier, PowerHolder<?>> powers = new Object2ObjectLinkedOpenHashMap<>();
@@ -36,7 +77,7 @@ public record ClientboundUpdatePowersPacket(Map<PowerIdentifier, PowerHolder<?>>
 			PowerIdentifier id = PowerIdentifier.STREAM_CODEC.decode(buf);
 
 			try {
-				PowerManager.handleSelfAndSubPowers(PowerHolder.STREAM_CODEC.decode(buf), powers::put);
+				powers.put(id, PowerHolder.STREAM_CODEC.decode(buf));
 			}
 
 			catch (Exception e) {
@@ -77,47 +118,6 @@ public record ClientboundUpdatePowersPacket(Map<PowerIdentifier, PowerHolder<?>>
 		}
 
 		return new ClientboundUpdatePowersPacket(powers, tags);
-
-	}
-
-	private void send(RegistryFriendlyByteBuf buf) {
-
-		Map<PowerIdentifier, PowerHolder<?>> filtered = new Object2ObjectLinkedOpenHashMap<>(powers());
-		filtered.keySet().removeIf(PowerIdentifier::isSubPower);
-
-		buf.writeInt(filtered.size());
-
-		for (var powerEntry : filtered.entrySet()) {
-
-			PowerIdentifier id = powerEntry.getKey();
-			PowerIdentifier.STREAM_CODEC.encode(buf, id);
-
-			try {
-				PowerHolder.STREAM_CODEC.encode(buf, powerEntry.getValue());
-			}
-
-			catch (Exception e) {
-				Kaya.LOGGER.error("Couldn't encode {} during the syncing process", id.asDisplayString(false), e);
-				throw e;
-			}
-
-		}
-
-		buf.writeInt(tags().size());
-
-		for (var tagEntry : tags().entrySet()) {
-
-			ResourceLocation id = tagEntry.getKey();
-			ResourceLocation.STREAM_CODEC.encode(buf, id);
-
-			List<PowerHolder<?>> holders = tagEntry.getValue();
-			buf.writeInt(holders.size());
-
-			for (var holder : holders) {
-				PowerIdentifier.STREAM_CODEC.encode(buf, holder.id());
-			}
-
-		}
 
 	}
 

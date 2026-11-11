@@ -3,14 +3,13 @@ package io.github.eggohito.kaya.action.custom;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.action.Action;
-import io.github.eggohito.kaya.codec.KayaCodecs;
-import io.github.eggohito.kaya.codec.KayaStreamCodecs;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.power.PowerHolder;
 import io.github.eggohito.kaya.power.entity.MutablePowers;
 import io.github.eggohito.kaya.provider.custom.entity.EntityProvider;
 import io.github.eggohito.kaya.registry.KayaActionTypes;
+import io.github.eggohito.kaya.registry.tag.KayaTagLikes;
 import io.github.eggohito.kaya.util.tag.TagLike;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -18,12 +17,12 @@ import net.minecraft.network.codec.StreamCodec;
 public record RemovePowerAction(TagLike<PowerHolder<?>> power, EntityProvider entity) implements Action {
 
 	public static final MapCodec<RemovePowerAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		KayaCodecs.POWER_TAG_LIKE.fieldOf("power").forGetter(RemovePowerAction::power),
+		KayaTagLikes.POWER.codec().fieldOf("power").forGetter(RemovePowerAction::power),
 		EntityProvider.CODEC.fieldOf("entity").forGetter(RemovePowerAction::entity)
 	).apply(instance, RemovePowerAction::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, RemovePowerAction> STREAM_CODEC = StreamCodec.composite(
-		KayaStreamCodecs.POWER_TAG_LIKE, RemovePowerAction::power,
+		KayaTagLikes.POWER.streamCodec(), RemovePowerAction::power,
 		EntityProvider.STREAM_CODEC, RemovePowerAction::entity,
 		RemovePowerAction::new
 	);

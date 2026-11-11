@@ -4,42 +4,21 @@ import com.mojang.serialization.DataResult;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.action.Action;
 import io.github.eggohito.kaya.action.ActionHolder;
-import io.github.eggohito.kaya.util.manager.ContentAndTagManager;
-import io.github.eggohito.kaya.util.manager.KayaManagers;
+import io.github.eggohito.kaya.manager.ContentAndTagManager;
+import io.github.eggohito.kaya.registry.manager.KayaManagerKeys;
+import io.github.eggohito.kaya.resource.DependencyList;
+import io.github.eggohito.kaya.util.services.KayaServices;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagEntry;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.function.Supplier;
 
 @ApiStatus.NonExtendable
 public interface ActionManager extends ContentAndTagManager<ResourceLocation, ActionHolder<?>> {
 
 	ResourceLocation ID = Kaya.id("manager/action");
 
-	Supplier<ActionManager> DEFERRED_INSTANCE = KayaManagers.deferredPhysicalSideSpecific(ActionManager.class, ServerActionManager::new);
-
-	TagEntry.Lookup<ActionHolder<?>> TAG_LOOKUP = new TagEntry.Lookup<>() {
-
-		@Override
-		public @Nullable ActionHolder<?> element(ResourceLocation id, boolean required) {
-			return getInstance().getAsResult(id).result().orElse(null);
-		}
-
-		@Override
-		public @Nullable Collection<ActionHolder<?>> tag(ResourceLocation id) {
-			return getInstance().getTagAsResult(id).result().orElse(null);
-		}
-
-		@Override
-		public String toString() {
-			return "Action manager";
-		}
-
-	};
+	DependencyList DEPENDENCIES = new DependencyList(ID);
 
 	@Override
 	default DataResult<ActionHolder<?>> getAsResult(ResourceLocation key) {
@@ -78,7 +57,7 @@ public interface ActionManager extends ContentAndTagManager<ResourceLocation, Ac
 	void init();
 
 	static ActionManager getInstance() {
-		return DEFERRED_INSTANCE.get();
+		return KayaServices.MANAGERS.getOrThrow(KayaManagerKeys.ACTION);
 	}
 
 }

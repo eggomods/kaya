@@ -4,7 +4,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.action.Action;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.power.Power;
@@ -26,23 +25,20 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
+public record CallbackBlockBreakPower(Action onBreakAction, BooleanProvider onlyWhenHarvested, int priority, Properties properties) implements PrioritizedPower<CallbackBlockBreakPower> {
 
-public record CallbackBlockBreakPower(Optional<Condition> activeCondition, Action onBreakAction, BooleanProvider onlyWhenHarvested, int priority) implements PrioritizedPower<CallbackBlockBreakPower> {
-
-	public static final MapCodec<CallbackBlockBreakPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(Action.CODEC.fieldOf("on_break_action").forGetter(CallbackBlockBreakPower::onBreakAction))
-		.and(BooleanProvider.CODEC.optionalFieldOf("only_when_harvested", new ConstantBooleanProvider(false)).forGetter(CallbackBlockBreakPower::onlyWhenHarvested))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackBlockBreakPower::priority))
-		.apply(instance, CallbackBlockBreakPower::new)
-	);
+	public static final MapCodec<CallbackBlockBreakPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Action.CODEC.fieldOf("on_break_action").forGetter(CallbackBlockBreakPower::onBreakAction),
+		BooleanProvider.CODEC.optionalFieldOf("only_when_harvested", ConstantBooleanProvider.FALSE).forGetter(CallbackBlockBreakPower::onlyWhenHarvested),
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(CallbackBlockBreakPower::priority),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, CallbackBlockBreakPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, CallbackBlockBreakPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		Action.STREAM_CODEC, CallbackBlockBreakPower::onBreakAction,
 		BooleanProvider.STREAM_CODEC, CallbackBlockBreakPower::onlyWhenHarvested,
 		ByteBufCodecs.INT, CallbackBlockBreakPower::priority,
+		Properties.STREAM_CODEC, CallbackBlockBreakPower::properties,
 		CallbackBlockBreakPower::new
 	);
 

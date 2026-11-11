@@ -1,18 +1,17 @@
 package io.github.eggohito.kaya.codec;
 
+import com.google.gson.JsonElement;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
+import com.mojang.serialization.JsonOps;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.mixin.access.BlockInputAccessor;
 import io.github.eggohito.kaya.mixin.access.TagParserAccessor;
-import io.github.eggohito.kaya.power.PowerHolder;
-import io.github.eggohito.kaya.power.manager.PowerManager;
 import io.github.eggohito.kaya.registry.KayaParticleTypes;
 import io.github.eggohito.kaya.util.*;
-import io.github.eggohito.kaya.util.tag.TagLike;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -39,11 +38,11 @@ import net.minecraft.util.TriState;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.phys.Vec3;
 
@@ -169,11 +168,7 @@ public class KayaCodecs {
 
 	public static final Codec<Difficulty> DIFFICULTY = CodecUtil.enumType(Difficulty.class);
 
-	public static final Codec<List<TagEntry>> COMPACT_TAG_ENTRIES = ExtraCodecs.nonEmptyList(ExtraCodecs.compactListCodec(TagEntry.CODEC));
-
-	public static final Codec<TagLike<EntityType<?>>> ENTITY_TYPE_TAG_LIKE = TagLike.registryCodec(Registries.ENTITY_TYPE);
-
-	public static final Codec<TagLike<PowerHolder<?>>> POWER_TAG_LIKE = TagLike.codec(PowerManager.TAG_LOOKUP);
+	public static final Codec<List<TagEntry>> COMPACT_TAG_ENTRIES = ExtraCodecs.compactListCodec(TagEntry.CODEC);
 
 	public static final Codec<SimpleParticleType> SIMPLE_PARTICLE = KayaParticleTypes.CODEC.comapFlatMap(
 		particleType -> particleType instanceof SimpleParticleType simpleParticleType
@@ -211,5 +206,12 @@ public class KayaCodecs {
 	public static final Codec<Character> CHARACTER = Codec.STRING.comapFlatMap(MiscUtil::validateStringAsCharacter, String::valueOf);
 
 	public static final Codec<TriState> TRI_STATE = CodecUtil.enumType(TriState.class);
+
+	public static final Codec<JsonElement> JSON_ELEMENT = Codec.PASSTHROUGH.xmap(
+		dynamic -> dynamic.convert(JsonOps.INSTANCE).getValue(),
+		jsonElement -> new Dynamic<>(JsonOps.INSTANCE, jsonElement)
+	);
+
+	public static final Codec<GameEventListener.DeliveryMode> DELIVERY_MODE = CodecUtil.enumType(GameEventListener.DeliveryMode.class);
 
 }

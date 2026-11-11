@@ -1,4 +1,4 @@
-package io.github.eggohito.kaya.util.manager;
+package io.github.eggohito.kaya.manager;
 
 import com.mojang.serialization.DataResult;
 import net.minecraft.resources.ResourceLocation;

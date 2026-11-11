@@ -2,7 +2,6 @@ package io.github.eggohito.kaya.power.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.event.PowerModifyEvents;
 import io.github.eggohito.kaya.modifier.Modifier;
@@ -22,19 +21,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 
-public record ModifyEffectDurationPower(Optional<Condition> activeCondition, List<Modifier> modifiers) implements Power {
+public record ModifyEffectDurationPower(List<Modifier> modifiers, Properties properties) implements Power {
 
-	public static final MapCodec<ModifyEffectDurationPower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyEffectDurationPower::modifiers))
-		.apply(instance, ModifyEffectDurationPower::new)
-	);
+	public static final MapCodec<ModifyEffectDurationPower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		ExtraCodecs.nonEmptyList(Modifier.CODEC.listOf()).fieldOf("modifiers").forGetter(ModifyEffectDurationPower::modifiers),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyEffectDurationPower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyEffectDurationPower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		Modifier.STREAM_CODEC.apply(ByteBufCodecs.list()), ModifyEffectDurationPower::modifiers,
+		Properties.STREAM_CODEC, ModifyEffectDurationPower::properties,
 		ModifyEffectDurationPower::new
 	);
 

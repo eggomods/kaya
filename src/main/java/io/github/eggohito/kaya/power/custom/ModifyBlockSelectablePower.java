@@ -3,7 +3,6 @@ package io.github.eggohito.kaya.power.custom;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.eggohito.kaya.condition.Condition;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.context.visitor.ClearableVisitor;
@@ -23,23 +22,20 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-
-public record ModifyBlockSelectablePower(Optional<Condition> activeCondition, BooleanProvider allow, int priority) implements PrioritizedPower<ModifyBlockSelectablePower> {
+public record ModifyBlockSelectablePower(BooleanProvider allow, int priority, Properties properties) implements PrioritizedPower<ModifyBlockSelectablePower> {
 
 	public static final ClearableVisitor<Instance> VISITOR = ClearableVisitor.createThreadLocalized();
 
-	public static final MapCodec<ModifyBlockSelectablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> Power
-		.addActiveConditionField(instance)
-		.and(BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyBlockSelectablePower::allow))
-		.and(Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockSelectablePower::priority))
-		.apply(instance, ModifyBlockSelectablePower::new)
-	);
+	public static final MapCodec<ModifyBlockSelectablePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		BooleanProvider.CODEC.fieldOf("allow").forGetter(ModifyBlockSelectablePower::allow),
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(ModifyBlockSelectablePower::priority),
+		Power.propertiesCodecBuilder(true)
+	).apply(instance, ModifyBlockSelectablePower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ModifyBlockSelectablePower> STREAM_CODEC = StreamCodec.composite(
-		ByteBufCodecs.optional(Condition.STREAM_CODEC), Power::activeCondition,
 		BooleanProvider.STREAM_CODEC, ModifyBlockSelectablePower::allow,
 		ByteBufCodecs.INT, ModifyBlockSelectablePower::priority,
+		Properties.STREAM_CODEC, ModifyBlockSelectablePower::properties,
 		ModifyBlockSelectablePower::new
 	);
 

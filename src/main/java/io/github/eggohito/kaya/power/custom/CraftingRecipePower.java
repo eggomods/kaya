@@ -15,16 +15,18 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import org.jetbrains.annotations.NotNull;
 
-public record CraftingRecipePower(RecipeHolder<CraftingRecipe> recipe, int priority) implements PrioritizedPower<CraftingRecipePower> {
+public record CraftingRecipePower(RecipeHolder<CraftingRecipe> recipe, int priority, Properties properties) implements PrioritizedPower<CraftingRecipePower> {
 
 	public static final MapCodec<CraftingRecipePower> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		KayaMapCodecs.CRAFTING_RECIPE_ENTRY.fieldOf("recipe").forGetter(CraftingRecipePower::recipe),
-		Codec.INT.optionalFieldOf("priority", 0).forGetter(CraftingRecipePower::priority)
+		Codec.INT.optionalFieldOf("priority", 0).forGetter(CraftingRecipePower::priority),
+		Power.propertiesCodecBuilder(false)
 	).apply(instance, CraftingRecipePower::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, CraftingRecipePower> STREAM_CODEC = StreamCodec.composite(
 		KayaStreamCodecs.CRAFTING_RECIPE_ENTRY, CraftingRecipePower::recipe,
 		ByteBufCodecs.INT, CraftingRecipePower::priority,
+		Properties.STREAM_CODEC, CraftingRecipePower::properties,
 		CraftingRecipePower::new
 	);
 

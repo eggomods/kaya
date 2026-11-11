@@ -5,10 +5,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import io.github.eggohito.kaya.command.argument.PowerArgument;
 import io.github.eggohito.kaya.mixin.access.TagEntryAccessor;
-import io.github.eggohito.kaya.power.PowerHolder;
-import io.github.eggohito.kaya.power.manager.PowerManager;
 import io.github.eggohito.kaya.util.*;
-import io.github.eggohito.kaya.util.tag.TagLike;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -45,6 +42,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.level.levelgen.structure.Structure;
 
 import java.math.RoundingMode;
@@ -155,6 +153,6 @@ public class KayaStreamCodecs {
 
 	public static final StreamCodec<ByteBuf, Character> CHARACTER = ByteBufCodecs.STRING_UTF8.map(MiscUtil::unsafelyAssumeStringAsCharacter, String::valueOf);
 
-	public static final StreamCodec<ByteBuf, TagLike<PowerHolder<?>>> POWER_TAG_LIKE = TagLike.streamCodec(PowerManager.TAG_LOOKUP);
+	public static final StreamCodec<ByteBuf, GameEventListener.DeliveryMode> DELIVERY_MODE = StreamCodecUtil.enumType(GameEventListener.DeliveryMode.class);
 
 }
