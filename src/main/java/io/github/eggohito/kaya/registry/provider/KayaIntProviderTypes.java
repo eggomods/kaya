@@ -33,6 +33,7 @@ public final class KayaIntProviderTypes {
 	public static final IntProvider.Type<AdjacentBlocksIntProvider> ADJACENT_BLOCKS = registerInternal("adjacent_blocks", AdjacentBlocksIntProvider.CODEC, AdjacentBlocksIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<BlocksCollidingBoxIntProvider> BLOCKS_COLLIDING_BOX = registerInternal("blocks_colliding_box", BlocksCollidingBoxIntProvider.CODEC, BlocksCollidingBoxIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<BlocksIntersectingBoxIntProvider> BLOCKS_INTERSECTING_BOX = registerInternal("blocks_intersecting_box", BlocksIntersectingBoxIntProvider.CODEC, BlocksIntersectingBoxIntProvider.STREAM_CODEC);
+	public static final IntProvider.Type<CommandResultIntProvider> COMMAND_RESULT = registerInternal("command_result", CommandResultIntProvider.CODEC, CommandResultIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<CountInAreaIntProvider> COUNT_IN_AREA = registerInternal("count_in_area", CountInAreaIntProvider.CODEC, CountInAreaIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<EffectAmplifierIntProvider> EFFECT_AMPLIFIER = registerInternal("effect/amplifier", EffectAmplifierIntProvider.CODEC, EffectAmplifierIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<EntityActiveEffectsIntProvider> ENTITY_ACTIVE_EFFECTS = registerInternal("entity/active_effects", EntityActiveEffectsIntProvider.CODEC, EntityActiveEffectsIntProvider.STREAM_CODEC);
@@ -45,13 +46,13 @@ public final class KayaIntProviderTypes {
 	public static final IntProvider.Type<LightLevelIntProvider> LIGHT_LEVEL = registerInternal("light_level", LightLevelIntProvider.CODEC, LightLevelIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<NbtIntProvider> NBT = registerInternal("nbt", NbtIntProvider.CODEC, NbtIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<PlayerFoodIntProvider> PLAYER_FOOD = registerInternal("player/food", PlayerFoodIntProvider.CODEC, PlayerFoodIntProvider.STREAM_CODEC);
-    public static final IntProvider.Type<PlayerXPLevelIntProvider> PLAYER_XP_LEVEL = registerInternal("player/xp/level", PlayerXPLevelIntProvider.CODEC, PlayerXPLevelIntProvider.STREAM_CODEC);
-    public static final IntProvider.Type<PlayerXPNextIntProvider> PLAYER_XP_NEXT = registerInternal("player/xp/next", PlayerXPNextIntProvider.CODEC, PlayerXPNextIntProvider.STREAM_CODEC);
-    public static final IntProvider.Type<PlayerXPScoreIntProvider> PLAYER_XP_SCORE = registerInternal("player/xp/score", PlayerXPScoreIntProvider.CODEC, PlayerXPScoreIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<PowerCooldownRemainingTicksIntProvider> POWER_COOLDOWN_REMAINING_TICKS = registerInternal("power/cooldown/remaining_ticks", PowerCooldownRemainingTicksIntProvider.CODEC, PowerCooldownRemainingTicksIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<ResourceIntProvider> RESOURCE = registerInternal("resource", ResourceIntProvider.CODEC, ResourceIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<SlotIdIntProvider> SLOT_ID = registerInternal("slot_id", SlotIdIntProvider.CODEC, SlotIdIntProvider.STREAM_CODEC);
 	public static final IntProvider.Type<TimeIntProvider> TIME = registerInternal("time", TimeIntProvider.CODEC, TimeIntProvider.STREAM_CODEC);
+    public static final IntProvider.Type<PlayerXPLevelIntProvider> PLAYER_XP_LEVEL = registerInternal("player/xp/level", PlayerXPLevelIntProvider.CODEC, PlayerXPLevelIntProvider.STREAM_CODEC);
+    public static final IntProvider.Type<PlayerXPNextIntProvider> PLAYER_XP_NEXT = registerInternal("player/xp/next", PlayerXPNextIntProvider.CODEC, PlayerXPNextIntProvider.STREAM_CODEC);
+    public static final IntProvider.Type<PlayerXPScoreIntProvider> PLAYER_XP_SCORE = registerInternal("player/xp/score", PlayerXPScoreIntProvider.CODEC, PlayerXPScoreIntProvider.STREAM_CODEC);
 
 	public static void registerAll() {
 		IntProvider.Type.ALIASES.addPathAlias("abs", ABSOLUTE);
