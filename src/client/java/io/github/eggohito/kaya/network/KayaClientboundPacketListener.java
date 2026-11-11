@@ -33,11 +33,13 @@ public final class KayaClientboundPacketListener {
 		try {
 
 			String modId = payload.modId();
-			ModContainer mod = FabricLoader.getInstance()
+			String version = FabricLoader.getInstance()
 				.getModContainer(modId)
+				.map(ModContainer::getMetadata)
+				.map(metadata -> metadata.getVersion().getFriendlyString())
 				.orElseThrow();
 
-			context.responseSender().sendPacket(new HandshakePacket(modId, mod.getMetadata().getVersion().getFriendlyString()));
+			context.responseSender().sendPacket(new HandshakePacket(modId, version));
 
 		}
 

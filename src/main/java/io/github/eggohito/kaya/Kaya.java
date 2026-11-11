@@ -36,15 +36,12 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.loader.api.Version;
 import net.minecraft.commands.Commands;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
-
-import java.util.Objects;
 
 public final class Kaya implements ModInitializer {
 
@@ -54,8 +51,6 @@ public final class Kaya implements ModInitializer {
 	static final IntSet CACHED_LOGS = new IntOpenHashSet();
 
 	static MinecraftServer server;
-	static Version version;
-
 	static boolean embedded;
 
 	@Override
@@ -66,7 +61,6 @@ public final class Kaya implements ModInitializer {
 			.getModContainer(MOD_NAMESPACE)
 			.orElseThrow();
 
-		version = mod.getMetadata().getVersion();
 		embedded = mod.getContainingMod().isPresent();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, buildContext, environment) -> {
@@ -140,10 +134,6 @@ public final class Kaya implements ModInitializer {
 			server.getPlayerList().getPlayers().forEach(player -> ServerPlayNetworking.send(player, ClientboundClearCachedLogsPacket.INSTANCE));
 		});
 
-	}
-
-	public static Version getVersion() {
-		return Objects.requireNonNull(version, MOD_NAMESPACE + " wasn't initialized yet!");
 	}
 
 	public static ResourceLocation id(String path) {

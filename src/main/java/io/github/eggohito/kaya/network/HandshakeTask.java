@@ -48,6 +48,10 @@ public record HandshakeTask(String modId, String modVersion) implements Configur
 
 	}
 
+	public static Component createMissingModComponent(String modId, String modVersion) {
+		return Component.literal("This server requires you to install '" + modId + "' (" + modVersion + ") to play!");
+	}
+
 	private static void request(String modId, String modVersion, ServerConfigurationPacketListenerImpl handler) {
 
 		if (ServerConfigurationNetworking.canSend(handler, HandshakePacket.TYPE)) {
@@ -58,10 +62,6 @@ public record HandshakeTask(String modId, String modVersion) implements Configur
 			handler.disconnect(createMissingModComponent(modId, modVersion));
 		}
 
-	}
-
-	private static Component createMissingModComponent(String modId, String modVersion) {
-		return Component.literal("This server requires you to install '" + modId + "' (" + modVersion + ") to play!");
 	}
 
 }
