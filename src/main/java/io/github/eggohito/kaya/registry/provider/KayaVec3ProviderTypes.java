@@ -22,6 +22,7 @@ public final class KayaVec3ProviderTypes {
 	public static final Vec3Provider.Type<OffsetVec3Provider> OFFSET = registerInternal("offset", OffsetVec3Provider.CODEC, OffsetVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<ProductVec3Provider> PRODUCT = registerInternal("product", ProductVec3Provider.CODEC, ProductVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<ReverseVec3Provider> REVERSE = registerInternal("reverse", ReverseVec3Provider.CODEC, ReverseVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<SumVec3Provider> SUM = registerInternal("sum", SumVec3Provider.CODEC, SumVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<WeightedVec3Provider> WEIGHTED = registerInternal("weighted", WeightedVec3Provider.CODEC, WeightedVec3Provider.STREAM_CODEC);
 
 	public static final Vec3Provider.Type<BlockPositionVec3Provider> BLOCK_POSITION = registerInternal("block/position", BlockPositionVec3Provider.CODEC, BlockPositionVec3Provider.STREAM_CODEC);
@@ -31,6 +32,8 @@ public final class KayaVec3ProviderTypes {
 	public static final Vec3Provider.Type<EntityViewVec3Provider> ENTITY_VIEW = registerInternal("entity/view", EntityViewVec3Provider.CODEC, EntityViewVec3Provider.STREAM_CODEC);
 
 	public static void registerAll() {
+		Vec3Provider.Type.ALIASES.addPathAlias("add", SUM);
+		Vec3Provider.Type.ALIASES.addPathAlias("addition", SUM);
 		Vec3Provider.Type.ALIASES.addPathAlias("lerp", LINEAR_INTERPOLATED);
 	}
 
