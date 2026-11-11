@@ -34,6 +34,9 @@ public final class KayaContextParameters {
 	public static final ItemContextParameter USED_ITEM = new ItemContextParameter(Kaya.id("used_item"));
 	public static final SlotContextParameter USED_ITEM_SLOT = new SlotContextParameter(Kaya.id("used_item_slot"));
 
+	public static final IntContextParameter PLAYER_FOOD_LEVEL = new IntContextParameter(Kaya.id("player/food_level"));
+	public static final FloatContextParameter PLAYER_SATURATION = new FloatContextParameter(Kaya.id("player/saturation"));
+
 	public static void registerAll() {
 		addPathAlias(KayaContextParameterTypes.ENTITY, "actor", ACTOR_ENTITY);
 		addPathAlias(KayaContextParameterTypes.ENTITY, "projectile", PROJECTILE_ENTITY);
