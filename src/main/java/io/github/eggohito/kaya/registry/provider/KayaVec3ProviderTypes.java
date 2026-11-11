@@ -2,6 +2,7 @@ package io.github.eggohito.kaya.registry.provider;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.kaya.Kaya;
+import io.github.eggohito.kaya.provider.custom.number.floats.RotateVec3Provider;
 import io.github.eggohito.kaya.provider.custom.vec3.*;
 import io.github.eggohito.kaya.registry.KayaRegistries;
 import net.minecraft.core.Registry;
@@ -23,6 +24,7 @@ public final class KayaVec3ProviderTypes {
 	public static final Vec3Provider.Type<OffsetVec3Provider> OFFSET = registerInternal("offset", OffsetVec3Provider.CODEC, OffsetVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<ProductVec3Provider> PRODUCT = registerInternal("product", ProductVec3Provider.CODEC, ProductVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<ReverseVec3Provider> REVERSE = registerInternal("reverse", ReverseVec3Provider.CODEC, ReverseVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<RotateVec3Provider> ROTATE = registerInternal("rotate", RotateVec3Provider.CODEC, RotateVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<SumVec3Provider> SUM = registerInternal("sum", SumVec3Provider.CODEC, SumVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<WeightedVec3Provider> WEIGHTED = registerInternal("weighted", WeightedVec3Provider.CODEC, WeightedVec3Provider.STREAM_CODEC);
 

@@ -13,10 +13,7 @@ import com.mojang.brigadier.Message;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.MapLike;
+import com.mojang.serialization.*;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.mixin.access.RegistryOpsAccessor;
 import io.github.eggohito.kaya.mixin.access.ReloadableServerRegistriesAccessor;
@@ -102,8 +99,6 @@ public class MiscUtil {
 		.disableHtmlEscaping()
 		.setPrettyPrinting()
 		.create();
-
-	public static final String ERROR_PADDING = "\n\t";
 
 	public static CommandSyntaxException createCommandException(Message message) {
 		return new SimpleCommandExceptionType(message).create();
@@ -542,30 +537,56 @@ public class MiscUtil {
 		return (Iterable<T>) EMPTY_ITERABLE;
 	}
 
-	public static String joinFields(List<String> strings) {
+	public static String join(Collection<String> strings, UnaryOperator<String> mapper, String endSeparator) {
 
-        StringBuilder builder = new StringBuilder();
+		StringBuilder builder = new StringBuilder();
 		Mutable<String> separator = new MutableObject<>("");
 
-		iterateList(
+		iterate(
 			strings,
 			(index, string) -> {
 
 				if (strings.size() > 1 && index >= strings.size() - 1) {
-					separator.setValue(" and ");
+					separator.setValue(endSeparator);
+				}
+
+				else {
+					separator.setValue(", ");
 				}
 
 				builder
 					.append(separator)
-					.append("'").append(string).append("'");
-
-				separator.setValue(", ");
+					.append(mapper.apply(string));
 
 			}
 		);
 
 		return builder.toString();
 
+	}
+
+	public static String allKeys(Collection<String> strings) {
+		return join(strings, key -> "'" + key + "'", " and ");
+	}
+
+	public static String anyKeys(Collection<String> strings) {
+		return join(strings, key -> "'" + key + "'", " or ");
+	}
+
+	public static <T> MapCodec.ResultFunction<T> validateWithInput(BiFunction<T, MapLike<?>, DataResult<T>> validator) {
+		return new MapCodec.ResultFunction<>() {
+
+			@Override
+			public <T1> DataResult<T> apply(DynamicOps<T1> ops, MapLike<T1> input, DataResult<T> result) {
+				return result.flatMap(t -> validator.apply(t, input));
+			}
+
+			@Override
+			public <T1> RecordBuilder<T1> coApply(DynamicOps<T1> ops, T input, RecordBuilder<T1> prefix) {
+				return prefix;
+			}
+
+		};
 	}
 
 }
