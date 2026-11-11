@@ -37,6 +37,8 @@ public final class KayaVec3ProviderTypes {
 		Vec3Provider.Type.ALIASES.addPathAlias("addition", SUM);
 		Vec3Provider.Type.ALIASES.addPathAlias("diff", DIFFERENCE);
 		Vec3Provider.Type.ALIASES.addPathAlias("lerp", LINEAR_INTERPOLATED);
+		Vec3Provider.Type.ALIASES.addPathAlias("mul", PRODUCT);
+		Vec3Provider.Type.ALIASES.addPathAlias("multiply", PRODUCT);
 		Vec3Provider.Type.ALIASES.addPathAlias("sub", DIFFERENCE);
 		Vec3Provider.Type.ALIASES.addPathAlias("subtract", DIFFERENCE);
 	}
