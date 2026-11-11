@@ -4,7 +4,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.codec.MultiAlternativeCodec;
-import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.provider.ValueProvider;
 import io.github.eggohito.kaya.registry.KayaRegistries;
 import io.github.eggohito.kaya.registry.provider.KayaValueProviderKinds;
@@ -12,7 +11,6 @@ import io.github.eggohito.kaya.util.alias.FixedRegistryAlias;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.shapes.CollisionContext;
 import org.jetbrains.annotations.NotNull;
 
 public interface BoxProvider extends ValueProvider<AABB> {
@@ -27,10 +25,6 @@ public interface BoxProvider extends ValueProvider<AABB> {
 	@Override
 	default @NotNull Kind<?> getKind() {
 		return KayaValueProviderKinds.BOX;
-	}
-
-	default CollisionContext getCollisionContext(Context context) {
-		return CollisionContext.empty();
 	}
 
 	record Type<P extends BoxProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {

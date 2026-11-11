@@ -8,11 +8,13 @@ import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.context.parameter.BlockContextParameter;
 import io.github.eggohito.kaya.provider.custom.box.BoxProvider;
+import io.github.eggohito.kaya.provider.custom.entity.EntityProvider;
 import io.github.eggohito.kaya.provider.custom.number.IntProvider;
 import io.github.eggohito.kaya.registry.provider.KayaIntProviderTypes;
 import io.github.eggohito.kaya.util.CachedBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.BlockCollisions;
 import net.minecraft.world.level.Level;
@@ -22,19 +24,21 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record BlocksCollidingBoxIntProvider(Condition condition, BoxProvider box) implements IntProvider {
+public record BlocksCollidingBoxIntProvider(Condition condition, BoxProvider box, Optional<EntityProvider> entity) implements IntProvider {
 
 	public static final BlockContextParameter BLOCK_COLLIDING_BOX = new BlockContextParameter(Kaya.id("block_colliding_box"));
 	public static final ContextValidator.Parameters CONDITION_PARAMETER_SET = new ContextValidator.Parameters.Builder().required(BLOCK_COLLIDING_BOX).build();
 
 	public static final MapCodec<BlocksCollidingBoxIntProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Condition.CODEC.fieldOf("condition").forGetter(BlocksCollidingBoxIntProvider::condition),
-		BoxProvider.CODEC.fieldOf("box").forGetter(BlocksCollidingBoxIntProvider::box)
+		BoxProvider.CODEC.fieldOf("box").forGetter(BlocksCollidingBoxIntProvider::box),
+		EntityProvider.CODEC.optionalFieldOf("entity").forGetter(BlocksCollidingBoxIntProvider::entity)
 	).apply(instance, BlocksCollidingBoxIntProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, BlocksCollidingBoxIntProvider> STREAM_CODEC = StreamCodec.composite(
 		Condition.STREAM_CODEC, BlocksCollidingBoxIntProvider::condition,
 		BoxProvider.STREAM_CODEC, BlocksCollidingBoxIntProvider::box,
+		ByteBufCodecs.optional(EntityProvider.STREAM_CODEC), BlocksCollidingBoxIntProvider::entity,
 		BlocksCollidingBoxIntProvider::new
 	);
 
@@ -56,8 +60,18 @@ public record BlocksCollidingBoxIntProvider(Condition condition, BoxProvider box
 		Level level = context.level();
 		int matches = 0;
 
-		CollisionContext collisionContext = box().getCollisionContext(boxContext);
-		BlockCollisions<BlockPos> collidedPositions = new BlockCollisions<>(level, collisionContext, box, false, (pos, ignored) -> pos);
+		CollisionContext collisionContext = entity()
+			.flatMap(entity -> entity.getValue(context.forChild(".entity")))
+			.map(CollisionContext::of)
+			.orElse(CollisionContext.empty());
+
+		BlockCollisions<BlockPos> collidedPositions = new BlockCollisions<>(
+			level,
+			collisionContext,
+			box,
+			false,
+			(pos, ignored) -> pos
+		);
 
 		while (collidedPositions.hasNext()) {
 
@@ -88,6 +102,7 @@ public record BlocksCollidingBoxIntProvider(Condition condition, BoxProvider box
 		IntProvider.super.validate(validator);
 		condition().validate(validator.withParams(CONDITION_PARAMETER_SET).forChild(".condition"));
 		box().validate(validator.forChild(".box"));
+		entity().ifPresent(entity -> entity.validate(validator.forChild(".entity")));
 	}
 
 }

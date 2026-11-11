@@ -10,7 +10,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.shapes.CollisionContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -42,13 +41,6 @@ public record EntityBoundsBoxProvider(EntityProvider entity) implements BoxProvi
 	public void validate(ContextValidator validator) {
 		BoxProvider.super.validate(validator);
 		entity().validate(validator.forChild(".entity"));
-	}
-
-	@Override
-	public CollisionContext getCollisionContext(Context context) {
-		return entity().getValue(context.forChild(".entity"))
-			.map(CollisionContext::of)
-			.orElseGet(CollisionContext::empty);
 	}
 
 }
