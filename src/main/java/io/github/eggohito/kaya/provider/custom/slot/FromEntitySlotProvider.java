@@ -14,22 +14,22 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record EntitySlotProvider(EntityProvider entity, IntProvider slot) implements SlotProvider {
+public record FromEntitySlotProvider(EntityProvider entity, IntProvider slot) implements SlotProvider {
 
-	public static final MapCodec<EntitySlotProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		EntityProvider.CODEC.fieldOf("entity").forGetter(EntitySlotProvider::entity),
-		IntProvider.CODEC.fieldOf("slot").forGetter(EntitySlotProvider::slot)
-	).apply(instance, EntitySlotProvider::new));
+	public static final MapCodec<FromEntitySlotProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		EntityProvider.CODEC.fieldOf("entity").forGetter(FromEntitySlotProvider::entity),
+		IntProvider.CODEC.fieldOf("slot").forGetter(FromEntitySlotProvider::slot)
+	).apply(instance, FromEntitySlotProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, EntitySlotProvider> STREAM_CODEC = StreamCodec.composite(
-		EntityProvider.STREAM_CODEC, EntitySlotProvider::entity,
-		IntProvider.STREAM_CODEC, EntitySlotProvider::slot,
-		EntitySlotProvider::new
+	public static final StreamCodec<RegistryFriendlyByteBuf, FromEntitySlotProvider> STREAM_CODEC = StreamCodec.composite(
+		EntityProvider.STREAM_CODEC, FromEntitySlotProvider::entity,
+		IntProvider.STREAM_CODEC, FromEntitySlotProvider::slot,
+		FromEntitySlotProvider::new
 	);
 
 	@Override
 	public @NotNull Type<?> getType() {
-		return KayaSlotProviderTypes.ENTITY;
+		return KayaSlotProviderTypes.FROM_ENTITY;
 	}
 
 	@Override

@@ -17,22 +17,22 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record BlockSlotProvider(BlockProvider block, IntProvider slot) implements SlotProvider {
+public record FromBlockSlotProvider(BlockProvider block, IntProvider slot) implements SlotProvider {
 
-	public static final MapCodec<BlockSlotProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		BlockProvider.CODEC.fieldOf("block").forGetter(BlockSlotProvider::block),
-		IntProvider.CODEC.fieldOf("slot").forGetter(BlockSlotProvider::slot)
-	).apply(instance, BlockSlotProvider::new));
+	public static final MapCodec<FromBlockSlotProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		BlockProvider.CODEC.fieldOf("block").forGetter(FromBlockSlotProvider::block),
+		IntProvider.CODEC.fieldOf("slot").forGetter(FromBlockSlotProvider::slot)
+	).apply(instance, FromBlockSlotProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, BlockSlotProvider> STREAM_CODEC = StreamCodec.composite(
-		BlockProvider.STREAM_CODEC, BlockSlotProvider::block,
-		IntProvider.STREAM_CODEC, BlockSlotProvider::slot,
-		BlockSlotProvider::new
+	public static final StreamCodec<RegistryFriendlyByteBuf, FromBlockSlotProvider> STREAM_CODEC = StreamCodec.composite(
+		BlockProvider.STREAM_CODEC, FromBlockSlotProvider::block,
+		IntProvider.STREAM_CODEC, FromBlockSlotProvider::slot,
+		FromBlockSlotProvider::new
 	);
 
 	@Override
 	public @NotNull Type<?> getType() {
-		return KayaSlotProviderTypes.BLOCK;
+		return KayaSlotProviderTypes.FROM_BLOCK;
 	}
 
 	@Override

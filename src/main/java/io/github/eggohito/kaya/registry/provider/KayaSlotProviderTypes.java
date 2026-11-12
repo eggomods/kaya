@@ -16,11 +16,12 @@ public final class KayaSlotProviderTypes {
 	public static final SlotProvider.Type<ContextSlotProvider> CONTEXT = registerInternal("context", ContextSlotProvider.CODEC, ContextSlotProvider.STREAM_CODEC);
 	public static final SlotProvider.Type<WeightedSlotProvider> WEIGHTED = registerInternal("weighted", WeightedSlotProvider.CODEC, WeightedSlotProvider.STREAM_CODEC);
 
-	public static final SlotProvider.Type<BlockSlotProvider> BLOCK = registerInternal("block", BlockSlotProvider.CODEC, BlockSlotProvider.STREAM_CODEC);
-	public static final SlotProvider.Type<EntitySlotProvider> ENTITY = registerInternal("entity", EntitySlotProvider.CODEC, EntitySlotProvider.STREAM_CODEC);
+	public static final SlotProvider.Type<FromBlockSlotProvider> FROM_BLOCK = registerInternal("from_block", FromBlockSlotProvider.CODEC, FromBlockSlotProvider.STREAM_CODEC);
+	public static final SlotProvider.Type<FromEntitySlotProvider> FROM_ENTITY = registerInternal("from_entity", FromEntitySlotProvider.CODEC, FromEntitySlotProvider.STREAM_CODEC);
 
 	public static void registerAll() {
-
+		SlotProvider.Type.ALIASES.addPathAlias("block", FROM_BLOCK);
+		SlotProvider.Type.ALIASES.addPathAlias("entity", FROM_ENTITY);
 	}
 
 	public static <P extends SlotProvider> SlotProvider.Type<P> register(ResourceLocation id, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
