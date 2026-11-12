@@ -16,6 +16,8 @@ public final class KayaItemProviderTypes {
 	public static final ItemProvider.Type<ContextItemProvider> CONTEXT = registerInternal("context", ContextItemProvider.CODEC, ContextItemProvider.STREAM_CODEC);
 	public static final ItemProvider.Type<WeightedItemProvider> WEIGHTED = registerInternal("weighted", WeightedItemProvider.CODEC, WeightedItemProvider.STREAM_CODEC);
 
+	public static final ItemProvider.Type<FromSlotItemProvider> FROM_SLOT = registerInternal("from_slot", FromSlotItemProvider.CODEC, FromSlotItemProvider.STREAM_CODEC);
+
 	public static void registerAll() {
 
 	}
