@@ -13,13 +13,19 @@ import net.minecraft.resources.ResourceLocation;
 public final class KayaFloatProviderTypes {
 
 	public static final FloatProvider.Type<AbsoluteFloatProvider> ABSOLUTE = registerInternal("absolute", AbsoluteFloatProvider.CODEC, AbsoluteFloatProvider.STREAM_CODEC);
+	public static final FloatProvider.Type<ArcCosineFloatProvider> ARC_COSINE = registerInternal("cosine/arc", ArcCosineFloatProvider.CODEC, ArcCosineFloatProvider.STREAM_CODEC);
+	public static final FloatProvider.Type<ArcSineFloatProvider> ARC_SINE = registerInternal("sine/arc", ArcSineFloatProvider.CODEC, ArcSineFloatProvider.STREAM_CODEC);
+	public static final FloatProvider.Type<ArcTangent2FloatProvider> ARC_TANGENT_2 = registerInternal("tangent/arc/2", ArcTangent2FloatProvider.CODEC, ArcTangent2FloatProvider.STREAM_CODEC);
+	public static final FloatProvider.Type<ArcTangentFloatProvider> ARC_TANGENT = registerInternal("tangent/arc", ArcTangentFloatProvider.CODEC, ArcTangentFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<ClampedFloatProvider> CLAMPED = registerInternal("clamped", ClampedFloatProvider.CODEC, ClampedFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<CompositeConditionalFloatProvider> COMPOSITE_CONDITIONAL = registerInternal("conditional/composite", CompositeConditionalFloatProvider.CODEC, CompositeConditionalFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<ConditionalFloatProvider> CONDITIONAL = registerInternal("conditional", ConditionalFloatProvider.CODEC, ConditionalFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<ConstantFloatProvider> CONSTANT = registerInternal("constant", ConstantFloatProvider.CODEC, ConstantFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<ContextFloatProvider> CONTEXT = registerInternal("context", ContextFloatProvider.CODEC, ContextFloatProvider.STREAM_CODEC);
+	public static final FloatProvider.Type<CosineFloatProvider> COSINE = registerInternal("cosine", CosineFloatProvider.CODEC, CosineFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<DifferenceFloatProvider> DIFFERENCE = registerInternal("difference", DifferenceFloatProvider.CODEC, DifferenceFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<FromIntFloatProvider> FROM_INT = registerInternal("from_int", FromIntFloatProvider.CODEC, FromIntFloatProvider.STREAM_CODEC);
+	public static final FloatProvider.Type<InverseSquareRootFloatProvider> INVERSE_SQUARE_ROOT = registerInternal("square_root/inverse", InverseSquareRootFloatProvider.CODEC, InverseSquareRootFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<LinearInterpolatedFloatProvider> LINEAR_INTERPOLATED = registerInternal("linear_interpolated", LinearInterpolatedFloatProvider.CODEC, LinearInterpolatedFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<MaxFloatProvider> MAX = registerInternal("max", MaxFloatProvider.CODEC, MaxFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<MinFloatProvider> MIN = registerInternal("min", MinFloatProvider.CODEC, MinFloatProvider.STREAM_CODEC);
@@ -29,7 +35,12 @@ public final class KayaFloatProviderTypes {
 	public static final FloatProvider.Type<QuotientFloatProvider> QUOTIENT = registerInternal("quotient", QuotientFloatProvider.CODEC, QuotientFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<RandomUniformFloatProvider> RANDOM_UNIFORM = registerInternal("random/uniform", RandomUniformFloatProvider.CODEC, RandomUniformFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<RoundFloatProvider> ROUND = registerInternal("round", RoundFloatProvider.CODEC, RoundFloatProvider.STREAM_CODEC);
+	public static final FloatProvider.Type<SineFloatProvider> SINE = registerInternal("sine", SineFloatProvider.CODEC, SineFloatProvider.STREAM_CODEC);
+	public static final FloatProvider.Type<SquareRootFloatProvider> SQUARE_ROOT = registerInternal("square_root", SquareRootFloatProvider.CODEC, SquareRootFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<SumFloatProvider> SUM = registerInternal("sum", SumFloatProvider.CODEC, SumFloatProvider.STREAM_CODEC);
+	public static final FloatProvider.Type<TangentFloatProvider> TANGENT = registerInternal("tangent", TangentFloatProvider.CODEC, TangentFloatProvider.STREAM_CODEC);
+	public static final FloatProvider.Type<ToDegreesFloatProvider> TO_DEGREES = registerInternal("to_degrees", ToDegreesFloatProvider.CODEC, ToDegreesFloatProvider.STREAM_CODEC);
+	public static final FloatProvider.Type<ToRadiansFloatProvider> TO_RADIANS = registerInternal("to_radians", ToRadiansFloatProvider.CODEC, ToRadiansFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<WeightedFloatProvider> WEIGHTED = registerInternal("weighted", WeightedFloatProvider.CODEC, WeightedFloatProvider.STREAM_CODEC);
 
 	public static final FloatProvider.Type<BoxComponentFloatProvider> BOX_COMPONENT = registerInternal("box/component", BoxComponentFloatProvider.CODEC, BoxComponentFloatProvider.STREAM_CODEC);
@@ -51,18 +62,26 @@ public final class KayaFloatProviderTypes {
 
 	public static void registerAll() {
 		FloatProvider.Type.ALIASES.addPathAlias("abs", ABSOLUTE);
+		FloatProvider.Type.ALIASES.addPathAlias("acos", ARC_COSINE);
 		FloatProvider.Type.ALIASES.addPathAlias("add", SUM);
 		FloatProvider.Type.ALIASES.addPathAlias("addition", SUM);
+		FloatProvider.Type.ALIASES.addPathAlias("atan", ARC_TANGENT);
+		FloatProvider.Type.ALIASES.addPathAlias("atan2", ARC_TANGENT_2);
+		FloatProvider.Type.ALIASES.addPathAlias("cos", COSINE);
+		FloatProvider.Type.ALIASES.addPathAlias("diff", DIFFERENCE);
 		FloatProvider.Type.ALIASES.addPathAlias("div", QUOTIENT);
 		FloatProvider.Type.ALIASES.addPathAlias("divide", QUOTIENT);
+		FloatProvider.Type.ALIASES.addPathAlias("inv_sqrt", INVERSE_SQUARE_ROOT);
+		FloatProvider.Type.ALIASES.addPathAlias("lerp", LINEAR_INTERPOLATED);
 		FloatProvider.Type.ALIASES.addPathAlias("mul", PRODUCT);
 		FloatProvider.Type.ALIASES.addPathAlias("multiply", PRODUCT);
-		FloatProvider.Type.ALIASES.addPathAlias("sub", DIFFERENCE);
-		FloatProvider.Type.ALIASES.addPathAlias("diff", DIFFERENCE);
-		FloatProvider.Type.ALIASES.addPathAlias("subtract", DIFFERENCE);
-		FloatProvider.Type.ALIASES.addPathAlias("random", RANDOM_UNIFORM);
 		FloatProvider.Type.ALIASES.addPathAlias("rand", RANDOM_UNIFORM);
-		FloatProvider.Type.ALIASES.addPathAlias("lerp", LINEAR_INTERPOLATED);
+		FloatProvider.Type.ALIASES.addPathAlias("random", RANDOM_UNIFORM);
+		FloatProvider.Type.ALIASES.addPathAlias("sin", SINE);
+		FloatProvider.Type.ALIASES.addPathAlias("sqrt", SQUARE_ROOT);
+		FloatProvider.Type.ALIASES.addPathAlias("sub", DIFFERENCE);
+		FloatProvider.Type.ALIASES.addPathAlias("subtract", DIFFERENCE);
+		FloatProvider.Type.ALIASES.addPathAlias("tan", TANGENT);
 	}
 
 	private static <P extends FloatProvider> FloatProvider.Type<P> registerInternal(String path, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {
