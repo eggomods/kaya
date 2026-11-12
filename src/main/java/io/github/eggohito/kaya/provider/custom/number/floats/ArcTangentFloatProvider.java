@@ -37,7 +37,7 @@ public record ArcTangentFloatProvider(FloatProvider value) implements FloatProvi
 	@Override
 	public void validate(ContextValidator validator) {
 		FloatProvider.super.validate(validator);
-		value().validate(validator.forChild(".validator"));
+		value().validate(validator.forChild(".value"));
 	}
 
 }

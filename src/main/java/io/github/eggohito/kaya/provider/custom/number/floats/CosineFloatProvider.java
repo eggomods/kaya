@@ -13,15 +13,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record CosineFloatProvider(FloatProvider radian) implements FloatProvider {
+public record CosineFloatProvider(FloatProvider value) implements FloatProvider {
 
 	public static final MapCodec<CosineFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(FloatProvider.CODEC.fieldOf("radian").forGetter(CosineFloatProvider::radian))
+		.group(FloatProvider.CODEC.fieldOf("value").forGetter(CosineFloatProvider::value))
 		.apply(instance, CosineFloatProvider::new)
 	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, CosineFloatProvider> STREAM_CODEC = StreamCodec.composite(
-		FloatProvider.STREAM_CODEC, CosineFloatProvider::radian,
+		FloatProvider.STREAM_CODEC, CosineFloatProvider::value,
 		CosineFloatProvider::new
 	);
 
@@ -32,13 +32,13 @@ public record CosineFloatProvider(FloatProvider radian) implements FloatProvider
 
 	@Override
 	public Optional<Float> getValue(Context context) {
-		return radian().getValue(context.forChild(".radian")).map(Mth::cos);
+		return value().getValue(context.forChild(".value")).map(Mth::cos);
 	}
 
 	@Override
 	public void validate(ContextValidator validator) {
 		FloatProvider.super.validate(validator);
-		radian().validate(validator.forChild(".radian"));
+		value().validate(validator.forChild(".value"));
 	}
 
 }

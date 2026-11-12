@@ -13,16 +13,16 @@ import org.joml.Math;
 
 import java.util.Optional;
 
-public record ArcTangent2FloatProvider(FloatProvider ordinate, FloatProvider abscissa) implements FloatProvider {
+public record ArcTangent2FloatProvider(FloatProvider y, FloatProvider x) implements FloatProvider {
 
 	public static final MapCodec<ArcTangent2FloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		FloatProvider.CODEC.fieldOf("ordinate").forGetter(ArcTangent2FloatProvider::ordinate),
-		FloatProvider.CODEC.fieldOf("abscissa").forGetter(ArcTangent2FloatProvider::abscissa)
+		FloatProvider.CODEC.fieldOf("y").forGetter(ArcTangent2FloatProvider::y),
+		FloatProvider.CODEC.fieldOf("x").forGetter(ArcTangent2FloatProvider::x)
 	).apply(instance, ArcTangent2FloatProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ArcTangent2FloatProvider> STREAM_CODEC = StreamCodec.composite(
-		FloatProvider.STREAM_CODEC, ArcTangent2FloatProvider::ordinate,
-		FloatProvider.STREAM_CODEC, ArcTangent2FloatProvider::abscissa,
+		FloatProvider.STREAM_CODEC, ArcTangent2FloatProvider::y,
+		FloatProvider.STREAM_CODEC, ArcTangent2FloatProvider::x,
 		ArcTangent2FloatProvider::new
 	);
 
@@ -33,16 +33,16 @@ public record ArcTangent2FloatProvider(FloatProvider ordinate, FloatProvider abs
 
 	@Override
 	public Optional<Float> getValue(Context context) {
-		return ordinate().getValue(context.forChild(".ordinate"))
-			.flatMap(y -> abscissa().getValue(context.forChild(".abscissa"))
+		return y().getValue(context.forChild(".y"))
+			.flatMap(y -> x().getValue(context.forChild(".x"))
 				.map(x -> Math.atan2(y, x)));
 	}
 
 	@Override
 	public void validate(ContextValidator validator) {
 		FloatProvider.super.validate(validator);
-		ordinate().validate(validator.forChild(".ordinate"));
-		abscissa().validate(validator.forChild(".abscissa"));
+		y().validate(validator.forChild(".y"));
+		x().validate(validator.forChild(".x"));
 	}
 
 }

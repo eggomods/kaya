@@ -13,15 +13,15 @@ import org.joml.Math;
 
 import java.util.Optional;
 
-public record TangentFloatProvider(FloatProvider radian) implements FloatProvider {
+public record TangentFloatProvider(FloatProvider value) implements FloatProvider {
 
 	public static final MapCodec<TangentFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(FloatProvider.CODEC.fieldOf("radian").forGetter(TangentFloatProvider::radian))
+		.group(FloatProvider.CODEC.fieldOf("value").forGetter(TangentFloatProvider::value))
 		.apply(instance, TangentFloatProvider::new)
 	);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, TangentFloatProvider> STREAM_CODEC = StreamCodec.composite(
-		FloatProvider.STREAM_CODEC, TangentFloatProvider::radian,
+		FloatProvider.STREAM_CODEC, TangentFloatProvider::value,
 		TangentFloatProvider::new
 	);
 
@@ -32,13 +32,13 @@ public record TangentFloatProvider(FloatProvider radian) implements FloatProvide
 
 	@Override
 	public Optional<Float> getValue(Context context) {
-		return radian().getValue(context.forChild(".radian")).map(Math::tan);
+		return value().getValue(context.forChild(".value")).map(Math::tan);
 	}
 
 	@Override
 	public void validate(ContextValidator validator) {
 		FloatProvider.super.validate(validator);
-		radian().validate(validator.forChild(".radian"));
+		value().validate(validator.forChild(".value"));
 	}
 
 }
