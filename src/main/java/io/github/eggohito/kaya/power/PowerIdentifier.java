@@ -157,7 +157,7 @@ public sealed interface PowerIdentifier extends StringDisplayable, ContextValida
 
 		@Override
 		public String asDisplayString() {
-			return "Sub-power" + this.name() + " of power \"" + this.baseId() + "\"";
+			return "Sub-power \"" + this.name() + "\" of power \"" + this.baseId() + "\"";
 		}
 
 		@Override
