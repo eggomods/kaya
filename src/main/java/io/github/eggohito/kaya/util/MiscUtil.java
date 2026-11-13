@@ -103,8 +103,6 @@ public class MiscUtil {
 		.setPrettyPrinting()
 		.create();
 
-	public static final String ERROR_PADDING = "\n\t";
-
 	public static CommandSyntaxException createCommandException(Message message) {
 		return new SimpleCommandExceptionType(message).create();
 	}
@@ -267,7 +265,8 @@ public class MiscUtil {
         }
 
 		BlockPos result = pos;
-		while (result.getY() < dimension.getMaxY() - 1 && !dimension.noCollision(serverPlayer, boundingBox.move(result.getBottomCenter()))) {
+
+		while (result.getY() < dimension.getLogicalHeight() - 1 && !dimension.noCollision(serverPlayer, boundingBox.move(result.getBottomCenter()))) {
 			result = result.above();
 		}
 
