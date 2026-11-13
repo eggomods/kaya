@@ -58,9 +58,7 @@ public record CallbackPowerTickPower(Action action, Action risingAction, Action 
 
 	public static class Instance extends Power.Instance<CallbackPowerTickPower> {
 
-		private Integer startTicks;
-		private Integer endTicks;
-
+		private Integer updateTicks;
 		private boolean wasActive;
 
 		protected Instance(@NotNull CallbackPowerTickPower power) {
@@ -74,52 +72,26 @@ public record CallbackPowerTickPower(Action action, Action risingAction, Action 
 			int interval = power.interval().getInt(context.forChild(".interval"));
 
 			if (context.hasProblems()) {
-
-				this.startTicks = null;
-				this.endTicks = null;
-
+				this.updateTicks = null;
 				this.wasActive = false;
-
 			}
 
 			else {
 
-				int ticks = interval > 0
-					? holder.tickCount % interval
-					: holder.tickCount;
-
-				if (this.isActive(context)) {
-
-					if (interval > 0 && startTicks == null) {
-						this.startTicks = ticks;
-						this.endTicks = null;
-					}
-
-					else if (interval <= 0 || ticks == startTicks) {
-
-						if (!wasActive) {
-							power.risingAction().execute(context.forChild(".rising_action"));
-							this.wasActive = true;
-						}
-
-						else {
-							power.action().execute(context.forChild(".action"));
-						}
-
-					}
-
+				if (interval <= 0) {
+					this.onTickInternal(context);
 				}
 
-				else if (wasActive) {
+				else {
 
-					if (interval > 0 && endTicks == null) {
-						this.startTicks = null;
-						this.endTicks = ticks;
+					int ticks = holder.tickCount % interval;
+
+					if (updateTicks == null) {
+						this.updateTicks = ticks;
 					}
 
-					else if (interval <= 0 || ticks == endTicks) {
-						power.fallingAction().execute(context.forChild(".falling_action"));
-						this.wasActive = false;
+					if (ticks == updateTicks) {
+						this.onTickInternal(context);
 					}
 
 				}
@@ -131,6 +103,29 @@ public record CallbackPowerTickPower(Action action, Action risingAction, Action 
 		@Override
 		public boolean shouldTick(Entity holder) {
 			return true;
+		}
+
+		private void onTickInternal(Context context) {
+
+			if (this.isActive(context)) {
+
+				if (!wasActive) {
+					power.risingAction().execute(context.forChild(".rising_action"));
+				}
+
+				else {
+					power.action().execute(context.forChild(".action"));
+				}
+
+				this.wasActive = true;
+
+			}
+
+			else if (wasActive) {
+				power.fallingAction().execute(context.forChild(".falling_action"));
+				this.wasActive = false;
+			}
+
 		}
 
 	}
