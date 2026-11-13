@@ -4,7 +4,8 @@ import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.client.hud.internal.HudElementHelperImpl;
 import io.github.eggohito.kaya.client.hud.renderer.HudElementRenderer;
 import io.github.eggohito.kaya.hud.element.HudElement;
-import it.unimi.dsi.fastutil.objects.ObjectAVLTreeSet;
+import it.unimi.dsi.fastutil.PriorityQueue;
+import it.unimi.dsi.fastutil.objects.ObjectHeapPriorityQueue;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import net.fabricmc.fabric.api.client.rendering.v1.IdentifiedLayer;
 import net.minecraft.client.DeltaTracker;
@@ -14,7 +15,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.Map;
-import java.util.Set;
 
 public enum HudElementLayer implements IdentifiedLayer {
 
@@ -38,7 +38,7 @@ public enum HudElementLayer implements IdentifiedLayer {
 	public void render(GuiGraphics graphics, DeltaTracker delta) {
 
 		Player player = Minecraft.getInstance().player;
-		Map<HudElement.Type<?>, Set<HudElement.WithContext>> batches = new Reference2ObjectArrayMap<>();
+		Map<HudElement.Type<?>, PriorityQueue<HudElement.WithContext>> batches = new Reference2ObjectArrayMap<>();
 
 		if (player == null) {
 			return;
@@ -48,8 +48,8 @@ public enum HudElementLayer implements IdentifiedLayer {
 
 			for (var elementWithContext : source.get(player, renderPhase)) {
 				batches
-					.computeIfAbsent(elementWithContext.element().getType(), ignored -> new ObjectAVLTreeSet<>(HudElement.WithContext::compareTo))
-					.add(elementWithContext);
+					.computeIfAbsent(elementWithContext.element().getType(), ignored -> new ObjectHeapPriorityQueue<>(HudElement.WithContext::compareTo))
+					.enqueue(elementWithContext);
 			}
 
 		}
@@ -58,12 +58,15 @@ public enum HudElementLayer implements IdentifiedLayer {
 
 			//noinspection unchecked
 			HudElementRenderer<HudElement> renderer = (HudElementRenderer<HudElement>) HudElementHelperImpl.getRenderer(batch.getKey());
+			var queued = batch.getValue();
+
 			renderer.init(graphics, delta);
 
 			graphics.pose().pushPose();
 			graphics.pose().translate(0.0F, 0.0F, 200.0F);
 
-			for (var elementWithContext : batch.getValue()) {
+			while (!queued.isEmpty()) {
+				var elementWithContext = queued.dequeue();
 				renderer.render(elementWithContext.context(), elementWithContext.element(), graphics, delta);
 			}
 
