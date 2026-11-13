@@ -68,6 +68,10 @@ public record FloatResourcePower(FloatProvider min, FloatProvider max, Optional<
 
 		public boolean setValue(Entity holder, float value, boolean executeActions) {
 
+			if (holder.level().isClientSide()) {
+				return false;
+			}
+
 			Context context = this.createHolderContext(holder);
 			float prevValue = this.getValue();
 

@@ -68,6 +68,10 @@ public record IntResourcePower(IntProvider min, IntProvider max, Optional<IntPro
 
 		public boolean setValue(Entity holder, int value, boolean executeActions) {
 
+			if (holder.level().isClientSide()) {
+				return false;
+			}
+
 			Context context = this.createHolderContext(holder);
 			int prevValue = this.getValue();
 
