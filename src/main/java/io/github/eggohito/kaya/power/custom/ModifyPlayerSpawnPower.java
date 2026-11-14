@@ -6,15 +6,18 @@ import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.isxander.yacl3.config.v3.ConfigEntry;
+import io.github.eggohito.kaya.Kaya;
 import io.github.eggohito.kaya.codec.KayaCodecs;
 import io.github.eggohito.kaya.codec.KayaStreamCodecs;
 import io.github.eggohito.kaya.config.AbstractJsonCodecConfig;
+import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.power.Power;
 import io.github.eggohito.kaya.power.custom.misc.PrioritizedPower;
 import io.github.eggohito.kaya.registry.KayaPowerTypes;
 import io.github.eggohito.kaya.util.MiscUtil;
 import io.github.eggohito.kaya.util.RegistryUtil;
+import io.github.eggohito.kaya.util.Reporter;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
@@ -36,11 +39,15 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
 import org.quiltmc.parsers.json.JsonFormat;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.function.Supplier;
 
 @SuppressWarnings("UnstableApiUsage")
 public record ModifyPlayerSpawnPower(ResourceKey<Level> dimension, Optional<Either<ResourceKey<Biome>, TagKey<Biome>>> biome, Optional<Either<ResourceKey<Structure>, TagKey<Structure>>> structure, int priority, Properties properties) implements PrioritizedPower<ModifyPlayerSpawnPower> {
@@ -82,10 +89,10 @@ public record ModifyPlayerSpawnPower(ResourceKey<Level> dimension, Optional<Eith
 
 	public static class Instance extends Power.Instance<ModifyPlayerSpawnPower> {
 
-		private static final MapCodec<Optional<ServerPlayer.RespawnConfig>> LOCATION_MAP_CODEC = MapCodec.assumeMapUnsafe(ExtraCodecs.optionalEmptyMap(ServerPlayer.RespawnConfig.CODEC));
+		private static final MapCodec<Optional<LocationData>> LOCATION_MAP_CODEC = MapCodec.assumeMapUnsafe(ExtraCodecs.optionalEmptyMap(LocationData.CODEC));
 
 		private CompletableFuture<TeleportTransition> respawnTeleport = new CompletableFuture<>();
-		private Optional<ServerPlayer.RespawnConfig> respawnLocation = Optional.empty();
+		private Optional<LocationData> respawnLocation = Optional.empty();
 
 		protected Instance(@NotNull ModifyPlayerSpawnPower power) {
 			super(power);
@@ -119,10 +126,19 @@ public record ModifyPlayerSpawnPower(ResourceKey<Level> dimension, Optional<Eith
 		}
 
 		public CompletableFuture<TeleportTransition> getOrFindRespawnLocation(ServerPlayer player) {
-			CompletableFuture<TeleportTransition> respawnLocation = this.getRespawnLocation();
-			return respawnLocation.isDone()
-				? respawnLocation
+
+			CompletableFuture<TeleportTransition> respawnTeleport = this.getRespawnLocation();
+
+			if (!respawnTeleport.isDone()) {
+				this.respawnLocation
+					.map(locationData -> locationData.prepareTeleport(player.server))
+					.ifPresent(respawnTeleport::complete);
+			}
+
+			return respawnTeleport.isDone()
+				? respawnTeleport
 				: this.findRespawnLocation(player);
+
 		}
 
 		public CompletableFuture<TeleportTransition> findRespawnLocation(ServerPlayer player) {
@@ -131,13 +147,19 @@ public record ModifyPlayerSpawnPower(ResourceKey<Level> dimension, Optional<Eith
 				.thenApply(this::onLocationFound);
 		}
 
+		public Context createContext(Entity holder, Reporter reporter) {
+			return this.createHolderContextBuilder(holder)
+				.withReporter(reporter.forChild("{\"" + this.id() + "\"}"))
+				.build(holder.level());
+		}
+
 		private TeleportTransition onLocationFound(Pair<ServerLevel, BlockPos> pair) {
 
 			ServerLevel level = pair.getFirst();
 			BlockPos blockPos = pair.getSecond();
 
 			var newTeleport = new TeleportTransition(level, blockPos.getBottomCenter(), Vec3.ZERO, 0.0F, 0.0F, TeleportTransition.DO_NOTHING);
-			this.respawnLocation = Optional.of(new ServerPlayer.RespawnConfig(level.dimension(), blockPos, 0.0F, false));
+			this.respawnLocation = Optional.of(new LocationData(level.dimension(), blockPos));
 
 			return newTeleport;
 
@@ -161,14 +183,26 @@ public record ModifyPlayerSpawnPower(ResourceKey<Level> dimension, Optional<Eith
 			spawnPos = this.findBiomeLocation(dimension, spawnPos, horizontalStep, verticalStep, radius);
 			spawnPos = this.findStructureLocation(dimension, spawnPos, radius);
 
-			return Pair.of(dimension, MiscUtil.adjustSpawnLocationSafely(player, dimension, spawnPos));
+			BlockPos adjustedPos = MiscUtil.adjustSpawnLocationSafely(player, dimension, spawnPos);
+
+			if (adjustedPos == null) {
+				throw new CompletionException("Could not find a safe location at " + spawnPos.toShortString(), null);
+			}
+
+			else {
+				return Pair.of(dimension, adjustedPos);
+			}
 
 		}
 
-		private BlockPos findBiomeLocation(ServerLevel dimension, BlockPos pos, int horizontalSteps, int verticalSteps, int radius) {
+		private BlockPos findBiomeLocation(ServerLevel level, BlockPos pos, int horizontalSteps, int verticalSteps, int radius) {
 
-			var foundBiome = dimension.findClosestBiome3d(
-				biomeHolder -> power.biome().isEmpty() || power.biome().get().map(biomeHolder::is, biomeHolder::is),
+			if (power.biome().isEmpty()) {
+				return pos;
+			}
+
+			var foundBiome = level.findClosestBiome3d(
+				biomeHolder -> power.biome().get().map(biomeHolder::is, biomeHolder::is),
 				pos,
 				radius,
 				horizontalSteps,
@@ -180,22 +214,29 @@ public record ModifyPlayerSpawnPower(ResourceKey<Level> dimension, Optional<Eith
 			}
 
 			else {
-				return pos;
+
+				String biome = power.biome().get().map(
+					key -> "biome \"" + key.location() + "\"",
+					tag -> "any biomes from tag \"#" + tag.location() + "\""
+				);
+
+				throw new CompletionException("Could not find " + biome + " in dimension \"" + level.dimension().location() + "\"", null);
+
 			}
 
 		}
 
-		private BlockPos findStructureLocation(ServerLevel dimension, BlockPos pos, int radius) {
+		private BlockPos findStructureLocation(ServerLevel level, BlockPos pos, int radius) {
 
 			if (power.structure().isEmpty()) {
 				return pos;
 			}
 
-			Registry<Structure> registry = dimension.registryAccess().lookupOrThrow(Registries.STRUCTURE);
+			Registry<Structure> registry = level.registryAccess().lookupOrThrow(Registries.STRUCTURE);
 			HolderSet<Structure> structures = power.structure().get().map(key -> HolderSet.direct(registry.getOrThrow(key)), registry::getOrThrow);
 
-			var foundStructure = dimension.getChunkSource().getGenerator().findNearestMapStructure(
-				dimension,
+			var foundStructure = level.getChunkSource().getGenerator().findNearestMapStructure(
+				level,
 				structures,
 				pos,
 				radius,
@@ -207,9 +248,92 @@ public record ModifyPlayerSpawnPower(ResourceKey<Level> dimension, Optional<Eith
 			}
 
 			else {
-				return pos;
+
+				String structure = power.structure().get().map(
+					key -> "structure \"" + key.location() + "\"",
+					tag -> "any structures from tag \"#" + tag.location() + "\""
+				);
+
+				throw new CompletionException("Could not find " + structure + " in dimension \"" + level.dimension().location() + "\"", null);
+
 			}
 
+		}
+
+	}
+
+	public static TeleportTransition getSpawnLocationOrElse(ServerPlayer player, Supplier<TeleportTransition> defaultGetter) {
+
+		MutableBoolean useDefault = new MutableBoolean();
+		Reporter.Scoped reporter = new Reporter.Scoped(problems -> {
+
+			StringBuilder builder = new StringBuilder()
+				.append("Found problems while trying to find/get custom spawn point for player ")
+				.append(player.getName().getString());
+
+			if (useDefault.isTrue()) {
+				builder.append(" (using default spawn point as fallback)");
+			}
+
+			builder.append(":\n").append(problems);
+			Kaya.LOGGER.warn(builder.toString());
+
+		});
+
+		try (reporter) {
+
+			for (var instance : new InstanceCollection<>(player, Instance.class)) {
+
+				Context context = instance.createContext(player, reporter);
+				CompletableFuture<TeleportTransition> respawnLocation = instance.getOrFindRespawnLocation(player);
+
+				if (instance.isActive(context) && respawnLocation.isDone()) {
+
+					TeleportTransition actualRespawnLocation = respawnLocation
+						.exceptionally(throwable -> {
+							context.reporter().report(throwable.getMessage());
+							return null;
+						})
+						.join();
+
+					if (actualRespawnLocation != null) {
+						return actualRespawnLocation;
+					}
+
+				}
+
+			}
+
+			useDefault.setTrue();
+			return defaultGetter.get();
+
+		}
+
+	}
+
+	public record LocationData(ResourceKey<Level> dimension, BlockPos position) {
+
+		private static final Codec<LocationData> DIRECT_CODEC = RecordCodecBuilder.create(instance -> instance.group(
+			Level.RESOURCE_KEY_CODEC.fieldOf("dimension").forGetter(LocationData::dimension),
+			BlockPos.CODEC.fieldOf("position").forGetter(LocationData::position)
+		).apply(instance, LocationData::new));
+
+		private static final Codec<LocationData> FROM_CONFIG_CODEC = ServerPlayer.RespawnConfig.CODEC.xmap(
+			config -> new LocationData(config.dimension(), config.pos()),
+			location -> new ServerPlayer.RespawnConfig(location.dimension(), location.position(), 0.0F, false)
+		);
+
+		public static final Codec<LocationData> CODEC = Codec.withAlternative(DIRECT_CODEC, FROM_CONFIG_CODEC);
+
+		public TeleportTransition prepareTeleport(MinecraftServer server) {
+			return new TeleportTransition(
+				Objects.requireNonNull(server.getLevel(this.dimension()), "Dimension \"" + this.dimension().location() + "\" doesn't exist!"),
+				this.position().getBottomCenter(),
+				Vec3.ZERO,
+				0.0F,
+				0.0F,
+				TeleportTransition.DO_NOTHING
+			);
 		}
 
 	}

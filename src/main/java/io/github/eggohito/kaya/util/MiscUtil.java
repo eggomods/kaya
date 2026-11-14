@@ -32,6 +32,7 @@ import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.Packet;
@@ -50,15 +51,14 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.DismountHelper;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.EntityCollisionContext;
@@ -221,25 +221,37 @@ public class MiscUtil {
 			: DataResult.error(() -> "Not a compound tag: " + tag.toString());
 	}
 
+	@Nullable
 	public static BlockPos adjustSpawnLocationSafely(ServerPlayer serverPlayer, ServerLevel dimension, BlockPos blockPos) {
 		return adjustSpawnLocationSafely((player, dim, pos) -> true, serverPlayer, dimension, blockPos);
 	}
 
-	public static BlockPos adjustSpawnLocationSafely(TriPredicate<ServerPlayer, ServerLevel, BlockPos> safeLocationCondition, ServerPlayer serverPlayer, ServerLevel dimension, BlockPos pos) {
+	@Nullable
+	public static BlockPos adjustSpawnLocationSafely(TriPredicate<ServerPlayer, ServerLevel, BlockPos> safeLocationCondition, ServerPlayer serverPlayer, ServerLevel level, BlockPos pos) {
 
-		MinecraftServer server = dimension.getServer();
-		AABB boundingBox = serverPlayer.getDimensions(Pose.STANDING).makeBoundingBox(Vec3.ZERO);
+		MinecraftServer server = level.getServer();
+		LevelChunk chunk = level.getChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()));
 
-		if (server.getWorldData().getGameType() != GameType.ADVENTURE) {
+		int y = level.dimensionType().hasCeiling()
+			? level.getChunkSource().getGenerator().getSpawnHeight(level)
+			: chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.getX() & 15, pos.getZ() & 15);
 
-			int distanceToBorder = Mth.floor(dimension.getWorldBorder().getDistanceToBorder(pos.getX(), pos.getZ()));
-			int radius = Mth.clamp(Math.max(0, server.getSpawnRadius(dimension)), 1, distanceToBorder);
+		int distanceToBorder = Mth.floor(level.getWorldBorder().getDistanceToBorder(pos.getX(), pos.getZ()));
+		int radius = Mth.clamp(Math.max(0, server.getSpawnRadius(level)), 1, distanceToBorder);
 
-			int diameter = radius * 2 + 1;
-			int max = diameter * diameter;
+		int diameter = radius * 2 + 1;
+		int max = diameter * diameter;
 
-			int coprime = ((ServerPlayerAccessor) serverPlayer).callGetCoprime(max);
-			int offset = RandomSource.create().nextInt(max);
+		int coprime = ((ServerPlayerAccessor) serverPlayer).callGetCoprime(max);
+		int offset = RandomSource.create().nextInt(max);
+
+		int maxY = level.getLogicalHeight();
+		int minY = level.getMinY();
+
+		BlockPos.MutableBlockPos candidate = pos.mutable();
+		int[] verticalOffsets = {0, 0};
+
+		while (verticalOffsets[0] < maxY || verticalOffsets[1] > minY) {
 
 			for (int step = 0; step < max; step++) {
 
@@ -251,30 +263,36 @@ public class MiscUtil {
 				int x = pos.getX() + xOffset - radius;
 				int z = pos.getZ() + zOffset - radius;
 
-				BlockPos candidate = BlockPos.containing(x, pos.getY(), z);
-				BlockPos safePos = Optional.ofNullable(DismountHelper.findSafeDismountLocation(serverPlayer.getType(), dimension, candidate, true))
-					.map(BlockPos::containing)
-					.orElse(null);
+				for (int verticalOffset : verticalOffsets) {
 
-				if (safePos != null && safeLocationCondition.test(serverPlayer, dimension, safePos)) {
-					return safePos;
+					candidate.set(x, y + verticalOffset, z);
+
+					for (int i = 0; i < 2; i++) {
+
+						Vec3 safePos = DismountHelper.findSafeDismountLocation(serverPlayer.getType(), level, candidate, i == 0);
+
+						if (safePos == null) {
+							continue;
+						}
+
+						candidate.set(safePos.x(), safePos.y(), safePos.z());
+
+						if (safeLocationCondition.test(serverPlayer, level, candidate)) {
+							return candidate.immutable();
+						}
+
+					}
+
 				}
 
 			}
 
-        }
+			verticalOffsets[0]++;
+			verticalOffsets[1]--;
 
-		BlockPos result = pos;
-
-		while (result.getY() < dimension.getLogicalHeight() - 1 && !dimension.noCollision(serverPlayer, boundingBox.move(result.getBottomCenter()))) {
-			result = result.above();
 		}
 
-		while (result.getY() > dimension.getMinY() + 1 && dimension.noCollision(serverPlayer, boundingBox.move(result.below().getBottomCenter()))) {
-			result = result.below();
-		}
-
-		return result;
+		return null;
 
 	}
 

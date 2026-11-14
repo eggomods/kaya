@@ -1,5 +1,6 @@
 package io.github.eggohito.kaya.util;
 
+import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.*;
 
 import java.util.function.Supplier;
@@ -34,6 +35,16 @@ public class MapCodecUtil {
 			}
 
 		};
+	}
+
+	public static <T> MapCodec<T> either(MapCodec<T> primary, MapCodec<? extends T> secondary) {
+		return Codec.mapEither(
+			primary,
+			secondary
+		).xmap(
+			Either::unwrap,
+			Either::left
+		);
 	}
 
 }
