@@ -1,6 +1,7 @@
 package io.github.eggohito.kaya.power.custom;
 
-import com.mojang.serialization.MapCodec;
+import com.mojang.datafixers.util.Unit;
+import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.action.Action;
 import io.github.eggohito.kaya.action.custom.NothingAction;
@@ -22,7 +23,7 @@ public record CallbackPowerTickPower(Action action, Action risingAction, Action 
 		CallbackPower.optionalActionCodecBuilder(),
 		Action.CODEC.optionalFieldOf("rising_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::risingAction),
 		Action.CODEC.optionalFieldOf("falling_action", NothingAction.INSTANCE).forGetter(CallbackPowerTickPower::fallingAction),
-		IntProvider.clamped(0, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantIntProvider(20)).forGetter(CallbackPowerTickPower::interval),
+		IntProvider.clamped(1, Integer.MAX_VALUE).optionalFieldOf("interval", new ConstantIntProvider(20)).forGetter(CallbackPowerTickPower::interval),
 		Power.propertiesCodecBuilder(true)
 	).apply(instance, CallbackPowerTickPower::new));
 
@@ -58,13 +59,17 @@ public record CallbackPowerTickPower(Action action, Action risingAction, Action 
 
 	public static class Instance extends Power.Instance<CallbackPowerTickPower> {
 
-		private Integer updateTicks;
+		private static final MapCodec<Boolean> WAS_ACTIVE_CODEC = Codec.BOOL.optionalFieldOf("was_active", false);
+
+		private boolean currentlyActive;
 		private boolean wasActive;
+		private long tick;
 
 		protected Instance(@NotNull CallbackPowerTickPower power) {
 			super(power);
 		}
 
+		//  TODO: optimize?
 		@Override
 		public void onTick(Entity holder) {
 
@@ -72,31 +77,45 @@ public record CallbackPowerTickPower(Action action, Action risingAction, Action 
 			int interval = power.interval().getInt(context.forChild(".interval"));
 
 			if (context.hasProblems()) {
-				this.updateTicks = null;
+				this.currentlyActive = false;
 				this.wasActive = false;
 			}
 
-			else {
+			else if (this.isActive(context)) {
 
-				if (interval <= 0) {
-					this.onTickInternal(context);
+				if (!currentlyActive) {
+					this.currentlyActive = true;
+					this.tick = 0;
 				}
 
-				else {
+				else if (tick % interval == 0) {
 
-					int ticks = holder.tickCount % interval;
-
-					if (updateTicks == null) {
-						this.updateTicks = ticks;
+					if (!wasActive) {
+						power.risingAction().execute(context.forChild(".rising_action"));
 					}
 
-					if (ticks == updateTicks) {
-						this.onTickInternal(context);
-					}
+					power.action().execute(context.forChild(".action"));
+					this.wasActive = true;
 
 				}
 
 			}
+
+			else if (wasActive) {
+
+				if (currentlyActive) {
+					this.currentlyActive = false;
+					this.tick = 0;
+				}
+
+				else if (tick % interval == 0) {
+					power.fallingAction().execute(context.forChild(".falling_action"));
+					this.wasActive = false;
+				}
+
+			}
+
+			this.tick++;
 
 		}
 
@@ -105,27 +124,16 @@ public record CallbackPowerTickPower(Action action, Action risingAction, Action 
 			return true;
 		}
 
-		private void onTickInternal(Context context) {
+		@Override
+		public <I> DataResult<Unit> decodeData(DynamicOps<I> ops, MapLike<I> mapInput) {
+			return WAS_ACTIVE_CODEC.decode(ops, mapInput)
+				.ifSuccess(value -> this.wasActive = value)
+				.map(ignored -> Unit.INSTANCE);
+		}
 
-			if (this.isActive(context)) {
-
-				if (!wasActive) {
-					power.risingAction().execute(context.forChild(".rising_action"));
-				}
-
-				else {
-					power.action().execute(context.forChild(".action"));
-				}
-
-				this.wasActive = true;
-
-			}
-
-			else if (wasActive) {
-				power.fallingAction().execute(context.forChild(".falling_action"));
-				this.wasActive = false;
-			}
-
+		@Override
+		public <O> RecordBuilder<O> encodeData(DynamicOps<O> ops, RecordBuilder<O> prefix) {
+			return WAS_ACTIVE_CODEC.encode(this.wasActive, ops, prefix);
 		}
 
 	}
