@@ -2,6 +2,7 @@ package io.github.eggohito.kaya.registry.provider;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.kaya.Kaya;
+import io.github.eggohito.kaya.provider.custom.number.floats.RotateVec3Provider;
 import io.github.eggohito.kaya.provider.custom.vec3.*;
 import io.github.eggohito.kaya.registry.KayaRegistries;
 import net.minecraft.core.Registry;
@@ -15,8 +16,16 @@ public final class KayaVec3ProviderTypes {
 	public static final Vec3Provider.Type<ConditionalVec3Provider> CONDITIONAL = registerInternal("conditional", ConditionalVec3Provider.CODEC, ConditionalVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<ConstantVec3Provider> CONSTANT = registerInternal("constant", ConstantVec3Provider.CODEC, ConstantVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<ContextVec3Provider> CONTEXT = registerInternal("context", ContextVec3Provider.CODEC, ContextVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<CrossProductVec3Provider> CROSS_PRODUCT = registerInternal("cross_product", CrossProductVec3Provider.CODEC, CrossProductVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<DifferenceVec3Provider> DIFFERENCE = registerInternal("difference", DifferenceVec3Provider.CODEC, DifferenceVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<DynamicVec3Provider> DYNAMIC = registerInternal("dynamic", DynamicVec3Provider.CODEC, DynamicVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<LinearInterpolatedVec3Provider> LINEAR_INTERPOLATED = registerInternal("linear_interpolated", LinearInterpolatedVec3Provider.CODEC, LinearInterpolatedVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<NormalizeVec3Provider> NORMALIZE = registerInternal("normalize", NormalizeVec3Provider.CODEC, NormalizeVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<OffsetVec3Provider> OFFSET = registerInternal("offset", OffsetVec3Provider.CODEC, OffsetVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<ProductVec3Provider> PRODUCT = registerInternal("product", ProductVec3Provider.CODEC, ProductVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<ReverseVec3Provider> REVERSE = registerInternal("reverse", ReverseVec3Provider.CODEC, ReverseVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<RotateVec3Provider> ROTATE = registerInternal("rotate", RotateVec3Provider.CODEC, RotateVec3Provider.STREAM_CODEC);
+	public static final Vec3Provider.Type<SumVec3Provider> SUM = registerInternal("sum", SumVec3Provider.CODEC, SumVec3Provider.STREAM_CODEC);
 	public static final Vec3Provider.Type<WeightedVec3Provider> WEIGHTED = registerInternal("weighted", WeightedVec3Provider.CODEC, WeightedVec3Provider.STREAM_CODEC);
 
 	public static final Vec3Provider.Type<BlockPositionVec3Provider> BLOCK_POSITION = registerInternal("block/position", BlockPositionVec3Provider.CODEC, BlockPositionVec3Provider.STREAM_CODEC);
@@ -26,7 +35,14 @@ public final class KayaVec3ProviderTypes {
 	public static final Vec3Provider.Type<EntityViewVec3Provider> ENTITY_VIEW = registerInternal("entity/view", EntityViewVec3Provider.CODEC, EntityViewVec3Provider.STREAM_CODEC);
 
 	public static void registerAll() {
-
+		Vec3Provider.Type.ALIASES.addPathAlias("add", SUM);
+		Vec3Provider.Type.ALIASES.addPathAlias("addition", SUM);
+		Vec3Provider.Type.ALIASES.addPathAlias("diff", DIFFERENCE);
+		Vec3Provider.Type.ALIASES.addPathAlias("lerp", LINEAR_INTERPOLATED);
+		Vec3Provider.Type.ALIASES.addPathAlias("mul", PRODUCT);
+		Vec3Provider.Type.ALIASES.addPathAlias("multiply", PRODUCT);
+		Vec3Provider.Type.ALIASES.addPathAlias("sub", DIFFERENCE);
+		Vec3Provider.Type.ALIASES.addPathAlias("subtract", DIFFERENCE);
 	}
 
 	private static <P extends Vec3Provider> Vec3Provider.Type<P> registerInternal(String path, MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) {

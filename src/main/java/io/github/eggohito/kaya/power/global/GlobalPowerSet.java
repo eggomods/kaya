@@ -79,7 +79,7 @@ public record GlobalPowerSet(TagLike<EntityType<?>> entityTypes, TagLike<PowerHo
 			if (!replacedFields.isEmpty()) {
 				Kaya.LOGGER.warn(
 					"The data of the {} {} of global power set \"{}\" from data pack [{}] has been replaced with data from data pack [{}]!",
-					MiscUtil.joinFields(replacedFields),
+					MiscUtil.allKeys(replacedFields),
 					replacedFields.size() > 1 ? "fields": "field",
 					this.id(),
 					this.source(),
