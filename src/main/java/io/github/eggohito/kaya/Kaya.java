@@ -27,8 +27,7 @@ import io.github.eggohito.kaya.registry.provider.KayaValueProviderTypes;
 import io.github.eggohito.kaya.registry.recipe.KayaRecipeBookCategories;
 import io.github.eggohito.kaya.registry.recipe.KayaRecipeSerializers;
 import io.github.eggohito.kaya.tag.manager.NestedTagManager;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -43,12 +42,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
+import java.util.Set;
+
 public final class Kaya implements ModInitializer {
 
 	public static final String MOD_NAMESPACE = "kaya";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAMESPACE);
 
-	static final IntSet CACHED_LOGS = new IntOpenHashSet();
+	static final Set<String> CACHED_LOGS = new ObjectOpenHashSet<>();
 
 	static MinecraftServer server;
 	static boolean embedded;
@@ -152,7 +153,7 @@ public final class Kaya implements ModInitializer {
 
 	public static void logOnce(Level level, String message) {
 
-		if (CACHED_LOGS.add(message.hashCode())) {
+		if (CACHED_LOGS.add(message)) {
 			LOGGER.atLevel(level).log(message);
 		}
 
