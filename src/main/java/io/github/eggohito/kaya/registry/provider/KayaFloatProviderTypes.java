@@ -36,18 +36,18 @@ public final class KayaFloatProviderTypes {
 	public static final FloatProvider.Type<BoxSizeFloatProvider> BOX_SIZE = registerInternal("box/size", BoxSizeFloatProvider.CODEC, BoxSizeFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<BrightnessFloatProvider> BRIGHTNESS = registerInternal("brightness", BrightnessFloatProvider.CODEC, BrightnessFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<DistanceBetweenVectorsFloatProvider> DISTANCE_BETWEEN_VECTORS = registerInternal("distance_between_vectors", DistanceBetweenVectorsFloatProvider.CODEC, DistanceBetweenVectorsFloatProvider.STREAM_CODEC);
-	public static final FloatProvider.Type<DotProductFloatProvider> DOT_PRODUCT = registerInternal("dot_product", DotProductFloatProvider.CODEC, DotProductFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<EntityAttributeFloatProvider> ENTITY_ATTRIBUTE = registerInternal("entity/attribute", EntityAttributeFloatProvider.CODEC, EntityAttributeFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<EntityFluidHeightFloatProvider> ENTITY_FLUID_HEIGHT = registerInternal("entity/fluid_height", EntityFluidHeightFloatProvider.CODEC, EntityFluidHeightFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<ItemAttributeFloatProvider> ITEM_ATTRIBUTE = registerInternal("item/attribute", ItemAttributeFloatProvider.CODEC, ItemAttributeFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<NbtFloatProvider> NBT = registerInternal("nbt", NbtFloatProvider.CODEC, NbtFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<PlayerSaturationFloatProvider> PLAYER_SATURATION = registerInternal("player/saturation", PlayerSaturationFloatProvider.CODEC, PlayerSaturationFloatProvider.STREAM_CODEC);
-    public static final FloatProvider.Type<PlayerXPProgressFloatProvider> PLAYER_XP_PROGRESS = registerInternal("player/xp/progress", PlayerXPProgressFloatProvider.CODEC, PlayerXPProgressFloatProvider.STREAM_CODEC);
+	public static final FloatProvider.Type<PlayerXPProgressFloatProvider> PLAYER_XP_PROGRESS = registerInternal("player/xp/progress", PlayerXPProgressFloatProvider.CODEC, PlayerXPProgressFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<PowerCooldownProgressFloatProvider> POWER_COOLDOWN_PROGRESS = registerInternal("power/cooldown/progress", PowerCooldownProgressFloatProvider.CODEC, PowerCooldownProgressFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<RainLevelFloatProvider> RAIN_LEVEL = registerInternal("rain_level", RainLevelFloatProvider.CODEC, RainLevelFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<ResourceFloatProvider> RESOURCE = registerInternal("resource", ResourceFloatProvider.CODEC, ResourceFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<ThunderLevelFloatProvider> THUNDER_LEVEL = registerInternal("thunder_level", ThunderLevelFloatProvider.CODEC, ThunderLevelFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<VectorComponentFloatProvider> VECTOR_COMPONENT = registerInternal("vector/component", VectorComponentFloatProvider.CODEC, VectorComponentFloatProvider.STREAM_CODEC);
+	public static final FloatProvider.Type<VectorDotProductFloatProvider> VECTOR_DOT_PRODUCT = registerInternal("vector/dot_product", VectorDotProductFloatProvider.CODEC, VectorDotProductFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<VectorLengthFloatProvider> VECTOR_LENGTH = registerInternal("vector/length", VectorLengthFloatProvider.CODEC, VectorLengthFloatProvider.STREAM_CODEC);
 
 	public static void registerAll() {

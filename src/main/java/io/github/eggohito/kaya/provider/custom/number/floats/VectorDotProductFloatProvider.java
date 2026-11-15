@@ -13,22 +13,22 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record DotProductFloatProvider(Vec3Provider first, Vec3Provider second) implements FloatProvider {
+public record VectorDotProductFloatProvider(Vec3Provider first, Vec3Provider second) implements FloatProvider {
 
-	public static final MapCodec<DotProductFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		Vec3Provider.CODEC.fieldOf("first").forGetter(DotProductFloatProvider::first),
-		Vec3Provider.CODEC.fieldOf("second").forGetter(DotProductFloatProvider::second)
-	).apply(instance, DotProductFloatProvider::new));
+	public static final MapCodec<VectorDotProductFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		Vec3Provider.CODEC.fieldOf("first").forGetter(VectorDotProductFloatProvider::first),
+		Vec3Provider.CODEC.fieldOf("second").forGetter(VectorDotProductFloatProvider::second)
+	).apply(instance, VectorDotProductFloatProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, DotProductFloatProvider> STREAM_CODEC = StreamCodec.composite(
-		Vec3Provider.STREAM_CODEC, DotProductFloatProvider::first,
-		Vec3Provider.STREAM_CODEC, DotProductFloatProvider::second,
-		DotProductFloatProvider::new
+	public static final StreamCodec<RegistryFriendlyByteBuf, VectorDotProductFloatProvider> STREAM_CODEC = StreamCodec.composite(
+		Vec3Provider.STREAM_CODEC, VectorDotProductFloatProvider::first,
+		Vec3Provider.STREAM_CODEC, VectorDotProductFloatProvider::second,
+		VectorDotProductFloatProvider::new
 	);
 
 	@Override
 	public @NotNull Type<?> getType() {
-		return KayaFloatProviderTypes.DOT_PRODUCT;
+		return KayaFloatProviderTypes.VECTOR_DOT_PRODUCT;
 	}
 
 	@Override
