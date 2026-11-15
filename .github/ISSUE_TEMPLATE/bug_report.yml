@@ -1,0 +1,42 @@
+name: Report a bug
+description: Report a bug that occurs while using Kaya
+assignees:
+  - eggohito
+labels:
+  - bug
+type: Bug
+body:
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: Describe the bug
+      description: "A clear and concise description of what the bug is and what currently happens."
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: "A clear and concise description of what you expected to happen."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: How to reproduce
+      description: "Please walk us through on how to reproduce the bug step by step."
+      value: |
+        1.
+        2.
+        3.
+        ...
+    validations:
+      required: false
+  - type: upload
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: "If applicable, you can attach files here (such as screenshots, videos, output logs, or crash reports) to provide more information about the bug."
+    validations:
+      required: false
+    
