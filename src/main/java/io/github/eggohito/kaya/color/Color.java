@@ -35,7 +35,7 @@ public interface Color extends ContextUser {
 
 	record Type<C extends Color>(MapCodec<C> mapCodec, StreamCodec<RegistryFriendlyByteBuf, C> streamCodec) {
 
-		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.COLOR_TYPE);
+		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.COLOR_TYPE, Kaya.GLOBAL_ALIASES);
 
 		public static final Codec<Type<?>> CODEC = ALIASES.createCodec(Kaya.MOD_NAMESPACE);
 

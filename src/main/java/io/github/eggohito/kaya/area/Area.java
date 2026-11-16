@@ -56,7 +56,7 @@ public interface Area extends ContextValidatable {
 
 	record Type<A extends Area>(MapCodec<A> mapCodec, StreamCodec<RegistryFriendlyByteBuf, A> streamCodec) {
 
-		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.AREA_TYPE);
+		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.AREA_TYPE, Kaya.GLOBAL_ALIASES);
 
 		public static final Codec<Type<?>> CODEC = ALIASES.createCodec(Kaya.MOD_NAMESPACE);
 

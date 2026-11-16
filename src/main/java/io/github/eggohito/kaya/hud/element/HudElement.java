@@ -52,7 +52,7 @@ public interface HudElement extends ContextUser {
 
 	record Type<E extends HudElement>(MapCodec<E> mapCodec, StreamCodec<RegistryFriendlyByteBuf, E> streamCodec) {
 
-		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.HUD_ELEMENT_TYPE);
+		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.HUD_ELEMENT_TYPE, Kaya.GLOBAL_ALIASES);
 
 		public static final Codec<Type<?>> CODEC = ALIASES.createCodec(Kaya.MOD_NAMESPACE);
 

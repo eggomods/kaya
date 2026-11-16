@@ -28,7 +28,7 @@ public interface CommandSourceProvider extends ValueProvider<CommandSourceStack>
 
 	interface Type<P extends CommandSourceProvider> extends ValueProvider.Type<P> {
 
-		FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.COMMAND_SOURCE_PROVIDER_TYPE);
+		FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.COMMAND_SOURCE_PROVIDER_TYPE, Kaya.GLOBAL_ALIASES);
 
 		Codec<Type<?>> CODEC = ALIASES.createCodec(Kaya.MOD_NAMESPACE);
 

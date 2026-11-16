@@ -42,7 +42,7 @@ public final class KayaContextParameters {
 	}
 
 	public static <T extends ContextParameter.Type<P>, P extends ContextParameter<?>> void addPathAlias(T type, String from, P to) {
-		type.aliases().getPaths().addAlias(from, to.name().getPath());
+		type.aliases().addPathAlias(from, to.name().getPath());
 	}
 
 }

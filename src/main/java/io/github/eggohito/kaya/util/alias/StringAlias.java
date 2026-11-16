@@ -4,6 +4,7 @@ import io.github.eggohito.kaya.exception.AliasAlreadyTakenException;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class StringAlias {
 
@@ -14,27 +15,17 @@ public class StringAlias {
 	}
 
 	public String resolveAlias(String value) {
-
-		if (hasAlias(value)) {
-			return aliases.get(value);
-		}
-
-		else {
-			return value;
-		}
-
+		return Objects.requireNonNullElse(this.aliases.get(value), value);
 	}
 
 	public void addAlias(String from, String to) {
 
-		if (aliases.putIfAbsent(from, to) != null) {
-			throw new AliasAlreadyTakenException(from, to, aliases::get);
+		String aliased = this.aliases.putIfAbsent(from, to);
+
+		if (aliased != null) {
+			throw new AliasAlreadyTakenException(from, to, () -> aliased);
 		}
 
-	}
-
-	public boolean hasAlias(String value) {
-		return aliases.containsKey(value);
 	}
 
 }

@@ -6,63 +6,38 @@ import com.mojang.serialization.DataResult;
 import io.github.eggohito.kaya.exception.AliasAlreadyTakenException;
 import io.github.eggohito.kaya.util.ResourceLocationUtil;
 import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
-@AllArgsConstructor
-public class CustomRegistryAlias<T> {
+public class CustomRegistryAlias<T> extends ResourceLocationAlias {
 
 	protected final ResourceLocation registryId;
-	protected final ResourceLocationAlias aliases;
 	protected final Function<T, ResourceLocation> keyGetter;
 	protected final Function<ResourceLocation, T> valueGetter;
 
+	public CustomRegistryAlias(ResourceLocationAlias parent, ResourceLocation registryId, Function<T, ResourceLocation> keyGetter, Function<ResourceLocation, T> valueGetter) {
+		super(parent);
+		this.registryId = registryId;
+		this.keyGetter = keyGetter;
+		this.valueGetter = valueGetter;
+	}
+
+	public CustomRegistryAlias(ResourceLocation registryId, Function<T, ResourceLocation> keyGetter, Function<ResourceLocation, T> valueGetter) {
+		this(ResourceLocationAlias.NO_OP, registryId, keyGetter, valueGetter);
+	}
+
 	public CustomRegistryAlias(ResourceLocation registryId, BiMap<ResourceLocation, T> map) {
-		this(registryId, new ResourceLocationAlias(), map.inverse()::get, map::get);
-	}
-
-	public boolean hasNamespaceAlias(String namespace) {
-		return aliases.getNamespaces().hasAlias(namespace);
-	}
-
-	public boolean hasPathAlias(T t) {
-		ResourceLocation key = keyGetter.apply(t);
-		return key != null
-			&& aliases.getPaths().hasAlias(key.getPath());
-	}
-
-	public boolean hasAlias(T t) {
-		ResourceLocation key = keyGetter.apply(t);
-		return key != null
-			&& aliases.hasAlias(key);
-	}
-
-	public void addNamespaceAlias(String from, String to) {
-
-		try {
-			aliases.getNamespaces().addAlias(from, to);
-		}
-
-		catch (AliasAlreadyTakenException e) {
-			throw new AliasAlreadyTakenException(e.getMessage() + " in registry \"" + registryId + "\"");
-		}
-
+		this(registryId, map.inverse()::get, map::get);
 	}
 
 	public void addPathAlias(String from, T to) {
 
 		try {
-
-			ResourceLocation toKey = keyGetter.apply(to);
-
-			if (toKey != null) {
-				aliases.getPaths().addAlias(from, toKey.getPath());
-			}
-
+			this.addPathAlias(from, Objects.requireNonNull(this.keyGetter.apply(to), "Unknown element in registry \"" + registryId + "\": " + to).getPath());
 		}
 
 		catch (AliasAlreadyTakenException e) {
@@ -74,13 +49,7 @@ public class CustomRegistryAlias<T> {
 	public void addAlias(ResourceLocation from, T to) {
 
 		try {
-
-			ResourceLocation toKey = keyGetter.apply(to);
-
-			if (toKey != null) {
-				aliases.addAlias(from, toKey);
-			}
-
+			this.addAlias(from, Objects.requireNonNull(this.keyGetter.apply(to), "Unknown element in registry \"" + registryId + "\": " + to));
 		}
 
 		catch (AliasAlreadyTakenException e) {
@@ -90,7 +59,7 @@ public class CustomRegistryAlias<T> {
 	}
 
 	public DataResult<T> resolveValue(ResourceLocation id) {
-		return Optional.ofNullable(valueGetter.apply(aliases.resolve(id, k -> valueGetter.apply(k) != null)))
+		return Optional.ofNullable(valueGetter.apply(this.resolve(id, k -> valueGetter.apply(k) != null)))
 			.map(DataResult::success)
 			.orElse(DataResult.error(() -> "Unknown key in registry \"" + registryId + "\": \"" + id + "\""));
 	}

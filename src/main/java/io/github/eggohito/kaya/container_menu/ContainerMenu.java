@@ -32,7 +32,7 @@ public interface ContainerMenu {
 
 	interface Type<C extends ContainerMenu> {
 
-		FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.CONTAINER_MENU_TYPE);
+		FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.CONTAINER_MENU_TYPE, Kaya.GLOBAL_ALIASES);
 
 		Codec<Type<?>> CODEC = ALIASES.createCodec(Kaya.MOD_NAMESPACE);
 

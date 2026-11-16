@@ -199,7 +199,7 @@ public interface Modifier extends ContextUser, Comparable<Modifier> {
 
 	record Type<M extends Modifier>(MapCodec<M> mapCodec, StreamCodec<RegistryFriendlyByteBuf, M> streamCodec) {
 
-		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.MODIFIER_TYPE);
+		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.MODIFIER_TYPE, Kaya.GLOBAL_ALIASES);
 
 		public static final Codec<Type<?>> CODEC = ALIASES.createCodec(Kaya.MOD_NAMESPACE);
 

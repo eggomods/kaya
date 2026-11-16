@@ -27,6 +27,7 @@ import io.github.eggohito.kaya.registry.provider.KayaValueProviderTypes;
 import io.github.eggohito.kaya.registry.recipe.KayaRecipeBookCategories;
 import io.github.eggohito.kaya.registry.recipe.KayaRecipeSerializers;
 import io.github.eggohito.kaya.tag.manager.NestedTagManager;
+import io.github.eggohito.kaya.util.alias.ResourceLocationAlias;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -37,7 +38,6 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.commands.Commands;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
@@ -49,9 +49,9 @@ public final class Kaya implements ModInitializer {
 	public static final String MOD_NAMESPACE = "kaya";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAMESPACE);
 
-	static final Set<String> CACHED_LOGS = new ObjectOpenHashSet<>();
+	public static final ResourceLocationAlias GLOBAL_ALIASES = new ResourceLocationAlias();
 
-	static MinecraftServer server;
+	static final Set<String> CACHED_LOGS = new ObjectOpenHashSet<>();
 	static boolean embedded;
 
 	@Override
@@ -124,9 +124,6 @@ public final class Kaya implements ModInitializer {
 		PowerIntegrations.init();
 		KayaContextParameters.registerAll();
 
-		ServerLifecycleEvents.SERVER_STARTING.register(server -> Kaya.server = server);
-		ServerLifecycleEvents.SERVER_STOPPING.register(server -> Kaya.server = null);
-
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((ServerCommandStorageHolder) server).kaya$sendAll(handler.getPlayer()));
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> ((PowerRecipeDisplayHolder) player.server.getRecipeManager()).kaya$sendAll(player));
 
@@ -144,11 +141,6 @@ public final class Kaya implements ModInitializer {
 	@SuppressWarnings("UnstableApiUsage")
 	public static boolean performStandaloneHandshake() {
 		return KayaCommonConfig.INSTANCE.performHandshake.get().toBoolean(!embedded);
-	}
-
-	public static boolean onServerThread() {
-		return server != null
-			&& server.isSameThread();
 	}
 
 	public static void logOnce(Level level, String message) {

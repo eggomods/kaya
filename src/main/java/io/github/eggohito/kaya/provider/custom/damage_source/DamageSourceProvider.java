@@ -29,7 +29,7 @@ public interface DamageSourceProvider extends ValueProvider<DamageSource> {
 
 	record Type<P extends DamageSourceProvider>(MapCodec<P> mapCodec, StreamCodec<RegistryFriendlyByteBuf, P> streamCodec) implements ValueProvider.Type<P> {
 
-		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.DAMAGE_SOURCE_PROVIDER_TYPE);
+		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.DAMAGE_SOURCE_PROVIDER_TYPE, Kaya.GLOBAL_ALIASES);
 
 		public static final Codec<Type<?>> CODEC = ALIASES.createCodec(Kaya.MOD_NAMESPACE);
 

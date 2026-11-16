@@ -43,7 +43,7 @@ public interface ValueProvider<V> extends ContextUser {
 	@Getter
 	final class Kind<P extends ValueProvider<?>> {
 
-		public static final FixedRegistryAlias<Kind<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.VALUE_PROVIDER_KIND);
+		public static final FixedRegistryAlias<Kind<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.VALUE_PROVIDER_KIND, Kaya.GLOBAL_ALIASES);
 
 		public static final Codec<Kind<?>> CODEC = ALIASES.createCodec(Kaya.MOD_NAMESPACE);
 		public static final StreamCodec<RegistryFriendlyByteBuf, Kind<?>> STREAM_CODEC = ALIASES.createRegistryStreamCodec();

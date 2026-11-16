@@ -40,7 +40,7 @@ public interface ContextParameter<T> extends StringDisplayable {
 	@AllArgsConstructor(access = AccessLevel.PRIVATE)
 	final class Type<P extends ContextParameter<?>> {
 
-		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.CONTEXT_PARAMETER_TYPE);
+		public static final FixedRegistryAlias<Type<?>> ALIASES = FixedRegistryAlias.of(KayaRegistries.CONTEXT_PARAMETER_TYPE, Kaya.GLOBAL_ALIASES);
 
 		public static final Codec<Type<?>> CODEC = ALIASES.createCodec(Kaya.MOD_NAMESPACE);
 		public static final StreamCodec<RegistryFriendlyByteBuf, Type<?>> STREAM_CODEC = ALIASES.createRegistryStreamCodec();

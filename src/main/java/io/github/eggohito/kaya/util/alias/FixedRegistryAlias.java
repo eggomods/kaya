@@ -15,17 +15,13 @@ import net.minecraft.util.ExtraCodecs;
 
 import java.util.function.Function;
 
-public class FixedRegistryAlias<T> extends CustomRegistryAlias<T> {
+public final class FixedRegistryAlias<T> extends CustomRegistryAlias<T> {
 
 	private final Registry<T> registry;
 
-	private FixedRegistryAlias(Registry<T> registry, ResourceLocationAlias aliases) {
-		super(registry.key().location(), aliases, registry::getKey, registry::getValue);
+	private FixedRegistryAlias(ResourceLocationAlias parent, Registry<T> registry) {
+		super(parent, registry.key().location(), registry::getKey, registry::getValue);
 		this.registry = registry;
-	}
-
-	private FixedRegistryAlias(Registry<T> registry) {
-		this(registry, new ResourceLocationAlias());
 	}
 
 	@Override
@@ -34,7 +30,7 @@ public class FixedRegistryAlias<T> extends CustomRegistryAlias<T> {
 	}
 
 	public DataResult<Holder.Reference<T>> resolveReference(ResourceLocation id) {
-		return registry.get(aliases.resolve(id, registry::containsKey))
+		return registry.get(this.resolve(id, registry::containsKey))
 			.map(DataResult::success)
 			.orElse(DataResult.error(() -> "Unknown key in registry \"" + registryId + "\": \"" + id + "\""));
 	}
@@ -77,12 +73,12 @@ public class FixedRegistryAlias<T> extends CustomRegistryAlias<T> {
 			: DataResult.error(() -> "Unregistered holder in registry \"" + registryId + "\": " + holder);
 	}
 
-	public static <T, U extends T> FixedRegistryAlias<U> extended(Registry<U> registry, FixedRegistryAlias<T> fixed) {
-		return new FixedRegistryAlias<>(registry, fixed.aliases);
+	public static <T> FixedRegistryAlias<T> of(Registry<T> registry, ResourceLocationAlias parent) {
+		return new FixedRegistryAlias<>(parent, registry);
 	}
 
 	public static <T> FixedRegistryAlias<T> of(Registry<T> registry) {
-		return new FixedRegistryAlias<>(registry);
+		return new FixedRegistryAlias<>(NO_OP, registry);
 	}
 
 }

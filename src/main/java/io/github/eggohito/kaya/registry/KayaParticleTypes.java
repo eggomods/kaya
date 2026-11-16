@@ -18,7 +18,7 @@ import java.util.function.Function;
 
 public final class KayaParticleTypes {
 
-	public static final FixedRegistryAlias<ParticleType<?>> ALIASES = FixedRegistryAlias.of(BuiltInRegistries.PARTICLE_TYPE);
+	public static final FixedRegistryAlias<ParticleType<?>> ALIASES = FixedRegistryAlias.of(BuiltInRegistries.PARTICLE_TYPE, Kaya.GLOBAL_ALIASES);
 
 	public static final Codec<ParticleType<?>> CODEC = ALIASES.createCodec();
 	public static final StreamCodec<RegistryFriendlyByteBuf, ParticleType<?>> STREAM_CODEC = ALIASES.createRegistryStreamCodec();

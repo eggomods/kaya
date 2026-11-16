@@ -2,60 +2,60 @@ package io.github.eggohito.kaya.util.alias;
 
 import io.github.eggohito.kaya.exception.AliasAlreadyTakenException;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.AccessLevel;
-import lombok.Getter;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 public class ResourceLocationAlias {
 
-	@Getter(AccessLevel.PROTECTED)
-	private final Map<ResourceLocation, ResourceLocation> identifiers;
-	@Getter
-	private final StringAlias namespaces, paths;
+	public static final ResourceLocationAlias NO_OP = new ResourceLocationAlias() {
 
-	protected ResourceLocationAlias(Map<ResourceLocation, ResourceLocation> identifiers, StringAlias namespaces, StringAlias paths) {
-		this.identifiers = identifiers;
+		@Override
+		public ResourceLocation resolve(ResourceLocation id, Predicate<ResourceLocation> until) {
+			return id;
+		}
+
+		@Override
+		public void addAlias(ResourceLocation from, ResourceLocation to) {
+
+		}
+
+	};
+
+	private final ResourceLocationAlias parent;
+	private final Map<ResourceLocation, ResourceLocation> ids;
+	private final StringAlias namespaces;
+	private final StringAlias paths;
+
+	protected ResourceLocationAlias(ResourceLocationAlias parent, Map<ResourceLocation, ResourceLocation> ids, StringAlias namespaces, StringAlias paths) {
+		this.parent = parent;
+		this.ids = ids;
 		this.namespaces = namespaces;
 		this.paths = paths;
 	}
 
+	public ResourceLocationAlias(ResourceLocationAlias parent) {
+		this(parent, new Object2ObjectOpenHashMap<>(), new StringAlias(), new StringAlias());
+	}
+
 	public ResourceLocationAlias() {
-		this(new Object2ObjectOpenHashMap<>(), new StringAlias(), new StringAlias());
-	}
-
-	public void addAlias(ResourceLocation from, ResourceLocation to) {
-
-		if (getIdentifiers().putIfAbsent(from, to) != null) {
-			throw new AliasAlreadyTakenException(from, to, getIdentifiers()::get);
-		}
-
-	}
-
-	public boolean hasAlias(ResourceLocation id) {
-		return getIdentifiers().containsKey(id);
-	}
-
-	public ResourceLocation resolveAlias(ResourceLocation id) {
-
-		if (hasAlias(id)) {
-			return getIdentifiers().get(id);
-		}
-
-		else {
-			return id;
-		}
-
+		this(NO_OP);
 	}
 
 	public ResourceLocation resolve(ResourceLocation id, Predicate<ResourceLocation> until) {
 
+		ResourceLocation aliasedId = this.parent.resolve(id, until);
+
+		if (!aliasedId.equals(id)) {
+			return aliasedId;
+		}
+
 		for (Resolver resolver : Resolver.values()) {
 
-			ResourceLocation aliasedId = resolver.apply(this, id);
+			aliasedId = resolver.apply(this, id);
 
 			if (until.test(aliasedId)) {
 				return aliasedId;
@@ -65,6 +65,24 @@ public class ResourceLocationAlias {
 
 		return id;
 
+	}
+
+	public void addAlias(ResourceLocation from, ResourceLocation to) {
+
+		ResourceLocation aliased = this.ids.putIfAbsent(from, to);
+
+		if (aliased != null) {
+			throw new AliasAlreadyTakenException(from.toString(), to.toString(), aliased::toString);
+		}
+
+	}
+
+	public void addNamespaceAlias(String from, String to) {
+		this.namespaces.addAlias(from, to);
+	}
+
+	public void addPathAlias(String from, String to) {
+		this.paths.addAlias(from, to);
 	}
 
 	private enum Resolver implements BiFunction<ResourceLocationAlias, ResourceLocation, ResourceLocation> {
@@ -82,7 +100,7 @@ public class ResourceLocationAlias {
 
 			@Override
 			public ResourceLocation apply(ResourceLocationAlias aliases, ResourceLocation id) {
-				return aliases.resolveAlias(id);
+				return Objects.requireNonNullElse(aliases.ids.get(id), id);
 			}
 
 		},
@@ -91,7 +109,7 @@ public class ResourceLocationAlias {
 
 			@Override
 			public ResourceLocation apply(ResourceLocationAlias aliases, ResourceLocation id) {
-				return ResourceLocation.fromNamespaceAndPath(aliases.getNamespaces().resolveAlias(id.getNamespace()), id.getPath());
+				return ResourceLocation.fromNamespaceAndPath(aliases.namespaces.resolveAlias(id.getNamespace()), id.getPath());
 			}
 
 		},
@@ -100,7 +118,7 @@ public class ResourceLocationAlias {
 
 			@Override
 			public ResourceLocation apply(ResourceLocationAlias aliases, ResourceLocation id) {
-				return id.withPath(aliases.getPaths().resolveAlias(id.getPath()));
+				return id.withPath(aliases.paths.resolveAlias(id.getPath()));
 			}
 
 		},
@@ -110,8 +128,8 @@ public class ResourceLocationAlias {
 			@Override
 			public ResourceLocation apply(ResourceLocationAlias aliases, ResourceLocation id) {
 
-				String aliasedNamespace = aliases.getNamespaces().resolveAlias(id.getNamespace());
-				String aliasedPath = aliases.getPaths().resolveAlias(id.getPath());
+				String aliasedNamespace = aliases.namespaces.resolveAlias(id.getNamespace());
+				String aliasedPath = aliases.paths.resolveAlias(id.getPath());
 
 				return ResourceLocation.fromNamespaceAndPath(aliasedNamespace, aliasedPath);
 
