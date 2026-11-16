@@ -13,21 +13,21 @@ import org.joml.Math;
 
 import java.util.Optional;
 
-public record ArcCosineFloatProvider(FloatProvider value) implements FloatProvider {
+public record CosineArcFloatProvider(FloatProvider value) implements FloatProvider {
 
-	public static final MapCodec<ArcCosineFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(FloatProvider.CODEC.fieldOf("value").forGetter(ArcCosineFloatProvider::value))
-		.apply(instance, ArcCosineFloatProvider::new)
+	public static final MapCodec<CosineArcFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(FloatProvider.CODEC.fieldOf("value").forGetter(CosineArcFloatProvider::value))
+		.apply(instance, CosineArcFloatProvider::new)
 	);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ArcCosineFloatProvider> STREAM_CODEC = StreamCodec.composite(
-		FloatProvider.STREAM_CODEC, ArcCosineFloatProvider::value,
-		ArcCosineFloatProvider::new
+	public static final StreamCodec<RegistryFriendlyByteBuf, CosineArcFloatProvider> STREAM_CODEC = StreamCodec.composite(
+		FloatProvider.STREAM_CODEC, CosineArcFloatProvider::value,
+		CosineArcFloatProvider::new
 	);
 
 	@Override
 	public @NotNull Type<?> getType() {
-		return KayaFloatProviderTypes.ARC_COSINE;
+		return KayaFloatProviderTypes.COSINE_ARC;
 	}
 
 	@Override

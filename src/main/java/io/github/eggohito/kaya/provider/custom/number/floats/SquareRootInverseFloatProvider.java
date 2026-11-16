@@ -8,30 +8,31 @@ import io.github.eggohito.kaya.provider.custom.number.FloatProvider;
 import io.github.eggohito.kaya.registry.provider.KayaFloatProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public record ArcTangentFloatProvider(FloatProvider value) implements FloatProvider {
+public record SquareRootInverseFloatProvider(FloatProvider value) implements FloatProvider {
 
-	public static final MapCodec<ArcTangentFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(FloatProvider.CODEC.fieldOf("value").forGetter(ArcTangentFloatProvider::value))
-		.apply(instance, ArcTangentFloatProvider::new)
+	public static final MapCodec<SquareRootInverseFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(FloatProvider.CODEC.fieldOf("value").forGetter(SquareRootInverseFloatProvider::value))
+		.apply(instance, SquareRootInverseFloatProvider::new)
 	);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ArcTangentFloatProvider> STREAM_CODEC = StreamCodec.composite(
-		FloatProvider.STREAM_CODEC, ArcTangentFloatProvider::value,
-		ArcTangentFloatProvider::new
+	public static final StreamCodec<RegistryFriendlyByteBuf, SquareRootInverseFloatProvider> STREAM_CODEC = StreamCodec.composite(
+		FloatProvider.STREAM_CODEC, SquareRootInverseFloatProvider::value,
+		SquareRootInverseFloatProvider::new
 	);
 
 	@Override
 	public @NotNull Type<?> getType() {
-		return KayaFloatProviderTypes.ARC_TANGENT;
+		return KayaFloatProviderTypes.SQUARE_ROOT_INVERSE;
 	}
 
 	@Override
 	public Optional<Float> getValue(Context context) {
-		return value().getValue(context.forChild(".value")).map(value -> (float) Math.atan(value));
+		return value().getValue(context.forChild(".value")).map(Mth::invSqrt);
 	}
 
 	@Override

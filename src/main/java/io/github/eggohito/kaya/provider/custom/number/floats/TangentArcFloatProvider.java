@@ -9,30 +9,29 @@ import io.github.eggohito.kaya.registry.provider.KayaFloatProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Math;
 
 import java.util.Optional;
 
-public record ArcSineFloatProvider(FloatProvider value) implements FloatProvider {
+public record TangentArcFloatProvider(FloatProvider value) implements FloatProvider {
 
-	public static final MapCodec<ArcSineFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(FloatProvider.CODEC.fieldOf("value").forGetter(ArcSineFloatProvider::value))
-		.apply(instance, ArcSineFloatProvider::new)
+	public static final MapCodec<TangentArcFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(FloatProvider.CODEC.fieldOf("value").forGetter(TangentArcFloatProvider::value))
+		.apply(instance, TangentArcFloatProvider::new)
 	);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ArcSineFloatProvider> STREAM_CODEC = StreamCodec.composite(
-		FloatProvider.STREAM_CODEC, ArcSineFloatProvider::value,
-		ArcSineFloatProvider::new
+	public static final StreamCodec<RegistryFriendlyByteBuf, TangentArcFloatProvider> STREAM_CODEC = StreamCodec.composite(
+		FloatProvider.STREAM_CODEC, TangentArcFloatProvider::value,
+		TangentArcFloatProvider::new
 	);
 
 	@Override
 	public @NotNull Type<?> getType() {
-		return KayaFloatProviderTypes.ARC_SINE;
+		return KayaFloatProviderTypes.TANGENT_ARC;
 	}
 
 	@Override
 	public Optional<Float> getValue(Context context) {
-		return value().getValue(context.forChild(".value")).map(Math::asin);
+		return value().getValue(context.forChild(".value")).map(value -> (float) Math.atan(value));
 	}
 
 	@Override

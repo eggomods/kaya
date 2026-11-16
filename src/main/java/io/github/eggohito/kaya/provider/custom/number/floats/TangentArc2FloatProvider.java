@@ -13,22 +13,22 @@ import org.joml.Math;
 
 import java.util.Optional;
 
-public record ArcTangent2FloatProvider(FloatProvider y, FloatProvider x) implements FloatProvider {
+public record TangentArc2FloatProvider(FloatProvider y, FloatProvider x) implements FloatProvider {
 
-	public static final MapCodec<ArcTangent2FloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		FloatProvider.CODEC.fieldOf("y").forGetter(ArcTangent2FloatProvider::y),
-		FloatProvider.CODEC.fieldOf("x").forGetter(ArcTangent2FloatProvider::x)
-	).apply(instance, ArcTangent2FloatProvider::new));
+	public static final MapCodec<TangentArc2FloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+		FloatProvider.CODEC.fieldOf("y").forGetter(TangentArc2FloatProvider::y),
+		FloatProvider.CODEC.fieldOf("x").forGetter(TangentArc2FloatProvider::x)
+	).apply(instance, TangentArc2FloatProvider::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ArcTangent2FloatProvider> STREAM_CODEC = StreamCodec.composite(
-		FloatProvider.STREAM_CODEC, ArcTangent2FloatProvider::y,
-		FloatProvider.STREAM_CODEC, ArcTangent2FloatProvider::x,
-		ArcTangent2FloatProvider::new
+	public static final StreamCodec<RegistryFriendlyByteBuf, TangentArc2FloatProvider> STREAM_CODEC = StreamCodec.composite(
+		FloatProvider.STREAM_CODEC, TangentArc2FloatProvider::y,
+		FloatProvider.STREAM_CODEC, TangentArc2FloatProvider::x,
+		TangentArc2FloatProvider::new
 	);
 
 	@Override
 	public @NotNull Type<?> getType() {
-		return KayaFloatProviderTypes.ARC_TANGENT_2;
+		return KayaFloatProviderTypes.TANGENT_ARC_2;
 	}
 
 	@Override

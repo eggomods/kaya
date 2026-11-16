@@ -8,31 +8,31 @@ import io.github.eggohito.kaya.provider.custom.number.FloatProvider;
 import io.github.eggohito.kaya.registry.provider.KayaFloatProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Math;
 
 import java.util.Optional;
 
-public record InverseSquareRootFloatProvider(FloatProvider value) implements FloatProvider {
+public record SineArcFloatProvider(FloatProvider value) implements FloatProvider {
 
-	public static final MapCodec<InverseSquareRootFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(FloatProvider.CODEC.fieldOf("value").forGetter(InverseSquareRootFloatProvider::value))
-		.apply(instance, InverseSquareRootFloatProvider::new)
+	public static final MapCodec<SineArcFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+		.group(FloatProvider.CODEC.fieldOf("value").forGetter(SineArcFloatProvider::value))
+		.apply(instance, SineArcFloatProvider::new)
 	);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, InverseSquareRootFloatProvider> STREAM_CODEC = StreamCodec.composite(
-		FloatProvider.STREAM_CODEC, InverseSquareRootFloatProvider::value,
-		InverseSquareRootFloatProvider::new
+	public static final StreamCodec<RegistryFriendlyByteBuf, SineArcFloatProvider> STREAM_CODEC = StreamCodec.composite(
+		FloatProvider.STREAM_CODEC, SineArcFloatProvider::value,
+		SineArcFloatProvider::new
 	);
 
 	@Override
 	public @NotNull Type<?> getType() {
-		return KayaFloatProviderTypes.INVERSE_SQUARE_ROOT;
+		return KayaFloatProviderTypes.SINE_ARC;
 	}
 
 	@Override
 	public Optional<Float> getValue(Context context) {
-		return value().getValue(context.forChild(".value")).map(Mth::invSqrt);
+		return value().getValue(context.forChild(".value")).map(Math::asin);
 	}
 
 	@Override
