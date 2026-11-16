@@ -8,8 +8,8 @@ import io.github.eggohito.kaya.provider.custom.number.FloatProvider;
 import io.github.eggohito.kaya.registry.provider.KayaFloatProviderTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Math;
 
 import java.util.Optional;
 
@@ -32,7 +32,7 @@ public record SquareRootFloatProvider(FloatProvider value) implements FloatProvi
 
 	@Override
 	public Optional<Float> getValue(Context context) {
-		return value().getValue(context.forChild(".value")).map(Mth::sqrt);
+		return value().getValue(context.forChild(".value")).map(Math::sqrt);
 	}
 
 	@Override

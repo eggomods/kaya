@@ -16,7 +16,7 @@ import java.util.Optional;
 public record CosineArcFloatProvider(FloatProvider value) implements FloatProvider {
 
 	public static final MapCodec<CosineArcFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-		.group(FloatProvider.CODEC.fieldOf("value").forGetter(CosineArcFloatProvider::value))
+		.group(FloatProvider.clamped(0.0F, 1.0F).fieldOf("value").forGetter(CosineArcFloatProvider::value))
 		.apply(instance, CosineArcFloatProvider::new)
 	);
 
@@ -32,7 +32,7 @@ public record CosineArcFloatProvider(FloatProvider value) implements FloatProvid
 
 	@Override
 	public Optional<Float> getValue(Context context) {
-		return value().getValue(context.forChild(".value")).map(Math::acos);
+		return value().getValue(context.forChild(".value")).map(Math::safeAcos);
 	}
 
 	@Override

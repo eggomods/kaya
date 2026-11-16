@@ -32,7 +32,7 @@ public record SineArcFloatProvider(FloatProvider value) implements FloatProvider
 
 	@Override
 	public Optional<Float> getValue(Context context) {
-		return value().getValue(context.forChild(".value")).map(Math::asin);
+		return value().getValue(context.forChild(".value")).map(Math::safeAsin);
 	}
 
 	@Override
