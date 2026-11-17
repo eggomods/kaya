@@ -11,8 +11,11 @@ import io.github.eggohito.kaya.registry.provider.KayaIntProviderTypes;
 import io.github.eggohito.kaya.util.CodecUtil;
 import io.github.eggohito.kaya.util.StreamCodecUtil;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.RegistryCodecs;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
@@ -24,17 +27,17 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.Optional;
 
-public record EquippedEnchantmentLevelIntProvider(Holder<Enchantment> enchantment, EquipmentSlotGroup slotGroup, Calculation calculation, EntityProvider entity) implements IntProvider {
+public record EquippedEnchantmentLevelIntProvider(HolderSet<Enchantment> enchantment, EquipmentSlotGroup slotGroup, Calculation calculation, EntityProvider entity) implements IntProvider {
 
 	public static final MapCodec<EquippedEnchantmentLevelIntProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		Enchantment.CODEC.fieldOf("enchantment").forGetter(EquippedEnchantmentLevelIntProvider::enchantment),
+		RegistryCodecs.homogeneousList(Registries.ENCHANTMENT).fieldOf("enchantment").forGetter(EquippedEnchantmentLevelIntProvider::enchantment),
 		EquipmentSlotGroup.CODEC.optionalFieldOf("slot_group", EquipmentSlotGroup.ANY).forGetter(EquippedEnchantmentLevelIntProvider::slotGroup),
 		Calculation.CODEC.optionalFieldOf("calculation", Calculation.MAX).forGetter(EquippedEnchantmentLevelIntProvider::calculation),
 		EntityProvider.CODEC.fieldOf("entity").forGetter(EquippedEnchantmentLevelIntProvider::entity)
 	).apply(instance, EquippedEnchantmentLevelIntProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EquippedEnchantmentLevelIntProvider> STREAM_CODEC = StreamCodec.composite(
-		Enchantment.STREAM_CODEC, EquippedEnchantmentLevelIntProvider::enchantment,
+		ByteBufCodecs.holderSet(Registries.ENCHANTMENT), EquippedEnchantmentLevelIntProvider::enchantment,
 		EquipmentSlotGroup.STREAM_CODEC, EquippedEnchantmentLevelIntProvider::slotGroup,
 		Calculation.STREAM_CODEC, EquippedEnchantmentLevelIntProvider::calculation,
 		EntityProvider.STREAM_CODEC, EquippedEnchantmentLevelIntProvider::entity,
@@ -65,18 +68,23 @@ public record EquippedEnchantmentLevelIntProvider(Holder<Enchantment> enchantmen
 		SUM {
 
 			@Override
-			public int getValue(LivingEntity wearer, Holder<Enchantment> enchantment, EquipmentSlotGroup slotGroup) {
+			public int getValue(LivingEntity wearer, HolderSet<Enchantment> enchantments, EquipmentSlotGroup slotGroup) {
 
-				Map<EquipmentSlot, ItemStack> slotItems = enchantment.value().getSlotItems(wearer);
 				int levels = 0;
 
-				for (var entry : slotItems.entrySet()) {
+				for (var enchantment : enchantments) {
 
-					EquipmentSlot slot = entry.getKey();
-					ItemStack stack = entry.getValue();
+					Map<EquipmentSlot, ItemStack> slotItems = enchantment.value().getSlotItems(wearer);
 
-					if (slotGroup.test(slot)) {
-						levels += stack.getEnchantments().getLevel(enchantment);
+					for (var entry : slotItems.entrySet()) {
+
+						EquipmentSlot slot = entry.getKey();
+						ItemStack stack = entry.getValue();
+
+						if (slotGroup.test(slot)) {
+							levels += stack.getEnchantments().getLevel(enchantment);
+						}
+
 					}
 
 				}
@@ -90,18 +98,23 @@ public record EquippedEnchantmentLevelIntProvider(Holder<Enchantment> enchantmen
 		MAX {
 
 			@Override
-			public int getValue(LivingEntity wearer, Holder<Enchantment> enchantment, EquipmentSlotGroup slotGroup) {
+			public int getValue(LivingEntity wearer, HolderSet<Enchantment> enchantments, EquipmentSlotGroup slotGroup) {
 
-				Map<EquipmentSlot, ItemStack> slotItems = enchantment.value().getSlotItems(wearer);
 				int levels = 0;
 
-				for (var entry : slotItems.entrySet()) {
+				for (var enchantment : enchantments) {
 
-					EquipmentSlot slot = entry.getKey();
-					ItemStack stack = entry.getValue();
+					Map<EquipmentSlot, ItemStack> slotItems = enchantment.value().getSlotItems(wearer);
 
-					if (slotGroup.test(slot)) {
-						levels = Math.max(levels, stack.getEnchantments().getLevel(enchantment));
+					for (var entry : slotItems.entrySet()) {
+
+						EquipmentSlot slot = entry.getKey();
+						ItemStack stack = entry.getValue();
+
+						if (slotGroup.test(slot)) {
+							levels = Math.max(levels, stack.getEnchantments().getLevel(enchantment));
+						}
+
 					}
 
 				}
@@ -115,7 +128,7 @@ public record EquippedEnchantmentLevelIntProvider(Holder<Enchantment> enchantmen
 		public static final Codec<Calculation> CODEC = CodecUtil.enumType(Calculation.class);
 		public static final StreamCodec<ByteBuf, Calculation> STREAM_CODEC = StreamCodecUtil.enumType(Calculation.class);
 
-		public abstract int getValue(LivingEntity wearer, Holder<Enchantment> enchantmentHolder, EquipmentSlotGroup slotGroup);
+		public abstract int getValue(LivingEntity wearer, HolderSet<Enchantment> enchantments, EquipmentSlotGroup slotGroup);
 
 	}
 
