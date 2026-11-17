@@ -49,6 +49,7 @@ public final class KayaFloatProviderTypes {
 	public static final FloatProvider.Type<ResourceFloatProvider> RESOURCE = registerInternal("resource", ResourceFloatProvider.CODEC, ResourceFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<ThunderLevelFloatProvider> THUNDER_LEVEL = registerInternal("thunder_level", ThunderLevelFloatProvider.CODEC, ThunderLevelFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<VectorComponentFloatProvider> VECTOR_COMPONENT = registerInternal("vector/component", VectorComponentFloatProvider.CODEC, VectorComponentFloatProvider.STREAM_CODEC);
+	public static final FloatProvider.Type<VectorDotProductFloatProvider> VECTOR_DOT_PRODUCT = registerInternal("vector/dot_product", VectorDotProductFloatProvider.CODEC, VectorDotProductFloatProvider.STREAM_CODEC);
 	public static final FloatProvider.Type<VectorLengthFloatProvider> VECTOR_LENGTH = registerInternal("vector/length", VectorLengthFloatProvider.CODEC, VectorLengthFloatProvider.STREAM_CODEC);
 
 	public static void registerAll() {
