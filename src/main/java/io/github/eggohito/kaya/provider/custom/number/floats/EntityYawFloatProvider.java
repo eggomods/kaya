@@ -17,7 +17,7 @@ public record EntityYawFloatProvider(EntityProvider entity, FloatProvider delta)
 
 	public static final MapCodec<EntityYawFloatProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		EntityProvider.CODEC.fieldOf("entity").forGetter(EntityYawFloatProvider::entity),
-		FloatProvider.CODEC.fieldOf("delta").forGetter(EntityYawFloatProvider::delta)
+		FloatProvider.clamped(0.0F, 1.0F).optionalFieldOf("delta", new ConstantFloatProvider(1.0F)).forGetter(EntityYawFloatProvider::delta)
 	).apply(instance, EntityYawFloatProvider::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, EntityYawFloatProvider> STREAM_CODEC = StreamCodec.composite(
