@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
+import io.github.eggohito.kaya.key.KeyState;
 import io.github.eggohito.kaya.key.manager.KeyStateManager;
 import io.github.eggohito.kaya.provider.custom.entity.EntityProvider;
 import io.github.eggohito.kaya.provider.custom.number.IntProvider;
@@ -38,6 +39,7 @@ public record KeyPressedTicksIntProvider(StringProvider id, EntityProvider entit
 		return id().getValue(context.forChild(".id"))
 			.flatMap(id -> entity().getValue(context.forChild(".entity"))
 				.flatMap(entity -> KeyStateManager.getInstance().getCurrentState(entity.getUUID(), id)
+					.filter(KeyState::pressed)
 					.map(state -> (int) (context.level().getGameTime() - state.pressedTime()))));
 	}
 
