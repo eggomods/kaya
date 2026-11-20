@@ -2,7 +2,6 @@ package io.github.eggohito.kaya.registry.provider;
 
 import com.mojang.serialization.MapCodec;
 import io.github.eggohito.kaya.Kaya;
-import io.github.eggohito.kaya.provider.custom.number.floats.RotateVec3Provider;
 import io.github.eggohito.kaya.provider.custom.vec3.*;
 import io.github.eggohito.kaya.registry.KayaRegistries;
 import net.minecraft.core.Registry;
