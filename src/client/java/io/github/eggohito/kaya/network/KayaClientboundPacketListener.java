@@ -3,8 +3,8 @@ package io.github.eggohito.kaya.network;
 import io.github.eggohito.kaya.duck.internal.CommandStorageHolder;
 import io.github.eggohito.kaya.duck.internal.PowerRecipeDisplayHolder;
 import io.github.eggohito.kaya.network.packet.HandshakePacket;
-import io.github.eggohito.kaya.network.packet.clientbound.ClientboundCommandStorageUpdatePacket;
 import io.github.eggohito.kaya.network.packet.clientbound.ClientboundPowerRecipeDisplaysUpdatePacket;
+import io.github.eggohito.kaya.network.packet.clientbound.ClientboundUpdateCommandStoragePacket;
 import io.github.eggohito.kaya.network.packet.clientbound.ClientboundUpdatePowerDataPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientConfigurationNetworking;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -21,7 +21,7 @@ public final class KayaClientboundPacketListener {
 		ClientConfigurationNetworking.registerGlobalReceiver(HandshakePacket.TYPE, KayaClientboundPacketListener::sendHandshakeReply);
 
 		ClientPlayConnectionEvents.INIT.register((handler, client) -> {
-			ClientPlayNetworking.registerReceiver(ClientboundCommandStorageUpdatePacket.TYPE, (payload, context) -> payload.handle((CommandStorageHolder) context.client()));
+			ClientPlayNetworking.registerReceiver(ClientboundUpdateCommandStoragePacket.TYPE, (payload, context) -> payload.handle((CommandStorageHolder) context.client()));
 			ClientPlayNetworking.registerReceiver(ClientboundUpdatePowerDataPacket.TYPE, (payload, context) -> payload.handle(context.player().level()));
 			ClientPlayNetworking.registerReceiver(ClientboundPowerRecipeDisplaysUpdatePacket.TYPE, (payload, context) -> payload.handle((PowerRecipeDisplayHolder) context.client()));
 		});

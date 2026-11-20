@@ -10,13 +10,13 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
-public record ClientboundCommandStorageUpdatePacket(ResourceLocation id, CompoundTag nbt) implements CustomPacketPayload {
+public record ClientboundUpdateCommandStoragePacket(ResourceLocation id, CompoundTag data) implements CustomPacketPayload {
 
-	public static final Type<ClientboundCommandStorageUpdatePacket> TYPE = new Type<>(Kaya.id("clientbound/update_command_storage"));
-	public static final StreamCodec<FriendlyByteBuf, ClientboundCommandStorageUpdatePacket> CODEC = StreamCodec.composite(
-		ResourceLocation.STREAM_CODEC, ClientboundCommandStorageUpdatePacket::id,
-		ByteBufCodecs.TRUSTED_COMPOUND_TAG, ClientboundCommandStorageUpdatePacket::nbt,
-		ClientboundCommandStorageUpdatePacket::new
+	public static final Type<ClientboundUpdateCommandStoragePacket> TYPE = new Type<>(Kaya.id("clientbound/update_command_storage"));
+	public static final StreamCodec<FriendlyByteBuf, ClientboundUpdateCommandStoragePacket> CODEC = StreamCodec.composite(
+		ResourceLocation.STREAM_CODEC, ClientboundUpdateCommandStoragePacket::id,
+		ByteBufCodecs.TRUSTED_COMPOUND_TAG, ClientboundUpdateCommandStoragePacket::data,
+		ClientboundUpdateCommandStoragePacket::new
 	);
 
 	@Override
@@ -25,7 +25,7 @@ public record ClientboundCommandStorageUpdatePacket(ResourceLocation id, Compoun
 	}
 
 	public void handle(CommandStorageHolder storageHolder) {
-		storageHolder.kaya$setStorage(this.id(), this.nbt());
+		storageHolder.kaya$setStorage(this.id(), this.data());
 	}
 
 }
