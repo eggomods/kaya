@@ -218,20 +218,26 @@ public class MiscUtil {
 			: DataResult.error(() -> "Not a compound tag: " + tag.toString());
 	}
 
+	@Deprecated
 	@Nullable
-	public static BlockPos adjustSpawnLocationSafely(ServerPlayer serverPlayer, ServerLevel dimension, BlockPos blockPos) {
-		return adjustSpawnLocationSafely((player, dim, pos) -> true, serverPlayer, dimension, blockPos);
+	public static BlockPos adjustSpawnLocationSafely(ServerPlayer player, ServerLevel level, BlockPos pos) {
+		return adjustSpawnLocationSafely(TriPredicates.alwaysTrue(), Heightmap.Types.MOTION_BLOCKING, player, level, pos);
 	}
 
 	@Nullable
-	public static BlockPos adjustSpawnLocationSafely(TriPredicate<ServerPlayer, ServerLevel, BlockPos> safeLocationCondition, ServerPlayer serverPlayer, ServerLevel level, BlockPos pos) {
+	public static BlockPos adjustSpawnLocationSafely(Heightmap.Types heightmapTypes, ServerPlayer player, ServerLevel level, BlockPos pos) {
+		return adjustSpawnLocationSafely(TriPredicates.alwaysTrue(), heightmapTypes, player, level, pos);
+	}
+
+	@Nullable
+	public static BlockPos adjustSpawnLocationSafely(TriPredicate<ServerPlayer, ServerLevel, BlockPos> safeLocationCondition, Heightmap.Types heightmapTypes, ServerPlayer player, ServerLevel level, BlockPos pos) {
 
 		MinecraftServer server = level.getServer();
 		LevelChunk chunk = level.getChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()));
 
 		int y = level.dimensionType().hasCeiling()
 			? level.getChunkSource().getGenerator().getSpawnHeight(level)
-			: chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.getX() & 15, pos.getZ() & 15);
+			: chunk.getHeight(heightmapTypes, pos.getX() & 15, pos.getZ() & 15);
 
 		int distanceToBorder = Mth.floor(level.getWorldBorder().getDistanceToBorder(pos.getX(), pos.getZ()));
 		int radius = Mth.clamp(Math.max(0, server.getSpawnRadius(level)), 1, distanceToBorder);
@@ -239,7 +245,7 @@ public class MiscUtil {
 		int diameter = radius * 2 + 1;
 		int max = diameter * diameter;
 
-		int coprime = ((ServerPlayerAccessor) serverPlayer).callGetCoprime(max);
+		int coprime = ((ServerPlayerAccessor) player).callGetCoprime(max);
 		int offset = RandomSource.create().nextInt(max);
 
 		int maxY = level.getLogicalHeight();
@@ -264,9 +270,9 @@ public class MiscUtil {
 
 					candidate.set(x, y + verticalOffset, z);
 
-					for (int i = 0; i < 2; i++) {
+					for (int i = 0; i <= 1; i++) {
 
-						Vec3 safePos = DismountHelper.findSafeDismountLocation(serverPlayer.getType(), level, candidate, i == 0);
+						Vec3 safePos = DismountHelper.findSafeDismountLocation(player.getType(), level, candidate, i == 0);
 
 						if (safePos == null) {
 							continue;
@@ -274,7 +280,7 @@ public class MiscUtil {
 
 						candidate.set(safePos.x(), safePos.y(), safePos.z());
 
-						if (safeLocationCondition.test(serverPlayer, level, candidate)) {
+						if (safeLocationCondition.test(player, level, candidate)) {
 							return candidate.immutable();
 						}
 
