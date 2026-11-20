@@ -7,8 +7,8 @@ import io.github.eggohito.kaya.command.PowerCommand;
 import io.github.eggohito.kaya.command.ResourceCommand;
 import io.github.eggohito.kaya.condition.manager.ConditionManager;
 import io.github.eggohito.kaya.config.KayaCommonConfig;
+import io.github.eggohito.kaya.duck.internal.CommandStorageExtension;
 import io.github.eggohito.kaya.duck.internal.PowerRecipeDisplayHolder;
-import io.github.eggohito.kaya.duck.internal.ServerCommandStorageHolder;
 import io.github.eggohito.kaya.integration.CommonConfigIntegrations;
 import io.github.eggohito.kaya.integration.PowerIntegrations;
 import io.github.eggohito.kaya.key.manager.KeyStateManager;
@@ -32,6 +32,7 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
@@ -124,8 +125,17 @@ public final class Kaya implements ModInitializer {
 		PowerIntegrations.init();
 		KayaContextParameters.registerAll();
 
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ((ServerCommandStorageHolder) server).kaya$sendAll(handler.getPlayer()));
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> ((PowerRecipeDisplayHolder) player.server.getRecipeManager()).kaya$sendAll(player));
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
+			((CommandStorageExtension) server.getCommandStorage()).kaya$sync(server, false)
+		);
+
+		ServerTickEvents.START_SERVER_TICK.register(server ->
+			((CommandStorageExtension) server.getCommandStorage()).kaya$sync(server, true)
+		);
+
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) ->
+			((PowerRecipeDisplayHolder) player.server.getRecipeManager()).kaya$sendAll(player)
+		);
 
 		ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> {
 			CACHED_LOGS.clear();
