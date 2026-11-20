@@ -13,6 +13,10 @@ import net.minecraft.tags.TagKey;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+/**
+ *  Use {@link EitherHolder} instead for general use.
+ */
+@Deprecated(forRemoval = true)
 public record TypeOrTagPredicate<T>(Optional<ResourceKey<T>> key, Optional<TagKey<T>> tag) implements ContextValidatable {
 
 	@Override

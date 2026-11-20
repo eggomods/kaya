@@ -7,24 +7,22 @@ import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.provider.custom.damage_source.DamageSourceProvider;
 import io.github.eggohito.kaya.registry.KayaConditionTypes;
-import io.github.eggohito.kaya.util.TypeOrTagPredicate;
+import io.github.eggohito.kaya.util.EitherHolder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 
-public record CheckDamageTypeCondition(TypeOrTagPredicate<DamageType> predicate, DamageSourceProvider damageSource) implements Condition {
+public record CheckDamageTypeCondition(EitherHolder<DamageType> predicate, DamageSourceProvider damageSource) implements Condition {
 
 	public static final MapCodec<CheckDamageTypeCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		TypeOrTagPredicate.mapCodec(ResourceKey.codec(Registries.DAMAGE_TYPE), TagKey.hashedCodec(Registries.DAMAGE_TYPE)).forGetter(CheckDamageTypeCondition::predicate),
+		EitherHolder.mapCodec(Registries.DAMAGE_TYPE).forGetter(CheckDamageTypeCondition::predicate),
 		DamageSourceProvider.CODEC.fieldOf("damage_source").forGetter(CheckDamageTypeCondition::damageSource)
 	).apply(instance, CheckDamageTypeCondition::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, CheckDamageTypeCondition> STREAM_CODEC = StreamCodec.composite(
-		TypeOrTagPredicate.streamCodec(ResourceKey.streamCodec(Registries.DAMAGE_TYPE), TagKey.streamCodec(Registries.DAMAGE_TYPE)), CheckDamageTypeCondition::predicate,
+		EitherHolder.streamCodec(Registries.DAMAGE_TYPE), CheckDamageTypeCondition::predicate,
 		DamageSourceProvider.STREAM_CODEC, CheckDamageTypeCondition::damageSource,
 		CheckDamageTypeCondition::new
 	);
@@ -37,9 +35,9 @@ public record CheckDamageTypeCondition(TypeOrTagPredicate<DamageType> predicate,
 	@Override
 	public boolean test(Context context) {
 		return damageSource().getValue(context.forChild(".damage_source"))
+			.stream()
 			.map(DamageSource::typeHolder)
-			.filter(type -> predicate().test(type::is, type::is))
-			.isPresent();
+			.anyMatch(type -> predicate().keyOrTag().map(type::is, type::is));
 	}
 
 	@Override

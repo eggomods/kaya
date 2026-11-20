@@ -8,23 +8,21 @@ import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.provider.custom.block.BlockProvider;
 import io.github.eggohito.kaya.registry.KayaConditionTypes;
 import io.github.eggohito.kaya.util.CachedBlock;
-import io.github.eggohito.kaya.util.TypeOrTagPredicate;
+import io.github.eggohito.kaya.util.EitherHolder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 
-public record CheckBlockTypeCondition(TypeOrTagPredicate<Block> predicate, BlockProvider block) implements Condition {
+public record CheckBlockTypeCondition(EitherHolder<Block> predicate, BlockProvider block) implements Condition {
 
 	public static final MapCodec<CheckBlockTypeCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		TypeOrTagPredicate.mapCodec(ResourceKey.codec(Registries.BLOCK), TagKey.hashedCodec(Registries.BLOCK)).forGetter(CheckBlockTypeCondition::predicate),
+		EitherHolder.mapCodec(Registries.BLOCK).forGetter(CheckBlockTypeCondition::predicate),
 		BlockProvider.CODEC.fieldOf("block").forGetter(CheckBlockTypeCondition::block)
 	).apply(instance, CheckBlockTypeCondition::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, CheckBlockTypeCondition> STREAM_CODEC = StreamCodec.composite(
-		TypeOrTagPredicate.streamCodec(ResourceKey.streamCodec(Registries.BLOCK), TagKey.streamCodec(Registries.BLOCK)), CheckBlockTypeCondition::predicate,
+		EitherHolder.streamCodec(Registries.BLOCK), CheckBlockTypeCondition::predicate,
 		BlockProvider.STREAM_CODEC, CheckBlockTypeCondition::block,
 		CheckBlockTypeCondition::new
 	);
@@ -37,9 +35,9 @@ public record CheckBlockTypeCondition(TypeOrTagPredicate<Block> predicate, Block
 	@Override
 	public boolean test(Context context) {
 		return block().getValue(context.forChild(".block"))
+			.stream()
 			.map(CachedBlock::state)
-			.filter(state -> predicate().test(state::is, state::is))
-			.isPresent();
+			.anyMatch(state -> predicate().keyOrTag().map(state::is, state::is));
 	}
 
 	@Override
