@@ -7,24 +7,22 @@ import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.provider.custom.effect.EffectProvider;
 import io.github.eggohito.kaya.registry.KayaConditionTypes;
-import io.github.eggohito.kaya.util.TypeOrTagPredicate;
+import io.github.eggohito.kaya.util.EitherHolder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 
-public record CheckEffectTypeCondition(TypeOrTagPredicate<MobEffect> predicate, EffectProvider effect) implements Condition {
+public record CheckEffectTypeCondition(EitherHolder<MobEffect> predicate, EffectProvider effect) implements Condition {
 
 	public static final MapCodec<CheckEffectTypeCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-		TypeOrTagPredicate.mapCodec(ResourceKey.codec(Registries.MOB_EFFECT), TagKey.hashedCodec(Registries.MOB_EFFECT)).forGetter(CheckEffectTypeCondition::predicate),
+		EitherHolder.mapCodec(Registries.MOB_EFFECT).forGetter(CheckEffectTypeCondition::predicate),
 		EffectProvider.CODEC.fieldOf("effect").forGetter(CheckEffectTypeCondition::effect)
 	).apply(instance, CheckEffectTypeCondition::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, CheckEffectTypeCondition> STREAM_CODEC = StreamCodec.composite(
-		TypeOrTagPredicate.streamCodec(ResourceKey.streamCodec(Registries.MOB_EFFECT), TagKey.streamCodec(Registries.MOB_EFFECT)), CheckEffectTypeCondition::predicate,
+		EitherHolder.streamCodec(Registries.MOB_EFFECT), CheckEffectTypeCondition::predicate,
 		EffectProvider.STREAM_CODEC, CheckEffectTypeCondition::effect,
 		CheckEffectTypeCondition::new
 	);
@@ -37,9 +35,9 @@ public record CheckEffectTypeCondition(TypeOrTagPredicate<MobEffect> predicate, 
 	@Override
 	public boolean test(Context context) {
 		return effect().getValue(context.forChild(".effect"))
+			.stream()
 			.map(MobEffectInstance::getEffect)
-			.filter(effect -> predicate().test(effect::is, effect::is))
-			.isPresent();
+			.anyMatch(effect -> predicate().keyOrTag().map(effect::is, effect::is));
 	}
 
 	@Override

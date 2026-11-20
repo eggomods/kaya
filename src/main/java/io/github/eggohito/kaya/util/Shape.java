@@ -92,7 +92,7 @@ public enum Shape {
 
 				while (iterator.hasNext()) {
 
-					BlockPos pos = iterator.next();
+					BlockPos pos = iterator.next().immutable();
 					CachedBlock block = CachedBlock.optionallyFromLoadedPos(level, pos).orElse(null);
 
 					if (block != null && Shape.this.getDistance(pos.getCenter(), center) <= radius) {

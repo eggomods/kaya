@@ -36,6 +36,7 @@ import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
@@ -183,7 +184,7 @@ public record ModifyPlayerSpawnPower(ResourceKey<Level> dimension, Optional<Eith
 			spawnPos = this.findBiomeLocation(dimension, spawnPos, horizontalStep, verticalStep, radius);
 			spawnPos = this.findStructureLocation(dimension, spawnPos, radius);
 
-			BlockPos adjustedPos = MiscUtil.adjustSpawnLocationSafely(player, dimension, spawnPos);
+			BlockPos adjustedPos = MiscUtil.adjustSpawnLocationSafely(Heightmap.Types.OCEAN_FLOOR, player, dimension, spawnPos);
 
 			if (adjustedPos == null) {
 				throw new CompletionException("Could not find a safe location at " + spawnPos.toShortString(), null);

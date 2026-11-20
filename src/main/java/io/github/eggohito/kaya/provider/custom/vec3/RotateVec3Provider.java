@@ -1,4 +1,4 @@
-package io.github.eggohito.kaya.provider.custom.number.floats;
+package io.github.eggohito.kaya.provider.custom.vec3;
 
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
@@ -6,7 +6,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.eggohito.kaya.context.Context;
 import io.github.eggohito.kaya.context.ContextValidator;
 import io.github.eggohito.kaya.provider.custom.number.FloatProvider;
-import io.github.eggohito.kaya.provider.custom.vec3.Vec3Provider;
 import io.github.eggohito.kaya.registry.provider.KayaVec3ProviderTypes;
 import io.github.eggohito.kaya.util.MiscUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
