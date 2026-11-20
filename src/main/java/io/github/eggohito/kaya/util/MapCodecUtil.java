@@ -37,7 +37,7 @@ public class MapCodecUtil {
 		};
 	}
 
-	public static <T> MapCodec<T> either(MapCodec<T> primary, MapCodec<? extends T> secondary) {
+	public static <T> MapCodec<T> withAlternative(MapCodec<T> primary, MapCodec<? extends T> secondary) {
 		return Codec.mapEither(
 			primary,
 			secondary

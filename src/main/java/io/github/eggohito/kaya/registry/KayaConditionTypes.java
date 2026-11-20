@@ -38,6 +38,7 @@ public final class KayaConditionTypes {
 	public static final Condition.Type<IsEntityFallFlyingCondition> IS_ENTITY_FALL_FLYING = registerInternal("is_entity_fall_flying", IsEntityFallFlyingCondition.CODEC, IsEntityFallFlyingCondition.STREAM_CODEC);
 	public static final Condition.Type<IsEntityHorizontallyCollidingCondition> IS_ENTITY_HORIZONTALLY_COLLIDING = registerInternal("is_entity_horizontally_colliding", IsEntityHorizontallyCollidingCondition.CODEC, IsEntityHorizontallyCollidingCondition.STREAM_CODEC);
 	public static final Condition.Type<IsEntityInvisibleCondition> IS_ENTITY_INVISIBLE = registerInternal("is_entity_invisible", IsEntityInvisibleCondition.CODEC, IsEntityInvisibleCondition.STREAM_CODEC);
+	public static final Condition.Type<IsEntityLookingAtCondition> IS_ENTITY_LOOKING_AT = registerInternal("is_entity_looking_at", IsEntityLookingAtCondition.CODEC, IsEntityLookingAtCondition.STREAM_CODEC);
 	public static final Condition.Type<IsEntityOnFireCondition> IS_ENTITY_ON_FIRE = registerInternal("is_entity_on_fire", IsEntityOnFireCondition.CODEC, IsEntityOnFireCondition.STREAM_CODEC);
 	public static final Condition.Type<IsEntityOwnedByOtherCondition> IS_ENTITY_OWNED_BY_OTHER = registerInternal("is_entity_owned_by_other", IsEntityOwnedByOtherCondition.CODEC, IsEntityOwnedByOtherCondition.STREAM_CODEC);
 	public static final Condition.Type<IsEntitySneakingCondition> IS_ENTITY_SNEAKING = registerInternal("is_entity_sneaking", IsEntitySneakingCondition.CODEC, IsEntitySneakingCondition.STREAM_CODEC);
